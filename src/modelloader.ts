@@ -2,26 +2,31 @@ import * as BABYLON from "@babylonjs/core";
 
 export class ModelLoader {
     private scene: BABYLON.Scene;
+    private shadowGenerator: BABYLON.ShadowGenerator;
     private preloadedMeshes: Map<string, BABYLON.Mesh>;
+    private spawnCount: number = 0;
 
-    constructor(scene: BABYLON.Scene) {
+    constructor(scene: BABYLON.Scene, shadowGenerator: BABYLON.ShadowGenerator) {
         this.scene = scene;
+        this.shadowGenerator = shadowGenerator;
         this.preloadedMeshes = new Map<string, BABYLON.Mesh>();
     }
 
     public preloadModel(modelUrl: string): Promise<void> {
         return new Promise((resolve, reject) => {
             BABYLON.SceneLoader.ImportMesh(
-                "", // Leave empty to load all meshes
+                "",
                 modelUrl,
                 "",
                 this.scene,
                 (meshes) => {
                     if (meshes.length > 0) {
-                        if (meshes[0] instanceof BABYLON.Mesh) {
-                        this.preloadedMeshes.set(modelUrl, meshes[0]);
-                        meshes[0].setEnabled(false); // Hide the preloaded mesh
-                        resolve();
+                        const mesh = meshes[1]
+                        if (mesh instanceof BABYLON.Mesh) {
+                            mesh.setEnabled(false);
+
+                            this.preloadedMeshes.set(modelUrl, mesh);
+                            resolve();
                         } else {
                             reject(new Error("No meshes were loaded"));
                             return;
@@ -41,9 +46,12 @@ export class ModelLoader {
     public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh | null {
         const preloadedMesh = this.preloadedMeshes.get(modelUrl);
         if (preloadedMesh) {
-            const instance = preloadedMesh.createInstance(`instance_${Date.now()}`);
+            const instance = preloadedMesh.createInstance(`${modelUrl}_instance_${this.spawnCount++}`);
             instance.position = position;
-            instance.setEnabled(true); // Show the instance
+            instance.setEnabled(true);
+
+            this.shadowGenerator.getShadowMap().renderList.push(instance);
+
             return instance;
         } else {
             console.error("Model not preloaded");
