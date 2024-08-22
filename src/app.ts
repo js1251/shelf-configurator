@@ -6,9 +6,17 @@ import * as CAMERA from "./camera";
 import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf";
+import { new_shelf } from "./new_shelf";
 
 class App {
     constructor() {
+        const test = new new_shelf();
+        test.setHeight(5.4);
+        test.setNumberOfStruts(16);
+
+        const serialized = test.serialize();
+        const deserialized = new_shelf.deserialize(serialized);
+
         // create the canvas html element and attach it to the webpage
         var canvas = document.createElement("canvas");
         canvas.style.width = "100%";

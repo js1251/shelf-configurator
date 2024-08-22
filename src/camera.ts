@@ -13,8 +13,23 @@ export const createCamera = (scene: BABYLON.Scene, canvas: HTMLCanvasElement): B
     camera.upperBetaLimit = 95 * Math.PI / 180;
 
     // limit left right rotation to -22.5 to 22.5 degrees
-    camera.lowerAlphaLimit = Math.PI / 4;
-    camera.upperAlphaLimit = Math.PI - Math.PI / 4;
+    //camera.lowerAlphaLimit = Math.PI / 4;
+    //camera.upperAlphaLimit = Math.PI - Math.PI / 4;
 
+
+    // always zoom to mouse position
+    camera.attachControl(canvas, true);
+    camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+    const mouseWheelInput = new BABYLON.ArcRotateCameraMouseWheelInput();
+    mouseWheelInput.wheelPrecision = 50;
+    mouseWheelInput.zoomToMouseLocation = true;
+
+    // make it so when zooming in you zoom in on the mouse position
+    // but when zooming out you zoom out from the center of the screen
+
+    mouseWheelInput.wheelDeltaPercentage = 0.01;
+
+
+    camera.inputs.add(mouseWheelInput);
     return camera;
 };
