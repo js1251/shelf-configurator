@@ -31,6 +31,7 @@ export class Shelf {
 
         this.setStrutSpacing(0.5);
 
+        this.addBoard(0.4, 1, 3);
         this.addBoard(0.8, 0, 2);
         this.addBoard(1.0, 2, 3);
         this.addBoard(1.2, 1, 2);
@@ -69,6 +70,11 @@ export class Shelf {
     addStrutToStart() {
         this.struts.unshift(new Strut(this.scene, this.modelloader, this.root, this.getHeight(), 0, 0));
 
+        // update all struts indices
+        for (let i = 0; i < this.struts.length; i++) {
+            this.struts[i].setIndex(i);
+        }
+
         // update all boards start and end struts
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
@@ -81,21 +87,27 @@ export class Shelf {
         this.struts.push(new Strut(this.scene, this.modelloader, this.root, this.getHeight(), 0, this.struts.length));
     }
 
-    removeStrut(strut: Strut) {
-        // only allow first or last strut to be removed
-        if (strut !== this.struts[0] && strut !== this.struts[this.struts.length - 1]) {
-            throw new Error("Can only remove first or last strut");
+    removeStrutAtStart() {
+        if (this.struts.length < 2) {
+            throw new Error("Cannot remove last strut");
         }
 
-        const index = this.struts.indexOf(strut);
-        if (index > -1) {
-            this.struts.splice(index, 1);
+        this.struts.shift().remove();
+
+        // update all boards start and end struts
+        for (let i = 0; i < this.boards.length; i++) {
+            const board = this.boards[i];
+            board.setStartStrut(this.struts[board.getStartStrut().getIndex() - 1]);
+            board.setEndStrut(this.struts[board.getEndStrut().getIndex() - 1]);
+        }
+    }
+
+    removeStrutAtEnd() {
+        if (this.struts.length < 2) {
+            throw new Error("Cannot remove last strut");
         }
 
-        // update strut offsets
-        for (let i = 0; i < this.struts.length; i++) {
-            this.struts[i].setOffset(i * this.getStrutSpacing());
-        }
+        this.struts.pop().remove();
     }
 
     setStrutSpacing(spacing: number) {
@@ -140,6 +152,8 @@ export class Shelf {
     }
 
     removeBoard(board: Board) {
+        board.remove();
+
         const index = this.boards.indexOf(board);
         if (index > -1) {
             this.boards.splice(index, 1);

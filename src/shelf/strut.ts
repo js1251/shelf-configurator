@@ -71,6 +71,10 @@ export class Strut {
         return this.strut;
     }
 
+    remove() {
+        this.strut.dispose();
+    }
+
     private spawnStrut() {
         this.strut = this.modelloader.createInstance("models/strut.glb", BABYLON.Vector3.Zero());
         this.strut.setEnabled(true);
