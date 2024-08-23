@@ -5,18 +5,11 @@ import * as BABYLON from "@babylonjs/core";
 import * as CAMERA from "./camera";
 import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
-import { Shelf } from "./shelf";
-import { new_shelf } from "./new_shelf";
+import { Shelf } from "./shelf/shelf";
+import { shelf_builder } from "./shelf_builder";
 
 class App {
     constructor() {
-        const test = new new_shelf();
-        test.setHeight(5.4);
-        test.setNumberOfStruts(16);
-
-        const serialized = test.serialize();
-        const deserialized = new_shelf.deserialize(serialized);
-
         // create the canvas html element and attach it to the webpage
         var canvas = document.createElement("canvas");
         canvas.style.width = "100%";
@@ -49,11 +42,11 @@ class App {
         const modelLoader = new ModelLoader(scene, shadowGenerator);
         // wait for all models to be loaded and create shelf afterwards
         Promise.all(modelUrls.map(url => modelLoader.preloadModel(url))).then(() => {
-            const shelf = new Shelf(scene, modelLoader, new BABYLON.Vector3(0, 0, 0));
-            shelf.setStruts(2.4, 0.5, 4);
-
-            shelf.addShelf(1, 0, 2);
-            shelf.addShelf(0.8, 2, 3);
+            const shelf_root = new BABYLON.Node("shelf_root", scene);
+            const shelf = new Shelf(scene, modelLoader, shelf_root);
+            
+            //const shelfBuilder = new shelf_builder(scene, modelLoader, new BABYLON.Vector3(0, 0, 0), shelf);
+            //shelfBuilder.buildShelf();
         });
 
         document.addEventListener("shelfChange", (e) => {

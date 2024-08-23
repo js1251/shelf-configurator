@@ -6,10 +6,14 @@ export class ModelLoader {
     private preloadedMeshes: Map<string, BABYLON.Mesh>;
     private spawnCount: number = 0;
 
+    private root: BABYLON.Node;
+
     constructor(scene: BABYLON.Scene, shadowGenerator: BABYLON.ShadowGenerator) {
         this.scene = scene;
         this.shadowGenerator = shadowGenerator;
         this.preloadedMeshes = new Map<string, BABYLON.Mesh>();
+
+        this.root = new BABYLON.Node("model_root", scene);
     }
 
     public preloadModel(modelUrl: string): Promise<void> {
