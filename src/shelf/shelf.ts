@@ -94,11 +94,35 @@ export class Shelf {
 
         this.struts.shift().remove();
 
+        for (let i = 0; i < this.struts.length; i++) {
+            const strut = this.struts[i];
+            strut.setIndex(strut.getIndex() - 1);
+        }
+
         // update all boards start and end struts
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
-            board.setStartStrut(this.struts[board.getStartStrut().getIndex() - 1]);
-            board.setEndStrut(this.struts[board.getEndStrut().getIndex() - 1]);
+            const startIndex = board.getStartStrut().getIndex() + 1;
+            const endIndex = board.getEndStrut().getIndex() + 1;
+
+            if (startIndex === 1) {
+                if (endIndex - startIndex > 0) {
+                    // shorten the board
+                    board.setStartStrut(this.struts[startIndex - 1]);
+                } else {
+                    // the board needs to be removed
+                    const index = this.boards.indexOf(board);
+                    if (index > -1) {
+                        board.remove()
+                        this.boards.splice(index, 1);
+                    }
+
+                    continue;
+                }
+            }
+
+            board.setStartStrut(this.struts[startIndex - 1]);
+            board.setEndStrut(this.struts[endIndex - 1]);
         }
     }
 
@@ -108,6 +132,26 @@ export class Shelf {
         }
 
         this.struts.pop().remove();
+
+        for (let i = 0; i < this.boards.length; i++) {
+            const board = this.boards[i];
+            const startIndex = board.getStartStrut().getIndex();
+            const endIndex = board.getEndStrut().getIndex();
+
+            if (endIndex >= this.struts.length) {
+                if (endIndex - startIndex === 1) {
+                    const index = this.boards.indexOf(board);
+                    if (index > -1) {
+                        board.remove()
+                        this.boards.splice(index, 1);
+                    }
+
+                    continue;
+                }
+
+                board.setEndStrut(this.struts[endIndex - 1]);
+            }
+        }
     }
 
     setStrutSpacing(spacing: number) {

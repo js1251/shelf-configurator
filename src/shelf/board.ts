@@ -66,18 +66,6 @@ export class Board {
     }
 
     setEndStrut(endStrut: Strut) {
-        if (this.startStrut === null) {
-            throw new Error("Start strut is not set");
-        }
-
-        if (endStrut.getIndex() < this.startStrut.getIndex()) {
-            throw new Error("End strut must be after start strut");
-        }
-
-        if (endStrut.getOffset() < this.startStrut.getOffset()) {
-            throw new Error("End strut must be after start strut");
-        }
-
         this.endStrut = endStrut;
 
         this.end.setParent(null);
