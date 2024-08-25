@@ -7,6 +7,7 @@ import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
 import { shelf_builder } from "./shelf_builder";
+import { expand, shorten } from "./stringDecoder";
 
 class App {
     constructor() {
@@ -44,9 +45,6 @@ class App {
         Promise.all(modelUrls.map(url => modelLoader.preloadModel(url))).then(() => {
             const shelf_root = new BABYLON.Node("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
-            
-            //const shelfBuilder = new shelf_builder(scene, modelLoader, new BABYLON.Vector3(0, 0, 0), shelf);
-            //shelfBuilder.buildShelf();
         });
 
         document.addEventListener("shelfChange", (e) => {

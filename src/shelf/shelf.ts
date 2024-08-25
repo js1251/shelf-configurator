@@ -14,8 +14,8 @@ export class Shelf {
 
     private root: BABYLON.Node;
 
-    static HEADER_SERIALIZED_LENGTH = 7;
-    static BOARD_SERIALIZED_LENGTH = 6;
+    static HEADER_SERIALIZED_LENGTH = 6;
+    static BOARD_SERIALIZED_LENGTH = 5;
 
     constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node) {
         this.scene = scene;
@@ -41,8 +41,8 @@ export class Shelf {
     }
 
     setHeight(height_m: number) {
-        // cant be higher than 655.35 meters (due to serialization using two bytes for height)
-        if (height_m > 655.35) {
+        // cant be higher than 616.95 meters (due to serialization using two bytes for height)
+        if (height_m > 616.95) {
             throw new Error("Height is too high");
         }
 
@@ -215,7 +215,7 @@ export class Shelf {
         const height = this.height_m * 100;
         const height_bytes = new Uint16Array([height]);
         // serialize as hex string (big endian, padded with leading zeros)
-        serialized += height_bytes[0].toString(16).padStart(4, "0");
+        serialized += height_bytes[0].toString(16).padStart(3, "0");
 
         // serialize number of struts in one byte
         const numberOfStruts = this.struts.length - 1;
@@ -233,7 +233,7 @@ export class Shelf {
             const board = this.boards[i];
 
             // serialize height in two bytes
-            serialized += new Uint16Array([board.getHeight() * 100])[0].toString(16).padStart(4, "0");
+            serialized += new Uint16Array([board.getHeight() * 100])[0].toString(16).padStart(3, "0");
 
             // serialize start strut in one byte
             serialized += board.getStartStrut().getIndex().toString(16);
@@ -247,31 +247,48 @@ export class Shelf {
 
     static deserialize(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node, data: string): Shelf {
         const shelf = new Shelf(scene, modelloader, root);
+        
+        // remove the default config parts
+        shelf.remove();
 
-        // first four chars are the height in hex
-        shelf.setHeight(parseInt(data.substr(0, 4), 16) / 100);
+        // first three chars are the height in hex
+        shelf.setHeight(parseInt("0" + data.substr(0, 3), 16) / 100);
 
         // next char is the number of struts in hex with leading zeros removed
-        const numStruts = parseInt(data.substr(4, 1), 16) + 1;
+        const numStruts = parseInt(data.substr(3, 1), 16) + 1;
         for (let i = 0; i < numStruts; i++) {
             shelf.addStrutToEnd();
         }
 
         // next two chars are the strut spacing in hex
-        shelf.setStrutSpacing(parseInt(data.substr(5, 2), 16) / 100);
+        shelf.setStrutSpacing(parseInt(data.substr(4, 2), 16) / 100);
 
         // the rest of the data is the boards
         for (let i = Shelf.HEADER_SERIALIZED_LENGTH; i < data.length; i += Shelf.BOARD_SERIALIZED_LENGTH) {
             const board_data = data.substr(i, Shelf.BOARD_SERIALIZED_LENGTH);
 
-            const board_height = parseInt(board_data.substr(0, 4), 16) / 100;
+            const board_height = parseInt("0" + board_data.substr(0, 3), 16) / 100;
 
-            const startStrut = parseInt(board_data.substr(4, 1), 16);
-            const endStrut = parseInt(board_data.substr(5, 1), 16);
+            const startStrut = parseInt(board_data.substr(3, 1), 16);
+            const endStrut = parseInt(board_data.substr(4, 1), 16);
 
             shelf.boards.push(new Board(scene, modelloader, root, board_height, shelf.struts[startStrut], shelf.struts[endStrut]));
         }
 
         return shelf;
+    }
+
+    remove() {
+        for (let i = 0; i < this.struts.length; i++) {
+            this.struts[i].remove();
+        }
+
+        this.struts = [];
+
+        for (let i = 0; i < this.boards.length; i++) {
+            this.boards[i].remove();
+        }
+
+        this.boards = [];
     }
 }
