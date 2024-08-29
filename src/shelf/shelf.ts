@@ -255,6 +255,13 @@ export class Shelf {
         return this.boards;
     }
 
+    getBoundingBox(): BABYLON.BoundingBox {
+        const min = new BABYLON.Vector3(-0.1, 0, -0.1);
+        const max = new BABYLON.Vector3(this.getStrutSpacing() * (this.getStruts().length - 1) + 0.1, this.getHeight(), 0.1);
+
+        return new BABYLON.BoundingBox(min, max);
+    }
+
     serialize(): string {
         var serialized = "";
 
