@@ -8,6 +8,7 @@ import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
 import { shelf_builder } from "./shelf_builder";
 import { expand, shorten } from "./stringDecoder";
+import { Measurements } from "./measurements";
 
 class App {
     constructor() {
@@ -45,15 +46,34 @@ class App {
         Promise.all(modelUrls.map(url => modelLoader.preloadModel(url))).then(() => {
             const shelf_root = new BABYLON.Node("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
-        });
 
-        document.addEventListener("shelfChange", (e) => {
-            const bbox = (e as CustomEvent).detail as BABYLON.BoundingBox;
+            let measurements = new Measurements(scene, shelf, camera);
 
-            // focus camera on bounding box center
-            const center = bbox.center;
+            document.addEventListener("Shelf.Board.Change", (e) => {
+                const detail = (e as CustomEvent).detail;
+                const board = detail.board;
 
-            camera.setTarget(center);
+                measurements.updateBoardMeasurement(board);
+            });
+
+            document.addEventListener("Shelf.Board.Grabbed", (e) => {
+                const detail = (e as CustomEvent).detail;
+                const board = detail.board;
+
+                measurements.enableForBoard(board);
+            });
+
+            document.addEventListener("Shelf.Board.Released", (e) => {
+                const detail = (e as CustomEvent).detail;
+                const board = detail.board;
+
+                measurements.disableForBoard(board);
+            });
+
+            document.addEventListener("Shelf.bbox.Change", (e) => {
+                const detail = (e as CustomEvent).detail;
+                const shelf = detail.shelf;
+            });
         });
 
         // hide/show the Inspector

@@ -2,6 +2,7 @@ import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./../modelloader";
 import { Board } from "./board";
 import { Strut } from "./strut";
+import { ThinParticleSystem } from "@babylonjs/core/Particles/thinParticleSystem";
 
 export class Shelf {
     private height_m: number;
@@ -57,6 +58,8 @@ export class Shelf {
         for (let i = 0; i < this.struts.length; i++) {
             this.struts[i].setHeight(this.height_m);
         }
+
+        this.fireBboxChanged();
     }
 
     getHeight(): number {
@@ -81,10 +84,13 @@ export class Shelf {
             board.setStartStrut(this.struts[board.getStartStrut().getIndex() + 1]);
             board.setEndStrut(this.struts[board.getEndStrut().getIndex() + 1]);
         }
+
+        this.fireBboxChanged();
     }
 
     addStrutToEnd() {
         this.struts.push(new Strut(this.scene, this.modelloader, this.root, this.getHeight(), 0, this.struts.length));
+        this.fireBboxChanged();
     }
 
     removeStrutAtStart() {
@@ -119,6 +125,8 @@ export class Shelf {
             board.setStartStrut(this.struts[startIndex - 1]);
             board.setEndStrut(this.struts[endIndex - 1]);
         }
+
+        this.fireBboxChanged();
     }
 
     removeStrutAtEnd() {
@@ -148,6 +156,8 @@ export class Shelf {
                 board.setEndStrut(this.struts[endIndex - 1]);
             }
         }
+
+        this.fireBboxChanged();
     }
 
     setStrutSpacing(spacing: number) {
@@ -165,6 +175,8 @@ export class Shelf {
         for (let i = 0; i < this.struts.length; i++) {
             this.struts[i].setOffset(i * spacing);
         }
+        
+        this.fireBboxChanged();
     }
 
     getStrutSpacing(): number {
@@ -206,15 +218,27 @@ export class Shelf {
         }
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
+            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
             currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
+            this.fireBoardGrabbed(board);
+        });
+
+        pointerDragBehavior.onDragEndObservable.add((event) => {
+            this.fireBoardReleased(board);
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
-            const currentPosition = event.dragPlanePoint;
-    
-            const snappedPosition = Math.round(currentPosition.y / increment) * increment;
-            board.setHeight(snappedPosition);
+            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
 
+            const currentPosition = event.dragPlanePoint;
+            let updateRequired = false;
+
+            const snappedPosition = Math.round(currentPosition.y / increment) * increment;
+            if (snappedPosition !== board.getHeight()) {
+                board.setHeight(snappedPosition);
+                updateRequired = true;
+            }
+            
             const startStrut = board.getStartStrut();
             const startIndex = startStrut.getIndex();
             const endStrut = board.getEndStrut();
@@ -227,6 +251,7 @@ export class Shelf {
                 board.setEndStrut(this.struts[endIndex - 1]);
 
                 currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+                updateRequired = true;
             }
             
             if (endIndex < this.struts.length - 1 && strutTransition > this.getStrutSpacing()) {
@@ -234,9 +259,14 @@ export class Shelf {
                 board.setStartStrut(this.struts[startIndex + 1]);
 
                 currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+                updateRequired = true;
             }
     
             event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, snappedPosition, currentPosition.z));
+
+            if (updateRequired) {
+                this.fireBoardChanged(board);
+            }
         });
 
         boardNode.addBehavior(pointerDragBehavior);
@@ -344,5 +374,44 @@ export class Shelf {
         }
 
         this.boards = [];
+    }
+
+    private fireBoardChanged(board: Board) {
+        const event = new CustomEvent("Shelf.Board.Change", {
+            detail: {
+                shelf: this,
+                board: board
+            }
+        });
+        document.dispatchEvent(event);
+    }
+
+    private fireBboxChanged() {
+        const event = new CustomEvent("Shelf.bbox.Change", {
+            detail: {
+                shelf: this
+            }
+        });
+        document.dispatchEvent(event);
+    }
+
+    private fireBoardGrabbed(board: Board) {
+        const event = new CustomEvent("Shelf.Board.Grabbed", {
+            detail: {
+                shelf: this,
+                board: board
+            }
+        });
+        document.dispatchEvent(event);
+    }
+
+    private fireBoardReleased(board: Board) {
+        const event = new CustomEvent("Shelf.Board.Released", {
+            detail: {
+                shelf: this,
+                board: board
+            }
+        });
+        document.dispatchEvent(event);
     }
 }
