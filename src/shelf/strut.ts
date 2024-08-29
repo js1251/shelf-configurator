@@ -46,14 +46,14 @@ export class Strut {
         this.footTop.setParent(null);
         this.footBottom.setParent(null);
 
-        this.strut.position = new BABYLON.Vector3(this.offset, this.height_m / 2 + 0.05, 0);
-        this.strut.scaling.y = this.height_m * 10;
+        this.strut.position = new BABYLON.Vector3(this.offset, this.height_m / 2, 0);
+        this.strut.scaling.y = (this.height_m - 0.04 * 2) * 10;
         this.strut.setParent(this.root);
 
-        this.footTop.position = new BABYLON.Vector3(this.offset, this.height_m + 0.05, 0);
+        this.footTop.position = new BABYLON.Vector3(this.offset, this.height_m - 0.04, 0);
         this.footTop.setParent(this.strut);
 
-        this.footBottom.position = new BABYLON.Vector3(this.offset, 0.05, 0);
+        this.footBottom.position = new BABYLON.Vector3(this.offset, 0.04, 0);
         this.footBottom.setParent(this.strut);
     }
 
