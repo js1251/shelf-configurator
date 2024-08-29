@@ -83,6 +83,10 @@ export class Board {
         this.start.dispose();
     }
 
+    getBabylonNode(): BABYLON.AbstractMesh {
+        return this.start;
+    }
+
     private spawnBoard() {
         const spawnPosition = BABYLON.Vector3.Zero();
 

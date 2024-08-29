@@ -188,7 +188,58 @@ export class Shelf {
             throw new Error("Start strut must be before end strut");
         }
 
-        this.boards.push(new Board(this.scene, this.modelloader, this.root, height, this.struts[startStrut], this.struts[endStrut]));
+        const board = new Board(this.scene, this.modelloader, this.root, height, this.struts[startStrut], this.struts[endStrut]);
+        this.boards.push(board);
+
+        const boardNode = board.getBabylonNode();
+    
+        const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
+        pointerDragBehavior.useObjectOrientationForDragging = false;
+        pointerDragBehavior.updateDragPlane = false;
+        pointerDragBehavior.moveAttached = false;
+
+        const increment = 0.01; // Define the increment value
+        let currentStrutPosX = 0; // Define the start position
+
+        const getCurrentStrutPosX = (xPos: number): number => {
+            return Math.floor(xPos / this.getStrutSpacing()) * this.getStrutSpacing();
+        }
+
+        pointerDragBehavior.onDragStartObservable.add((event) => {
+            currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
+        });
+
+        pointerDragBehavior.onDragObservable.add((event) => {
+            const currentPosition = event.dragPlanePoint;
+    
+            const snappedPosition = Math.round(currentPosition.y / increment) * increment;
+            board.setHeight(snappedPosition);
+
+            const startStrut = board.getStartStrut();
+            const startIndex = startStrut.getIndex();
+            const endStrut = board.getEndStrut();
+            const endIndex = endStrut.getIndex();
+
+            const strutTransition = currentPosition.x - currentStrutPosX;
+
+            if (startIndex > 0 && strutTransition < 0) {
+                board.setStartStrut(this.struts[startIndex - 1]);
+                board.setEndStrut(this.struts[endIndex - 1]);
+
+                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+            }
+            
+            if (endIndex < this.struts.length - 1 && strutTransition > this.getStrutSpacing()) {
+                board.setEndStrut(this.struts[endIndex + 1]);
+                board.setStartStrut(this.struts[startIndex + 1]);
+
+                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+            }
+    
+            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, snappedPosition, currentPosition.z));
+        });
+
+        boardNode.addBehavior(pointerDragBehavior);
     }
 
     removeBoard(board: Board) {
