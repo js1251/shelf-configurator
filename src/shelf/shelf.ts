@@ -88,10 +88,6 @@ export class Shelf {
     }
 
     removeStrutAtStart() {
-        if (this.struts.length < 2) {
-            throw new Error("Cannot remove last strut");
-        }
-
         this.struts.shift().remove();
 
         for (let i = 0; i < this.struts.length; i++) {
@@ -100,11 +96,10 @@ export class Shelf {
         }
 
         // update all boards start and end struts
-        for (let i = 0; i < this.boards.length; i++) {
+        for (let i = this.boards.length - 1; i >= 0; i--) {
             const board = this.boards[i];
             const startIndex = board.getStartStrut().getIndex() + 1;
             const endIndex = board.getEndStrut().getIndex() + 1;
-
             if (startIndex === 1) {
                 if (endIndex - startIndex > 0) {
                     // shorten the board
@@ -133,7 +128,8 @@ export class Shelf {
 
         this.struts.pop().remove();
 
-        for (let i = 0; i < this.boards.length; i++) {
+        // iterate backwards to avoid index out of bounds
+        for (let i = this.boards.length - 1; i >= 0; i--) {
             const board = this.boards[i];
             const startIndex = board.getStartStrut().getIndex();
             const endIndex = board.getEndStrut().getIndex();
