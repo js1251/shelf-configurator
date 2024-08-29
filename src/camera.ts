@@ -16,6 +16,8 @@ export const createCamera = (scene: BABYLON.Scene, canvas: HTMLCanvasElement): B
     //camera.lowerAlphaLimit = Math.PI / 4;
     //camera.upperAlphaLimit = Math.PI - Math.PI / 4;
 
+    // set default camera rotation to 180 degrees
+    camera.alpha = -Math.PI / 2;
 
     // always zoom to mouse position
     camera.attachControl(canvas, true);
@@ -28,7 +30,6 @@ export const createCamera = (scene: BABYLON.Scene, canvas: HTMLCanvasElement): B
     // but when zooming out you zoom out from the center of the screen
 
     mouseWheelInput.wheelDeltaPercentage = 0.01;
-
 
     camera.inputs.add(mouseWheelInput);
     return camera;
