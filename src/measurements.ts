@@ -134,6 +134,7 @@ export class Measurements {
         line.enableEdgesRendering();
         line.edgesWidth = 1.5;
         line.edgesColor = BABYLON.Color4.FromColor3(color);
+        line.renderingGroupId = 1;
 
         // create a billboard rectangle in the middle of the main line
         const middle = end.subtract(start).scale(0.5).add(start);
@@ -156,6 +157,7 @@ export class Measurements {
         const textMaterial = new BABYLON.StandardMaterial("textMaterial", this.scene);
         textMaterial.diffuseTexture = dynamicTexture;
         textMaterial.diffuseTexture.hasAlpha = true;
+        textMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
 
         const plane = BABYLON.MeshBuilder.CreatePlane("floatingText", { width: 1, height: 0.5 }, this.scene);
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -215,6 +217,7 @@ export class Measurements {
         endLine.enableEdgesRendering();
         endLine.edgesWidth = width;
         endLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
+        endLine.renderingGroupId = 1;
 
         endOptions.points = [
             start.add(ortho.scale(0.04)),
@@ -224,9 +227,10 @@ export class Measurements {
         const startLine = BABYLON.MeshBuilder.CreateLines(`line_${this.lineId++}`, endOptions, this.scene);
         startLine.color = lineColor;
         startLine.setParent(line);
+        startLine.enableEdgesRendering();
         startLine.edgesWidth = width;
         startLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
-        startLine.enableEdgesRendering();
+        startLine.renderingGroupId = 1;
     }
 
     private respondeMeasurementsToCamera() {

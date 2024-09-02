@@ -6,8 +6,6 @@ import * as CAMERA from "./camera";
 import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
-import { shelf_builder } from "./shelf_builder";
-import { expand, shorten } from "./stringDecoder";
 import { Measurements } from "./measurements";
 
 class App {
@@ -23,27 +21,54 @@ class App {
         var engine = new BABYLON.Engine(canvas, true);
         var scene = new BABYLON.Scene(engine);
 
-        const environment = scene.createDefaultEnvironment();
+        //const environment = scene.createDefaultEnvironment();
 
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(scene, canvas);
         camera.attachControl(canvas, true);
         
         var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-0.5, 1, 0), scene);
 
-        const shadowGenerator = ENVIRONMENT.createEnvironment(scene);
+        const environment = new ENVIRONMENT.Environment(scene);
+        const shadowGenerator = environment.getShadowGenerator();
+
+        const strutMaterial = new BABYLON.StandardMaterial("strut", scene);
+        strutMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        strutMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+        const woodMaterial = new BABYLON.StandardMaterial("wood", scene);
+        woodMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.20, 0.04);
+        woodMaterial.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
 
         const modelUrls = [
-            "models/strut.glb",
-            "models/foot.glb",
-            "models/shelf_end.glb",
-            "models/shelf_middle.glb",
-            "models/shelf_stretch.glb",
-            "models/clamp.glb"
+            {
+                url: "models/strut.glb",
+                material: strutMaterial
+            },
+            {
+                url: "models/foot.glb",
+                material: new BABYLON.StandardMaterial("foot", scene)
+            },
+            {
+                url: "models/shelf_end.glb",
+                material: woodMaterial
+            },
+            {
+                url: "models/shelf_middle.glb",
+                material: woodMaterial
+            },
+            {
+                url: "models/shelf_stretch.glb",
+                material: woodMaterial
+            },
+            {
+                url: "models/clamp.glb",
+                material: new BABYLON.StandardMaterial("clamp", scene)
+            },
         ];
 
         const modelLoader = new ModelLoader(scene, shadowGenerator);
         // wait for all models to be loaded and create shelf afterwards
-        Promise.all(modelUrls.map(url => modelLoader.preloadModel(url))).then(() => {
+        Promise.all(modelUrls.map(entry => modelLoader.preloadModel(entry.url, entry.material))).then(() => {
             const shelf_root = new BABYLON.Node("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
 

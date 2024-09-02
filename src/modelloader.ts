@@ -16,7 +16,7 @@ export class ModelLoader {
         this.root = new BABYLON.Node("model_root", scene);
     }
 
-    public preloadModel(modelUrl: string): Promise<void> {
+    public preloadModel(modelUrl: string, material: BABYLON.Material = undefined): Promise<void> {
         return new Promise((resolve, reject) => {
             BABYLON.SceneLoader.ImportMesh(
                 "",
@@ -25,9 +25,17 @@ export class ModelLoader {
                 this.scene,
                 (meshes) => {
                     if (meshes.length > 0) {
-                        const mesh = meshes[1]
+                        const mesh = meshes[1];
                         if (mesh instanceof BABYLON.Mesh) {
                             mesh.setEnabled(false);
+
+                            if (material) {
+                                mesh.material = material;
+                            }
+
+                            this.shadowGenerator.getShadowMap().renderList.push(mesh);
+                            this.shadowGenerator.addShadowCaster(mesh);
+                            mesh.receiveShadows = true;
 
                             this.preloadedMeshes.set(modelUrl, mesh);
                             resolve();
@@ -50,11 +58,15 @@ export class ModelLoader {
     public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh | null {
         const preloadedMesh = this.preloadedMeshes.get(modelUrl);
         if (preloadedMesh) {
-            const instance = preloadedMesh.createInstance(`${modelUrl}_instance_${this.spawnCount++}`);
+            //const instance = preloadedMesh.createInstance(`${modelUrl}_instance_${this.spawnCount++}`);
+            const instance = preloadedMesh.clone(`${modelUrl}_instance_${this.spawnCount++}`);
             instance.position = position;
             instance.setEnabled(true);
 
             this.shadowGenerator.getShadowMap().renderList.push(instance);
+            this.shadowGenerator.addShadowCaster(instance);
+            instance.receiveShadows = true;
+
 
             return instance;
         } else {

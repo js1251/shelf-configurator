@@ -91,6 +91,7 @@ export class Board {
         const spawnPosition = BABYLON.Vector3.Zero();
 
         const start = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
+        start.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
         start.setParent(this.root);
         start.setEnabled(true);
         this.scene.addMesh(start);
@@ -98,7 +99,7 @@ export class Board {
         this.start = start;
 
         const end = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
-        end.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
+        //end.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
         end.setParent(start);
         end.setEnabled(true);
         this.scene.addMesh(end);
@@ -149,6 +150,7 @@ export class Board {
         // if there are too few stretches, add more
         while (this.stretches.length < requiredStretches) {
             const stretch = this.modelloader.createInstance("models/shelf_stretch.glb", BABYLON.Vector3.Zero());
+            stretch.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
 
             stretch.setParent(this.start);
             stretch.setEnabled(true);

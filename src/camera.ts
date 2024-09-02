@@ -19,6 +19,9 @@ export const createCamera = (scene: BABYLON.Scene, canvas: HTMLCanvasElement): B
     // set default camera rotation to 180 degrees
     camera.alpha = -Math.PI / 2;
 
+    // adjust near and far clip planes
+    camera.minZ = 0.001;
+
     // always zoom to mouse position
     camera.attachControl(canvas, true);
     camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
