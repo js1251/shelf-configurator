@@ -21,15 +21,10 @@ class App {
         var engine = new BABYLON.Engine(canvas, true);
         var scene = new BABYLON.Scene(engine);
 
-        //const environment = scene.createDefaultEnvironment();
-
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(scene, canvas);
         camera.attachControl(canvas, true);
         
         var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-0.5, 1, 0), scene);
-
-        const environment = new ENVIRONMENT.Environment(scene);
-        const shadowGenerator = environment.getShadowGenerator();
 
         const strutMaterial = new BABYLON.StandardMaterial("strut", scene);
         strutMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
@@ -66,13 +61,23 @@ class App {
             },
         ];
 
+        document.addEventListener("Environment.Room.Change", (e) => {
+            const detail = (e as CustomEvent).detail;
+            const bbox = detail.bbox as BABYLON.BoundingBox;
+
+            camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.maximum.z);
+            camera.target = bbox.center;
+        });
+        const environment = new ENVIRONMENT.Environment(scene);
+        const shadowGenerator = environment.getShadowGenerator();
+
         const modelLoader = new ModelLoader(scene, shadowGenerator);
         // wait for all models to be loaded and create shelf afterwards
         Promise.all(modelUrls.map(entry => modelLoader.preloadModel(entry.url, entry.material))).then(() => {
-            const shelf_root = new BABYLON.Node("shelf_root", scene);
+            const shelf_root = new BABYLON.TransformNode("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
 
-            let measurements = new Measurements(scene, shelf, camera);
+            let measurements = new Measurements(scene, shelf, camera, shelf_root);
 
             document.addEventListener("Shelf.Board.Change", (e) => {
                 const detail = (e as CustomEvent).detail;

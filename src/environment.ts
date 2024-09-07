@@ -30,6 +30,7 @@ export class Environment {
 
         this.scaleHandle = BABYLON.MeshBuilder.CreateBox("scaleHandle", { size: 1 }, this.scene);
         this.scaleHandle.isVisible = false;
+        this.scaleHandle.isPickable = false;
 
         this.createGround();
         this.createCeiling();
@@ -147,6 +148,8 @@ export class Environment {
         this.scaleHandle.position.y = height * 0.5;
 
         this.light.position.y = height - 0.3;
+        
+        this.fireRoomChanged();
     }
 
     setRoomWidth(width: number): void {
@@ -157,6 +160,8 @@ export class Environment {
         (material.baseTexture as BABYLON.Texture).uScale = width * 0.5;
         (material.normalTexture as BABYLON.Texture).uScale = width * 0.5;
         (material.metallicRoughnessTexture as BABYLON.Texture).uScale = width * 0.5;
+
+        this.fireRoomChanged();
     }
 
     setRoomDepth(depth: number): void {
@@ -167,5 +172,22 @@ export class Environment {
         (material.baseTexture as BABYLON.Texture).vScale = depth * 0.5;
         (material.normalTexture as BABYLON.Texture).vScale = depth * 0.5;
         (material.metallicRoughnessTexture as BABYLON.Texture).vScale = depth * 0.5;
+
+        this.fireRoomChanged();
+    }
+
+    private fireRoomChanged() {
+        const bbox = new BABYLON.BoundingBox(
+            new BABYLON.Vector3(this.scaleHandle.scaling.x * -0.5, 0, this.scaleHandle.scaling.z * -0.5),
+            new BABYLON.Vector3(this.scaleHandle.scaling.x * 0.5, this.scaleHandle.scaling.y, this.scaleHandle.scaling.z * 0.5),
+        );
+
+        const event = new CustomEvent("Environment.Room.Change", {
+            detail: {
+                bbox: bbox
+            }
+        });
+
+        document.dispatchEvent(event);
     }
 }

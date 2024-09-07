@@ -13,12 +13,12 @@ export class Shelf {
     private scene: BABYLON.Scene;
     private modelloader: ModelLoader;
 
-    private root: BABYLON.Node;
+    private root: BABYLON.TransformNode;
 
     static HEADER_SERIALIZED_LENGTH = 6;
     static BOARD_SERIALIZED_LENGTH = 5;
 
-    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node) {
+    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.TransformNode) {
         this.scene = scene;
         this.modelloader = modelloader;
         this.root = root;
@@ -71,7 +71,7 @@ export class Shelf {
     }
 
     addStrutToStart() {
-        this.struts.unshift(new Strut(this.scene, this.modelloader, this.root, this.getHeight(), 0, 0));
+        this.struts.unshift(this.createStrut(0, 0));
 
         // update all struts indices
         for (let i = 0; i < this.struts.length; i++) {
@@ -89,8 +89,30 @@ export class Shelf {
     }
 
     addStrutToEnd() {
-        this.struts.push(new Strut(this.scene, this.modelloader, this.root, this.getHeight(), 0, this.struts.length));
+        this.struts.push(this.createStrut(0, this.struts.length));
         this.fireBboxChanged();
+    }
+
+    private createStrut(offset: number, index: number) : Strut{
+        const strut = new Strut(this.scene, this.modelloader, this.root, this.getHeight(), offset, index);
+
+        const pointerDragBehavior = new BABYLON.PointerDragBehavior();
+        pointerDragBehavior.useObjectOrientationForDragging = false;
+        pointerDragBehavior.updateDragPlane = false;
+        pointerDragBehavior.moveAttached = false;
+
+        pointerDragBehavior.onDragObservable.add((event) => {
+            const currentPosition = event.dragPlanePoint;
+            
+            this.root.position.x = currentPosition.x;
+            this.root.position.z = currentPosition.z;
+
+            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
+        });
+
+        strut.getBabylonNode().addBehavior(pointerDragBehavior);
+
+        return strut;
     }
 
     removeStrutAtStart() {
@@ -215,7 +237,7 @@ export class Shelf {
 
         const getCurrentStrutPosX = (xPos: number): number => {
             return Math.floor(xPos / this.getStrutSpacing()) * this.getStrutSpacing();
-        }
+        };
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
@@ -267,6 +289,10 @@ export class Shelf {
             if (updateRequired) {
                 this.fireBoardChanged(board);
             }
+        });
+
+        pointerDragBehavior.onDragEndObservable.add(() => {
+            this.scene.getEngine().getRenderingCanvas().style.cursor = "default";
         });
 
         boardNode.addBehavior(pointerDragBehavior);
@@ -329,7 +355,7 @@ export class Shelf {
         return serialized;
     }
 
-    static deserialize(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node, data: string): Shelf {
+    static deserialize(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.AbstractMesh, data: string): Shelf {
         const shelf = new Shelf(scene, modelloader, root);
         
         // remove the default config parts

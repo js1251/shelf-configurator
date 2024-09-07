@@ -13,9 +13,9 @@ export class Strut {
     private footTop: BABYLON.AbstractMesh;
     private footBottom: BABYLON.AbstractMesh;
 
-    private root: BABYLON.Node;
+    private root: BABYLON.TransformNode;
 
-    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node, height_m: number, offset: number, index: number) {
+    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.TransformNode, height_m: number, offset: number, index: number) {
         this.scene = scene;
         this.modelloader = modelloader;
         this.root = root;

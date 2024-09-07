@@ -6,6 +6,7 @@ export class Measurements {
     private scene: BABYLON.Scene;
     private shelf: Shelf;
     private camera: BABYLON.ArcRotateCamera;
+    private root: BABYLON.TransformNode;
 
     private widthLineFront: BABYLON.LinesMesh;
     private widthLineBack: BABYLON.LinesMesh;
@@ -22,10 +23,11 @@ export class Measurements {
     private boardMap: Map<Board, BABYLON.LinesMesh[]> = new Map();
     private precision: number = 0;
 
-    constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera) {
+    constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera, root: BABYLON.TransformNode) {
         this.scene = scene;
         this.shelf = shelf;
         this.camera = camera;
+        this.root = root;
 
         this.createMeasurements();
         this.createBoardDistances();
@@ -135,6 +137,8 @@ export class Measurements {
         line.edgesWidth = 1.5;
         line.edgesColor = BABYLON.Color4.FromColor3(color);
         line.renderingGroupId = 1;
+
+        line.setParent(this.root);
 
         // create a billboard rectangle in the middle of the main line
         const middle = end.subtract(start).scale(0.5).add(start);
@@ -310,6 +314,7 @@ export class Measurements {
             : (upperStart.getHeight() - board.getHeight())) * 100).toFixed(this.precision)
         const upperStartLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
         upperStartLine.setEnabled(false);
+        upperStartLine.setParent(this.root);
 
         // lower start
         endPos = lowerStart === undefined
@@ -320,6 +325,7 @@ export class Measurements {
             : (board.getHeight() - lowerStart.getHeight())) * 100).toFixed(this.precision)
         const lowerStartLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
         lowerStartLine.setEnabled(false);
+        lowerStartLine.setParent(this.root);
 
         // upper end
         startDrawPos = board.getBabylonNode().position.clone()
@@ -333,6 +339,7 @@ export class Measurements {
             : (upperEnd.getHeight() - board.getHeight())) * 100).toFixed(this.precision)
         const upperEndLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
         upperEndLine.setEnabled(false);
+        upperEndLine.setParent(this.root);
 
         // lower end
         endPos = lowerEnd === undefined
@@ -343,6 +350,7 @@ export class Measurements {
             : (board.getHeight() - lowerEnd.getHeight())) * 100).toFixed(this.precision)
         const lowerEndLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
         lowerEndLine.setEnabled(false);
+        lowerEndLine.setParent(this.root);
 
         this.boardMap.set(board, [upperStartLine, lowerStartLine, upperEndLine, lowerEndLine]);
     }
