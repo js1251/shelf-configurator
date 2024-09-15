@@ -53,8 +53,9 @@ export class Environment {
     }
 
     private createGround() {
-        const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1, height: 1 }, this.scene);
-        ground.receiveShadows = true;
+        this.ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1, height: 1 }, this.scene);
+        this.ground.receiveShadows = true;
+        this.ground.isPickable = false;
 
         const pbr = new BABYLON.PBRMetallicRoughnessMaterial("pbr", this.scene);
         const diffuseTexture = new BABYLON.Texture(
@@ -84,12 +85,10 @@ export class Environment {
         roughnessTexture.vScale = 0.5;
         pbr.metallicRoughnessTexture = roughnessTexture;
 
-        ground.material = pbr;
+        this.ground.material = pbr;
 
-        ground.position.y = -0.5;
-        ground.setParent(this.scaleHandle);
-
-        this.ground = ground;
+        this.ground.position.y = -0.5;
+        this.ground.setParent(this.scaleHandle);
     }
 
     private createCeiling() {
@@ -97,6 +96,7 @@ export class Environment {
         this.ceiling.material = this.defaultMaterial;
         this.ceiling.rotation.x = Math.PI
         this.ceiling.receiveShadows = true;
+        this.ceiling.isPickable = false;
 
         this.ceiling.position.y = 0.5;
         this.ceiling.setParent(this.scaleHandle);
@@ -109,6 +109,7 @@ export class Environment {
         this.leftWall.rotation.y = Math.PI;
         this.leftWall.position.x = -0.5;
         this.leftWall.receiveShadows = true;
+        this.leftWall.isPickable = false;
         this.leftWall.setParent(this.scaleHandle);
 
         this.rightWall = BABYLON.MeshBuilder.CreateGround("rightWall", { width: 1, height: 1 }, this.scene);
@@ -116,6 +117,7 @@ export class Environment {
         this.rightWall.rotation.z = Math.PI / 2;
         this.rightWall.position.x = 0.5;
         this.rightWall.receiveShadows = true;
+        this.rightWall.isPickable = false;
         this.rightWall.setParent(this.scaleHandle);
 
         this.frontWall = BABYLON.MeshBuilder.CreateGround("frontWall", { width: 1, height: 1 }, this.scene);
@@ -124,6 +126,7 @@ export class Environment {
         this.frontWall.rotation.y = Math.PI / 2;
         this.frontWall.position.z = -0.5;
         this.frontWall.receiveShadows = true;
+        this.frontWall.isPickable = false;
         this.frontWall.setParent(this.scaleHandle);
 
         this.backWall = BABYLON.MeshBuilder.CreateGround("backWall", { width: 1, height: 1 }, this.scene);
@@ -132,6 +135,7 @@ export class Environment {
         this.backWall.rotation.y = -Math.PI / 2;
         this.backWall.position.z = 0.5;
         this.backWall.receiveShadows = true;
+        this.backWall.isPickable = false;
         this.backWall.setParent(this.scaleHandle);
     }
 
@@ -152,6 +156,10 @@ export class Environment {
         this.fireRoomChanged();
     }
 
+    getRoomHeight(): number {
+        return this.scaleHandle.scaling.y;
+    }
+
     setRoomWidth(width: number): void {
         this.scaleHandle.scaling.x = width;
 
@@ -162,6 +170,10 @@ export class Environment {
         (material.metallicRoughnessTexture as BABYLON.Texture).uScale = width * 0.5;
 
         this.fireRoomChanged();
+    }
+
+    getRoomWidth(): number {
+        return this.scaleHandle.scaling.x;
     }
 
     setRoomDepth(depth: number): void {
@@ -176,15 +188,24 @@ export class Environment {
         this.fireRoomChanged();
     }
 
-    private fireRoomChanged() {
-        const bbox = new BABYLON.BoundingBox(
-            new BABYLON.Vector3(this.scaleHandle.scaling.x * -0.5, 0, this.scaleHandle.scaling.z * -0.5),
-            new BABYLON.Vector3(this.scaleHandle.scaling.x * 0.5, this.scaleHandle.scaling.y, this.scaleHandle.scaling.z * 0.5),
-        );
+    getRoomDepth(): number {
+        return this.scaleHandle.scaling.z;
+    }
 
+    getBoundingBox(): BABYLON.BoundingBox {
+        const halfWidth = this.getRoomWidth() * 0.5;
+        const halfDepth = this.getRoomDepth() * 0.5;
+
+        const min = new BABYLON.Vector3(-halfWidth, 0, -halfDepth);
+        const max = new BABYLON.Vector3(halfWidth, this.getRoomHeight(), halfDepth);
+
+        return new BABYLON.BoundingBox(min, max);
+    }
+
+    private fireRoomChanged() {
         const event = new CustomEvent("Environment.Room.Change", {
             detail: {
-                bbox: bbox
+                bbox: this.getBoundingBox()
             }
         });
 

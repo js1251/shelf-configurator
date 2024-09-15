@@ -7,6 +7,7 @@ import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
 import { Measurements } from "./measurements";
+import { Board } from "./shelf/board";
 
 class App {
     constructor() {
@@ -65,7 +66,7 @@ class App {
             const detail = (e as CustomEvent).detail;
             const bbox = detail.bbox as BABYLON.BoundingBox;
 
-            camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.maximum.z);
+            camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
             camera.target = bbox.center;
         });
         const environment = new ENVIRONMENT.Environment(scene);
@@ -103,6 +104,31 @@ class App {
             document.addEventListener("Shelf.bbox.Change", (e) => {
                 const detail = (e as CustomEvent).detail;
                 const shelf = detail.shelf;
+            });
+
+            document.addEventListener("Shelf.Moved", (e) => {
+                const detail = (e as CustomEvent).detail;
+                const position = detail.position;
+
+                position.y = 0;
+
+                // clamp the shelf to the room
+                const room_bbox = environment.getBoundingBox();
+
+                if (position.x - Board.BOARD_WIDTH / 2 < room_bbox.minimum.x) {
+                    position.x = room_bbox.minimum.x + Board.BOARD_WIDTH / 2;
+                } else if (position.x + shelf.getWidth() - Board.BOARD_WIDTH / 2 > room_bbox.maximum.x) {
+                    position.x = room_bbox.maximum.x - shelf.getWidth() + Board.BOARD_WIDTH / 2;
+                }
+
+                if (position.z - Board.BOARD_WIDTH / 2 < room_bbox.minimum.z) {
+                    position.z = room_bbox.minimum.z + Board.BOARD_WIDTH / 2;
+                } else if (position.z + shelf.getDepth() - Board.BOARD_WIDTH / 2 > room_bbox.maximum.z) {
+                    position.z = room_bbox.maximum.z - shelf.getDepth() + Board.BOARD_WIDTH / 2;
+                }
+
+                // move the shelf to the new position
+                shelf.setPosition(position);
             });
         });
 

@@ -17,6 +17,7 @@ export class Shelf {
 
     static HEADER_SERIALIZED_LENGTH = 6;
     static BOARD_SERIALIZED_LENGTH = 5;
+    static FOOT_HEIGHT = 0.04;
 
     constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.TransformNode) {
         this.scene = scene;
@@ -66,8 +67,20 @@ export class Shelf {
         return this.height_m;
     }
 
+    getWidth(): number {
+        return this.getStrutSpacing() * (this.struts.length - 1) + Board.BOARD_WIDTH;
+    }
+
+    getDepth(): number {
+        return Board.BOARD_WIDTH;
+    }
+
     getStruts(): Strut[] {
         return this.struts;
+    }
+
+    setPosition(position: BABYLON.Vector3) {
+        this.root.position = position;
     }
 
     addStrutToStart() {
@@ -96,18 +109,19 @@ export class Shelf {
     private createStrut(offset: number, index: number) : Strut{
         const strut = new Strut(this.scene, this.modelloader, this.root, this.getHeight(), offset, index);
 
-        const pointerDragBehavior = new BABYLON.PointerDragBehavior();
+        const pointerDragBehavior = new BABYLON.PointerDragBehavior({
+            dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
+        });
         pointerDragBehavior.useObjectOrientationForDragging = false;
-        pointerDragBehavior.updateDragPlane = false;
+        //pointerDragBehavior.updateDragPlane = false;
         pointerDragBehavior.moveAttached = false;
 
         pointerDragBehavior.onDragObservable.add((event) => {
             const currentPosition = event.dragPlanePoint;
             
-            this.root.position.x = currentPosition.x;
-            this.root.position.z = currentPosition.z;
+            this.fireShelfMoved(currentPosition);
 
-            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
+            //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
         });
 
         strut.getBabylonNode().addBehavior(pointerDragBehavior);
@@ -187,7 +201,7 @@ export class Shelf {
             throw new Error("Spacing is too high");
         }
 
-        if (spacing < 0.2) {
+        if (spacing < Board.BOARD_WIDTH) {
             throw new Error("Spacing is too low");
         }
 
@@ -255,7 +269,7 @@ export class Shelf {
             const currentPosition = event.dragPlanePoint;
             let updateRequired = false;
 
-            const snappedPosition = Math.round(currentPosition.y / increment) * increment;
+            const snappedPosition = Math.min(this.getHeight() - Shelf.FOOT_HEIGHT,Math.max(Shelf.FOOT_HEIGHT, Math.round(currentPosition.y / increment) * increment));
             if (snappedPosition !== board.getHeight()) {
                 board.setHeight(snappedPosition);
                 updateRequired = true;
@@ -284,7 +298,7 @@ export class Shelf {
                 updateRequired = true;
             }
     
-            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, snappedPosition, currentPosition.z));
+            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
 
             if (updateRequired) {
                 this.fireBoardChanged(board);
@@ -312,8 +326,9 @@ export class Shelf {
     }
 
     getBoundingBox(): BABYLON.BoundingBox {
-        const min = new BABYLON.Vector3(-0.1, 0, -0.1);
-        const max = new BABYLON.Vector3(this.getStrutSpacing() * (this.getStruts().length - 1) + 0.1, this.getHeight(), 0.1);
+        const halfBoardWidth = Board.BOARD_WIDTH / 2;
+        const min = new BABYLON.Vector3(-halfBoardWidth, 0, -halfBoardWidth).add(this.root.position);
+        const max = new BABYLON.Vector3(this.getStrutSpacing() * (this.getStruts().length - 1) + halfBoardWidth, this.getHeight(), halfBoardWidth).add(this.root.position);
 
         return new BABYLON.BoundingBox(min, max);
     }
@@ -436,6 +451,16 @@ export class Shelf {
             detail: {
                 shelf: this,
                 board: board
+            }
+        });
+        document.dispatchEvent(event);
+    }
+
+    private fireShelfMoved(currentPos : BABYLON.Vector3) {
+        const event = new CustomEvent("Shelf.Moved", {
+            detail: {
+                shelf: this,
+                position: currentPos
             }
         });
         document.dispatchEvent(event);

@@ -17,6 +17,9 @@ export class Board {
 
     private root: BABYLON.Node;
 
+    static BOARD_WIDTH = 0.2;
+    static BOARD_THICKNESS = 0.018;
+
     constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node, height_m: number, startStrut: Strut, endStrut: Strut) {
         this.scene = scene;
         this.modelloader = modelloader;
@@ -91,6 +94,9 @@ export class Board {
         const spawnPosition = BABYLON.Vector3.Zero();
 
         const start = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
+        const startClamp = this.modelloader.createInstance("models/clamp.glb", spawnPosition.clone());
+        startClamp.setParent(start);
+
         start.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
         start.setParent(this.root);
         start.setEnabled(true);
@@ -99,7 +105,9 @@ export class Board {
         this.start = start;
 
         const end = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
-        //end.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
+        const endClamp = this.modelloader.createInstance("models/clamp.glb", spawnPosition.clone());
+        endClamp.setParent(end);
+
         end.setParent(start);
         end.setEnabled(true);
         this.scene.addMesh(end);
@@ -126,6 +134,8 @@ export class Board {
         // if there are too few middles, add more
         while (this.middles.length < requiredMiddles) {
             const middle = this.modelloader.createInstance("models/shelf_middle.glb", BABYLON.Vector3.Zero());
+            const middleClamp = this.modelloader.createInstance("models/clamp.glb", BABYLON.Vector3.Zero());
+            middleClamp.setParent(middle);
 
             middle.setParent(this.start);
             middle.setEnabled(true);
@@ -163,8 +173,8 @@ export class Board {
             const stretch = this.stretches[i];
             
             stretch.setParent(null);
-            stretch.position = new BABYLON.Vector3(this.startStrut.getOffset() + spacing * i + 0.1, this.height_m, 0);
-            stretch.scaling.x = (spacing - 0.2)/ 0.1;
+            stretch.position = new BABYLON.Vector3(this.startStrut.getOffset() + spacing * i + Board.BOARD_WIDTH / 2, this.height_m, 0);
+            stretch.scaling.x = (spacing - Board.BOARD_WIDTH)/ 0.1;
             stretch.setParent(this.start);
         }
     }

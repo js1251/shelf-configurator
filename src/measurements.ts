@@ -21,7 +21,12 @@ export class Measurements {
 
     private lineId: number = 0;
     private boardMap: Map<Board, BABYLON.LinesMesh[]> = new Map();
-    private precision: number = 0;
+    private precision: number = 1;
+
+    private static LINE_THICKNESS = 1.2;
+
+    static BOARD_MEASURE_COLOR = new BABYLON.Color3(0.012, 0.47, 0.85);
+    static DIMENSIONS_MEASURE_COLOR = BABYLON.Color3.Black();
 
     constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera, root: BABYLON.TransformNode) {
         this.scene = scene;
@@ -56,69 +61,69 @@ export class Measurements {
         const depth = ((bbox.maximum.z - bbox.minimum.z) * 100).toFixed(this.precision);
 
         this.widthLineFront = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.minimum.z - 0.2),
-            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.minimum.z - 0.2),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.minimum.z - Board.BOARD_WIDTH),
+            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.minimum.z - Board.BOARD_WIDTH),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             width
         );
         this.drawLineEnds(this.widthLineFront, BABYLON.Vector3.Up());
 
         this.widthLineBack = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.maximum.z + 0.2),
-            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.maximum.z + 0.2),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.maximum.z + Board.BOARD_WIDTH),
+            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.maximum.z + Board.BOARD_WIDTH),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             width
         );
         this.drawLineEnds(this.widthLineBack, BABYLON.Vector3.Up());
         this.widthLineBack.setEnabled(false);
 
         this.depthLineLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, 0, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, 0, bbox.maximum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, 0, bbox.minimum.z),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, 0, bbox.maximum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             depth
         );
         this.drawLineEnds(this.depthLineLeft, BABYLON.Vector3.Up());
 
         this.depthLineRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, 0, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, 0, bbox.maximum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, 0, bbox.minimum.z),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, 0, bbox.maximum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             depth
         );
         this.drawLineEnds(this.depthLineRight, BABYLON.Vector3.Up());
         this.depthLineRight.setEnabled(false);
 
         this.heightLineFrontLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, bbox.minimum.y, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, bbox.maximum.y, bbox.minimum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.minimum.y, bbox.minimum.z),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.maximum.y, bbox.minimum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
         this.drawLineEnds(this.heightLineFrontLeft, BABYLON.Vector3.Forward());
         this.heightLineFrontLeft.setEnabled(false);
 
         this.heightLineFrontRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, bbox.minimum.y, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, bbox.maximum.y, bbox.minimum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.minimum.y, bbox.minimum.z),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.maximum.y, bbox.minimum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
         this.drawLineEnds(this.heightLineFrontRight, BABYLON.Vector3.Forward());
 
         this.heightLineBackLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, bbox.minimum.y, bbox.maximum.z),
-            new BABYLON.Vector3(bbox.minimum.x - 0.2, bbox.maximum.y, bbox.maximum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.minimum.y, bbox.maximum.z),
+            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.maximum.y, bbox.maximum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
         this.drawLineEnds(this.heightLineBackLeft, BABYLON.Vector3.Forward());
         this.heightLineBackLeft.setEnabled(false);
 
         this.heightLineBackRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, bbox.minimum.y, bbox.maximum.z),
-            new BABYLON.Vector3(bbox.maximum.x + 0.2, bbox.maximum.y, bbox.maximum.z),
-            BABYLON.Color3.Black(),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.minimum.y, bbox.maximum.z),
+            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.maximum.y, bbox.maximum.z),
+            Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
         this.drawLineEnds(this.heightLineBackRight, BABYLON.Vector3.Forward());
@@ -134,7 +139,7 @@ export class Measurements {
         const line = BABYLON.MeshBuilder.CreateLines(`line_${this.lineId++}`, options, this.scene);
         line.color = color;
         line.enableEdgesRendering();
-        line.edgesWidth = 1.5;
+        line.edgesWidth = Measurements.LINE_THICKNESS;
         line.edgesColor = BABYLON.Color4.FromColor3(color);
         line.renderingGroupId = 1;
 
@@ -143,7 +148,7 @@ export class Measurements {
         // create a billboard rectangle in the middle of the main line
         const middle = end.subtract(start).scale(0.5).add(start);
 
-        const planeWidth = 0.11; // Adjust as needed
+        const planeWidth = 0.15; // Adjust as needed
         const planeHeight = 0.075; // Adjust as needed
         const textureWidth = 512; // This is the resolution of the dynamic texture
         const textureHeight = 256; // This is the resolution of the dynamic texture
@@ -152,16 +157,17 @@ export class Measurements {
         billboard.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
         billboard.renderingGroupId = 2;
         
-        const blackMaterial = new BABYLON.StandardMaterial("blackMaterial", this.scene);
-        blackMaterial.diffuseColor = color;
-        blackMaterial.specularColor = color;
-        billboard.material = blackMaterial;
+        const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
+        billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
+        billBoardMaterial.specularColor = BABYLON.Color3.Black();
+        billBoardMaterial.emissiveColor = color;
+        billboard.material = billBoardMaterial;
 
         const dynamicTexture = new BABYLON.DynamicTexture("dynamicTexture", { width: textureWidth, height: textureHeight }, this.scene, true);
         const textMaterial = new BABYLON.StandardMaterial("textMaterial", this.scene);
         textMaterial.diffuseTexture = dynamicTexture;
         textMaterial.diffuseTexture.hasAlpha = true;
-        textMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        textMaterial.emissiveColor = BABYLON.Color3.White();
 
         const plane = BABYLON.MeshBuilder.CreatePlane("floatingText", { width: 1, height: 0.5 }, this.scene);
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -195,7 +201,6 @@ export class Measurements {
 
     private drawLineEnds(line: BABYLON.LinesMesh, normal: BABYLON.Vector3) {
         const lineColor = line.color;
-        const width = line.edgesWidth;
         const vertexData = line.getVerticesData(BABYLON.VertexBuffer.PositionKind);
         const start = BABYLON.Vector3.FromArray(vertexData.slice(0, 3));
         const end = BABYLON.Vector3.FromArray(vertexData.slice(3, 6));
@@ -219,7 +224,7 @@ export class Measurements {
         endLine.color = lineColor;
         endLine.setParent(line);
         endLine.enableEdgesRendering();
-        endLine.edgesWidth = width;
+        endLine.edgesWidth = Measurements.LINE_THICKNESS;
         endLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
         endLine.renderingGroupId = 1;
 
@@ -232,7 +237,7 @@ export class Measurements {
         startLine.color = lineColor;
         startLine.setParent(line);
         startLine.enableEdgesRendering();
-        startLine.edgesWidth = width;
+        startLine.edgesWidth = Measurements.LINE_THICKNESS;
         startLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
         startLine.renderingGroupId = 1;
     }
@@ -304,53 +309,43 @@ export class Measurements {
         }
 
         // upper start
-        let startDrawPos = board.getBabylonNode().position.clone()
+        let startPos = board.getBabylonNode().getAbsolutePosition().clone()
             .add(BABYLON.Vector3.Right().scale(0.05));
         let endPos = upperStart === undefined
-            ? startDrawPos.add(BABYLON.Vector3.Up().scale(this.shelf.getHeight() - board.getHeight()))
-            : startDrawPos.add(BABYLON.Vector3.Up().scale(upperStart.getHeight() - board.getHeight()));
-        let labelText = ((upperStart === undefined
-            ? (this.shelf.getHeight() - board.getHeight())
-            : (upperStart.getHeight() - board.getHeight())) * 100).toFixed(this.precision)
-        const upperStartLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
+            ? new BABYLON.Vector3(startPos.x, this.shelf.getHeight(), startPos.z)
+            : new BABYLON.Vector3(startPos.x, upperStart.getHeight() - Board.BOARD_THICKNESS, startPos.z);
+        let labelText = ((endPos.y - startPos.y) * 100).toFixed(this.precision);
+        const upperStartLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
         upperStartLine.setEnabled(false);
-        upperStartLine.setParent(this.root);
 
         // lower start
+        startPos = startPos.subtract(BABYLON.Vector3.Up().scale(Board.BOARD_THICKNESS));
         endPos = lowerStart === undefined
-            ? startDrawPos.add(BABYLON.Vector3.Down().scale(board.getHeight()))
-            : startDrawPos.add(BABYLON.Vector3.Down().scale(board.getHeight() - lowerStart.getHeight()));
-        labelText = ((lowerStart === undefined
-            ? (board.getHeight())
-            : (board.getHeight() - lowerStart.getHeight())) * 100).toFixed(this.precision)
-        const lowerStartLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
+            ? new BABYLON.Vector3(startPos.x, 0, startPos.z)
+            : new BABYLON.Vector3(startPos.x, lowerStart.getHeight(), startPos.z);
+        labelText = ((startPos.y - endPos.y) * 100).toFixed(this.precision);
+        const lowerStartLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
         lowerStartLine.setEnabled(false);
-        lowerStartLine.setParent(this.root);
 
         // upper end
-        startDrawPos = board.getBabylonNode().position.clone()
+        startPos = board.getBabylonNode().getAbsolutePosition().clone()
             .add(BABYLON.Vector3.Right().scale(this.shelf.getStrutSpacing() * (endIndex - startIndex)))
             .add(BABYLON.Vector3.Right().scale(-0.05));
         endPos = upperEnd === undefined
-            ? startDrawPos.add(BABYLON.Vector3.Up().scale(this.shelf.getHeight() - board.getHeight()))
-            : startDrawPos.add(BABYLON.Vector3.Up().scale(upperEnd.getHeight() - board.getHeight()));
-        labelText = ((upperEnd === undefined
-            ? (this.shelf.getHeight() - board.getHeight())
-            : (upperEnd.getHeight() - board.getHeight())) * 100).toFixed(this.precision)
-        const upperEndLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
+            ? new BABYLON.Vector3(startPos.x, this.shelf.getHeight(), startPos.z)
+            : new BABYLON.Vector3(startPos.x, upperEnd.getHeight() - Board.BOARD_THICKNESS, startPos.z);
+        labelText = ((endPos.y - startPos.y) * 100).toFixed(this.precision);
+        const upperEndLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
         upperEndLine.setEnabled(false);
-        upperEndLine.setParent(this.root);
 
         // lower end
+        startPos = startPos.subtract(BABYLON.Vector3.Up().scale(Board.BOARD_THICKNESS));
         endPos = lowerEnd === undefined
-            ? startDrawPos.add(BABYLON.Vector3.Down().scale(board.getHeight()))
-            : startDrawPos.add(BABYLON.Vector3.Down().scale(board.getHeight() - lowerEnd.getHeight()));
-        labelText = ((lowerEnd === undefined
-            ? (board.getHeight())
-            : (board.getHeight() - lowerEnd.getHeight())) * 100).toFixed(this.precision)
-        const lowerEndLine = this.drawLabeledLine(startDrawPos, endPos, BABYLON.Color3.Blue(), labelText);
+            ? new BABYLON.Vector3(startPos.x, 0, startPos.z)
+            : new BABYLON.Vector3(startPos.x, lowerEnd.getHeight(), startPos.z);
+        labelText = ((startPos.y - endPos.y) * 100).toFixed(this.precision);
+        const lowerEndLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
         lowerEndLine.setEnabled(false);
-        lowerEndLine.setParent(this.root);
 
         this.boardMap.set(board, [upperStartLine, lowerStartLine, upperEndLine, lowerEndLine]);
     }
@@ -373,6 +368,7 @@ export class Measurements {
 
         let lines = this.boardMap.get(board);
         lines.forEach(line => line.dispose());
+
         this.drawDistanceForBoard(board);
 
         lines = this.boardMap.get(board);
