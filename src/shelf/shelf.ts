@@ -269,16 +269,10 @@ export class Shelf {
             const currentPosition = event.dragPlanePoint;
             let updateRequired = false;
 
-            const snappedPosition = Math.min(this.getHeight() - Shelf.FOOT_HEIGHT,Math.max(Shelf.FOOT_HEIGHT, Math.round(currentPosition.y / increment) * increment));
-            if (snappedPosition !== board.getHeight()) {
-                board.setHeight(snappedPosition);
-                updateRequired = true;
-            }
-            
-            const startStrut = board.getStartStrut();
-            const startIndex = startStrut.getIndex();
-            const endStrut = board.getEndStrut();
-            const endIndex = endStrut.getIndex();
+            let startStrut = board.getStartStrut();
+            let startIndex = startStrut.getIndex();
+            let endStrut = board.getEndStrut();
+            let endIndex = endStrut.getIndex();
 
             const strutTransition = currentPosition.x - currentStrutPosX;
 
@@ -295,6 +289,43 @@ export class Shelf {
                 board.setStartStrut(this.struts[startIndex + 1]);
 
                 currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+                updateRequired = true;
+            }
+
+            startStrut = board.getStartStrut();
+            startIndex = startStrut.getIndex();
+            endStrut = board.getEndStrut();
+            endIndex = endStrut.getIndex();
+
+            // snap to the nearest increment and clamp to the shelf height
+            const snappedHeight = Math.min(this.getHeight() - Shelf.FOOT_HEIGHT,Math.max(Shelf.FOOT_HEIGHT, Math.round(currentPosition.y / increment) * increment));
+            
+            // ensure board does not clip any other boards
+            let clipped = false;
+            for (let i = 0; i < this.boards.length; i++) {
+                const otherBoard = this.boards[i];
+                if (otherBoard === board) {
+                    continue;
+                }
+
+                const otherStartIndex = otherBoard.getStartStrut().getIndex();
+                const otherEndIndex = otherBoard.getEndStrut().getIndex();
+                
+                if (startIndex > otherEndIndex || endIndex < otherStartIndex) {
+                    continue;
+                }
+
+                const otherBoardHeight = otherBoard.getBabylonNode().position.y;
+                const difference = Math.abs(snappedHeight - otherBoardHeight);
+
+                if (difference < Board.BOARD_THICKNESS) {
+                    clipped = true;
+                    break;
+                }
+            }
+            
+            if (snappedHeight !== board.getHeight() && !clipped) {
+                board.setHeight(snappedHeight);
                 updateRequired = true;
             }
     
