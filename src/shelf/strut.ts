@@ -65,6 +65,9 @@ export class Strut {
         this.offset = offset;
 
         this.strut.position.x = this.offset;
+        
+        // update absolute position of the strut
+        this.strut.computeWorldMatrix(true);
     }
 
     getBabylonNode(): BABYLON.AbstractMesh {

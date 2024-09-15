@@ -56,7 +56,10 @@ export class Board {
         }
 
         this.start.setParent(null);
-        this.start.position.x = this.startStrut.getBabylonNode().position.clone().x;
+
+        const startStrutPosition = this.startStrut.getBabylonNode().getAbsolutePosition().clone();
+        this.start.position.x = startStrutPosition.x;
+        this.start.position.z = startStrutPosition.z;
         this.start.setParent(this.root);
 
         this.end.setParent(this.start);
@@ -72,7 +75,7 @@ export class Board {
         this.endStrut = endStrut;
 
         this.end.setParent(null);
-        this.end.position.x = this.endStrut.getBabylonNode().position.clone().x;
+        this.end.position.x = this.endStrut.getBabylonNode().getAbsolutePosition().clone().x;
         this.end.setParent(this.start);
         
         this.handleMiddle();
@@ -144,11 +147,13 @@ export class Board {
             this.middles.push(middle);
         }
 
+        const startStrutPosition = this.startStrut.getBabylonNode().getAbsolutePosition().clone();
+
         for (var i = 0; i < this.middles.length; i++) {
             const middle = this.middles[i];
             
             middle.setParent(null);
-            middle.position = new BABYLON.Vector3(this.startStrut.getOffset() + spacing * (i + 1), this.height_m, 0);
+            middle.position = new BABYLON.Vector3(startStrutPosition.x + spacing * (i + 1), this.height_m, startStrutPosition.z);
             middle.setParent(this.start);
         }
         
@@ -173,7 +178,7 @@ export class Board {
             const stretch = this.stretches[i];
             
             stretch.setParent(null);
-            stretch.position = new BABYLON.Vector3(this.startStrut.getOffset() + spacing * i + Board.BOARD_WIDTH / 2, this.height_m, 0);
+            stretch.position = new BABYLON.Vector3(startStrutPosition.x + spacing * i + Board.BOARD_WIDTH / 2, this.height_m, startStrutPosition.z);
             stretch.scaling.x = (spacing - Board.BOARD_WIDTH)/ 0.1;
             stretch.setParent(this.start);
         }
