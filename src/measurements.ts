@@ -284,11 +284,11 @@ export class Measurements {
             const otherStartIndex = otherBoard.getStartStrut().getIndex();
             const otherEndIndex = otherBoard.getEndStrut().getIndex();
 
-            if (upperStart === undefined && startIndex >= otherStartIndex) {
+            if (upperStart === undefined && startIndex >= otherStartIndex && startIndex <= otherEndIndex) {
                 upperStart = otherBoard;
             }
 
-            if (upperEnd === undefined && endIndex <= otherEndIndex) {
+            if (upperEnd === undefined && endIndex <= otherEndIndex && endIndex >= otherStartIndex) {
                 upperEnd = otherBoard;
             }
         }
@@ -299,11 +299,11 @@ export class Measurements {
             const otherStartIndex = otherBoard.getStartStrut().getIndex();
             const otherEndIndex = otherBoard.getEndStrut().getIndex();
 
-            if (lowerStart === undefined && startIndex >= otherStartIndex) {
+            if (lowerStart === undefined && startIndex >= otherStartIndex && startIndex <= otherEndIndex) {
                 lowerStart = otherBoard;
             }
 
-            if (lowerEnd === undefined && endIndex <= otherEndIndex) {
+            if (lowerEnd === undefined && endIndex <= otherEndIndex && endIndex >= otherStartIndex) {
                 lowerEnd = otherBoard;
             }
         }
