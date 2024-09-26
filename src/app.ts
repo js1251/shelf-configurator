@@ -19,7 +19,7 @@ class App {
         document.body.appendChild(canvas);
 
         // initialize babylon scene and engine
-        var engine = new BABYLON.Engine(canvas, true);
+        var engine = new BABYLON.Engine(canvas, true, { stencil: true });
         var scene = new BABYLON.Scene(engine);
 
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(scene, canvas);

@@ -25,9 +25,11 @@ export class ModelLoader {
                 this.scene,
                 (meshes) => {
                     if (meshes.length > 0) {
+                        const root = meshes[0];
                         const mesh = meshes[1];
-                        if (mesh instanceof BABYLON.Mesh) {
-                            mesh.setEnabled(false);
+
+                        if (root instanceof BABYLON.Mesh && mesh instanceof BABYLON.Mesh) {
+                            root.setEnabled(false);
 
                             if (material) {
                                 mesh.material = material;
@@ -37,7 +39,7 @@ export class ModelLoader {
                             this.shadowGenerator.addShadowCaster(mesh);
                             mesh.receiveShadows = true;
 
-                            this.preloadedMeshes.set(modelUrl, mesh);
+                            this.preloadedMeshes.set(modelUrl, root);
                             resolve();
                         } else {
                             reject(new Error("No meshes were loaded"));
@@ -58,8 +60,8 @@ export class ModelLoader {
     public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh | null {
         const preloadedMesh = this.preloadedMeshes.get(modelUrl);
         if (preloadedMesh) {
-            //const instance = preloadedMesh.createInstance(`${modelUrl}_instance_${this.spawnCount++}`);
             const instance = preloadedMesh.clone(`${modelUrl}_instance_${this.spawnCount++}`);
+
             instance.position = position;
             instance.setEnabled(true);
 

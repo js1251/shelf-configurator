@@ -3,6 +3,7 @@ import { ModelLoader } from "./../modelloader";
 import { Board } from "./board";
 import { Strut } from "./strut";
 import { ThinParticleSystem } from "@babylonjs/core/Particles/thinParticleSystem";
+import { Measurements } from "../measurements";
 
 export class Shelf {
     private height_m: number;
@@ -12,6 +13,7 @@ export class Shelf {
 
     private scene: BABYLON.Scene;
     private modelloader: ModelLoader;
+    private highlightLayer: BABYLON.HighlightLayer;
 
     private root: BABYLON.TransformNode;
 
@@ -23,6 +25,10 @@ export class Shelf {
         this.scene = scene;
         this.modelloader = modelloader;
         this.root = root;
+
+        this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
+            renderingGroupId: 0,
+        });
 
         this.setHeight(2.4);
 
@@ -240,6 +246,12 @@ export class Shelf {
         this.boards.push(board);
 
         const boardNode = board.getBabylonNode();
+        /*
+        boardNode.getChildMeshes().forEach((mesh) => {
+            mesh.outlineColor = Measurements.BOARD_MEASURE_COLOR;
+            mesh.outlineWidth = 0.008;
+        });
+        */
     
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
         pointerDragBehavior.useObjectOrientationForDragging = false;
@@ -257,10 +269,20 @@ export class Shelf {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
             currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
             this.fireBoardGrabbed(board);
+    
+            boardNode.getChildMeshes().forEach((mesh) => {
+                //mesh.renderOutline = true;
+                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+            });
         });
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
             this.fireBoardReleased(board);
+
+            boardNode.getChildMeshes().forEach((mesh) => {
+                //mesh.renderOutline = false;
+                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+            });
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {

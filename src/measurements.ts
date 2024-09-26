@@ -316,6 +316,7 @@ export class Measurements {
             : new BABYLON.Vector3(startPos.x, upperStart.getHeight() - Board.BOARD_THICKNESS, startPos.z);
         let labelText = ((endPos.y - startPos.y) * 100).toFixed(this.precision);
         const upperStartLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
+        upperStartLine.renderingGroupId = 0;
         upperStartLine.setEnabled(false);
 
         // lower start
@@ -325,6 +326,7 @@ export class Measurements {
             : new BABYLON.Vector3(startPos.x, lowerStart.getHeight(), startPos.z);
         labelText = ((startPos.y - endPos.y) * 100).toFixed(this.precision);
         const lowerStartLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
+        lowerStartLine.renderingGroupId = 0;
         lowerStartLine.setEnabled(false);
 
         // upper end
@@ -336,6 +338,7 @@ export class Measurements {
             : new BABYLON.Vector3(startPos.x, upperEnd.getHeight() - Board.BOARD_THICKNESS, startPos.z);
         labelText = ((endPos.y - startPos.y) * 100).toFixed(this.precision);
         const upperEndLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
+        upperEndLine.renderingGroupId = 0;
         upperEndLine.setEnabled(false);
 
         // lower end
@@ -345,6 +348,7 @@ export class Measurements {
             : new BABYLON.Vector3(startPos.x, lowerEnd.getHeight(), startPos.z);
         labelText = ((startPos.y - endPos.y) * 100).toFixed(this.precision);
         const lowerEndLine = this.drawLabeledLine(startPos, endPos, Measurements.BOARD_MEASURE_COLOR, labelText);
+        lowerEndLine.renderingGroupId = 0;
         lowerEndLine.setEnabled(false);
 
         this.boardMap.set(board, [upperStartLine, lowerStartLine, upperEndLine, lowerEndLine]);
