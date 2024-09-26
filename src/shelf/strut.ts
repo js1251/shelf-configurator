@@ -15,6 +15,8 @@ export class Strut {
 
     private root: BABYLON.TransformNode;
 
+    static STRUT_DIAMETER = 0.027;
+
     constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.TransformNode, height_m: number, offset: number, index: number) {
         this.scene = scene;
         this.modelloader = modelloader;

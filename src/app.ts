@@ -8,6 +8,7 @@ import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
 import { Measurements } from "./measurements";
 import { Board } from "./shelf/board";
+import { DecorBuilder } from "./decor_builder";
 
 class App {
     constructor() {
@@ -60,6 +61,14 @@ class App {
                 url: "models/clamp.glb",
                 material: new BABYLON.StandardMaterial("clamp", scene)
             },
+            {
+                url: "models/decor_potted_plant_01.glb",
+                material: new BABYLON.StandardMaterial("plant", scene)
+            },
+            {
+                url: "models/decor_placeholder.glb",
+                material: new BABYLON.StandardMaterial("placeholder", scene)
+            },
         ];
 
         document.addEventListener("Environment.Room.Change", (e) => {
@@ -77,6 +86,8 @@ class App {
         Promise.all(modelUrls.map(entry => modelLoader.preloadModel(entry.url, entry.material))).then(() => {
             const shelf_root = new BABYLON.TransformNode("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
+            const decor_builder = new DecorBuilder(modelLoader, shelf);
+            decor_builder.fillDecor();
 
             let measurements = new Measurements(scene, shelf, camera, shelf_root);
 

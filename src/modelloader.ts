@@ -57,7 +57,7 @@ export class ModelLoader {
         });
     }
 
-    public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh | null {
+    public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh {
         const preloadedMesh = this.preloadedMeshes.get(modelUrl);
         if (preloadedMesh) {
             const instance = preloadedMesh.clone(`${modelUrl}_instance_${this.spawnCount++}`);
@@ -69,11 +69,9 @@ export class ModelLoader {
             this.shadowGenerator.addShadowCaster(instance);
             instance.receiveShadows = true;
 
-
             return instance;
         } else {
-            console.error("Model not preloaded");
-            return null;
+            throw new Error(`Model ${modelUrl} not preloaded`);
         }
     }
 

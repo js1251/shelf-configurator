@@ -355,10 +355,6 @@ export class Measurements {
     }
 
     private createBoardDistances() {
-        this.shelf.getBoards().sort((a, b) => {
-            return a.getHeight() - b.getHeight();
-        });
-
         // create a line for each board at its start and end, both up and down (4 lines per board)
         for (let i = 0; i < this.shelf.getBoards().length; i++) {
             this.drawDistanceForBoard(this.shelf.getBoards()[i]);
@@ -366,10 +362,6 @@ export class Measurements {
     }
 
     updateBoardMeasurement(board: Board) {
-        this.shelf.getBoards().sort((a, b) => {
-            return a.getHeight() - b.getHeight();
-        });
-
         let lines = this.boardMap.get(board);
         lines.forEach(line => line.dispose());
 

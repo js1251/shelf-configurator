@@ -2,7 +2,6 @@ import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./../modelloader";
 import { Board } from "./board";
 import { Strut } from "./strut";
-import { ThinParticleSystem } from "@babylonjs/core/Particles/thinParticleSystem";
 import { Measurements } from "../measurements";
 
 export class Shelf {
@@ -246,12 +245,6 @@ export class Shelf {
         this.boards.push(board);
 
         const boardNode = board.getBabylonNode();
-        /*
-        boardNode.getChildMeshes().forEach((mesh) => {
-            mesh.outlineColor = Measurements.BOARD_MEASURE_COLOR;
-            mesh.outlineWidth = 0.008;
-        });
-        */
     
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
         pointerDragBehavior.useObjectOrientationForDragging = false;
@@ -271,8 +264,14 @@ export class Shelf {
             this.fireBoardGrabbed(board);
     
             boardNode.getChildMeshes().forEach((mesh) => {
-                //mesh.renderOutline = true;
                 this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+            });
+
+            board.getDecor().forEach((decor) => {
+                const decorNode = decor.getBabylonNode();
+                decorNode.getChildMeshes().forEach((mesh) => {
+                    this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+                });
             });
         });
 
@@ -280,8 +279,14 @@ export class Shelf {
             this.fireBoardReleased(board);
 
             boardNode.getChildMeshes().forEach((mesh) => {
-                //mesh.renderOutline = false;
                 this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+            });
+
+            board.getDecor().forEach((decor) => {
+                const decorNode = decor.getBabylonNode();
+                decorNode.getChildMeshes().forEach((mesh) => {
+                    this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+                });
             });
         });
 
@@ -363,6 +368,11 @@ export class Shelf {
         });
 
         boardNode.addBehavior(pointerDragBehavior);
+
+        // sort boards by height
+        this.boards.sort((a, b) => {
+            return a.getHeight() - b.getHeight();
+        });
     }
 
     removeBoard(board: Board) {
@@ -372,6 +382,11 @@ export class Shelf {
         if (index > -1) {
             this.boards.splice(index, 1);
         }
+
+        // sort boards by height
+        this.boards.sort((a, b) => {
+            return a.getHeight() - b.getHeight();
+        });
     }
 
     getBoards(): Board[] {
@@ -471,6 +486,11 @@ export class Shelf {
     }
 
     private fireBoardChanged(board: Board) {
+        // sort boards by height
+        this.boards.sort((a, b) => {
+            return a.getHeight() - b.getHeight();
+        });
+
         const event = new CustomEvent("Shelf.Board.Change", {
             detail: {
                 shelf: this,

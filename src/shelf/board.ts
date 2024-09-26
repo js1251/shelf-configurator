@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./../modelloader";
 import { Strut } from "./strut";
+import { Decor } from "./decor";
 
 export class Board {
     private height_m: number;
@@ -14,6 +15,8 @@ export class Board {
     private middles: BABYLON.AbstractMesh[] = [];
     private stretches: BABYLON.AbstractMesh[] = [];
     private end: BABYLON.AbstractMesh;
+
+    private decor: Decor[] = [];
 
     private root: BABYLON.Node;
 
@@ -85,12 +88,37 @@ export class Board {
         return this.endStrut;
     }
 
+    addDecor(decor: Decor) {
+        decor.getBabylonNode().setParent(this.start);
+        this.decor.push(decor);
+    }
+
+    getDecor(): Decor[] {
+        return this.decor;
+    }
+
     remove() {
         this.start.dispose();
     }
 
     getBabylonNode(): BABYLON.AbstractMesh {
         return this.start;
+    }
+
+    getBoundingBox(): BABYLON.BoundingBox {
+        const min = new BABYLON.Vector3(
+            this.start.getAbsolutePosition().x - Board.BOARD_WIDTH / 2,
+            this.start.getAbsolutePosition().y - Board.BOARD_THICKNESS,
+            this.start.getAbsolutePosition().z - Board.BOARD_WIDTH / 2
+        );
+
+        const max = new BABYLON.Vector3(
+            this.end.getAbsolutePosition().x + Board.BOARD_WIDTH / 2,
+            this.start.getAbsolutePosition().y,
+            this.start.getAbsolutePosition().z + Board.BOARD_WIDTH / 2
+        );
+        
+        return new BABYLON.BoundingBox(min, max);
     }
 
     private spawnBoard() {
