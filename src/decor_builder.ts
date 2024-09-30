@@ -1,17 +1,14 @@
 import { ModelLoader } from "./modelloader";
-import { Board } from "./shelf/board";
 import { Decor } from "./shelf/decor";
 import { Shelf } from "./shelf/shelf";
 import { Strut } from "./shelf/strut";
 
 export class DecorBuilder {
-    private modelloader: ModelLoader;
     private shelf: Shelf;
 
     private decorOptions: Decor[] = [];
 
     constructor(modelloader: ModelLoader, shelf: Shelf) {
-        this.modelloader = modelloader;
         this.shelf = shelf;
 
         this.decorOptions.push(new Decor(modelloader, "models/decor_potted_plant_01.glb", 0.8, -1));

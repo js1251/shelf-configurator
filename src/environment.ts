@@ -1,4 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
+import { LiteEvent } from "./event_engine/LiteEvent";
 
 export class Environment {
     private scene: BABYLON.Scene;
@@ -15,6 +16,11 @@ export class Environment {
     private backWall: BABYLON.Mesh;
 
     private light: BABYLON.PointLight;
+
+    private readonly onRoomChanged = new LiteEvent<BABYLON.BoundingBox>();
+    public get RoomChanged() {
+        return this.onRoomChanged.expose();
+    }
 
     constructor(scene: BABYLON.Scene) {
         this.scene = scene;
@@ -35,11 +41,69 @@ export class Environment {
         this.createGround();
         this.createCeiling();
         this.createWalls();
+    }
 
-        this.setRoomHeight(2.4);
+    getShadowGenerator(): BABYLON.ShadowGenerator {
+        return this.shadowGenerator;
+    }
 
-        this.setRoomWidth(3.5);
-        this.setRoomDepth(4.5);
+    setBackgroundColor(color: BABYLON.Color4): void {
+        this.scene.clearColor = color;
+    }
+
+    setRoomHeight(height: number): void {
+        this.scaleHandle.scaling.y = height;
+        this.scaleHandle.position.y = height * 0.5;
+
+        this.light.position.y = height - 0.3;
+        
+        this.onRoomChanged.trigger(this.getBoundingBox());
+    }
+
+    getRoomHeight(): number {
+        return this.scaleHandle.scaling.y;
+    }
+
+    setRoomWidth(width: number): void {
+        this.scaleHandle.scaling.x = width;
+
+        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+
+        (material.baseTexture as BABYLON.Texture).uScale = width * 0.5;
+        (material.normalTexture as BABYLON.Texture).uScale = width * 0.5;
+        (material.metallicRoughnessTexture as BABYLON.Texture).uScale = width * 0.5;
+
+        this.onRoomChanged.trigger(this.getBoundingBox());
+    }
+
+    getRoomWidth(): number {
+        return this.scaleHandle.scaling.x;
+    }
+
+    setRoomDepth(depth: number): void {
+        this.scaleHandle.scaling.z = depth;
+        
+        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+
+        (material.baseTexture as BABYLON.Texture).vScale = depth * 0.5;
+        (material.normalTexture as BABYLON.Texture).vScale = depth * 0.5;
+        (material.metallicRoughnessTexture as BABYLON.Texture).vScale = depth * 0.5;
+
+        this.onRoomChanged.trigger(this.getBoundingBox());
+    }
+
+    getRoomDepth(): number {
+        return this.scaleHandle.scaling.z;
+    }
+
+    getBoundingBox(): BABYLON.BoundingBox {
+        const halfWidth = this.getRoomWidth() * 0.5;
+        const halfDepth = this.getRoomDepth() * 0.5;
+
+        const min = new BABYLON.Vector3(-halfWidth, 0, -halfDepth);
+        const max = new BABYLON.Vector3(halfWidth, this.getRoomHeight(), halfDepth);
+
+        return new BABYLON.BoundingBox(min, max);
     }
 
     private createShadowGenerator() {
@@ -137,78 +201,5 @@ export class Environment {
         this.backWall.receiveShadows = true;
         this.backWall.isPickable = false;
         this.backWall.setParent(this.scaleHandle);
-    }
-
-    getShadowGenerator(): BABYLON.ShadowGenerator {
-        return this.shadowGenerator;
-    }
-
-    setBackgroundColor(color: BABYLON.Color4): void {
-        this.scene.clearColor = color;
-    }
-
-    setRoomHeight(height: number): void {
-        this.scaleHandle.scaling.y = height;
-        this.scaleHandle.position.y = height * 0.5;
-
-        this.light.position.y = height - 0.3;
-        
-        this.fireRoomChanged();
-    }
-
-    getRoomHeight(): number {
-        return this.scaleHandle.scaling.y;
-    }
-
-    setRoomWidth(width: number): void {
-        this.scaleHandle.scaling.x = width;
-
-        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
-
-        (material.baseTexture as BABYLON.Texture).uScale = width * 0.5;
-        (material.normalTexture as BABYLON.Texture).uScale = width * 0.5;
-        (material.metallicRoughnessTexture as BABYLON.Texture).uScale = width * 0.5;
-
-        this.fireRoomChanged();
-    }
-
-    getRoomWidth(): number {
-        return this.scaleHandle.scaling.x;
-    }
-
-    setRoomDepth(depth: number): void {
-        this.scaleHandle.scaling.z = depth;
-        
-        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
-
-        (material.baseTexture as BABYLON.Texture).vScale = depth * 0.5;
-        (material.normalTexture as BABYLON.Texture).vScale = depth * 0.5;
-        (material.metallicRoughnessTexture as BABYLON.Texture).vScale = depth * 0.5;
-
-        this.fireRoomChanged();
-    }
-
-    getRoomDepth(): number {
-        return this.scaleHandle.scaling.z;
-    }
-
-    getBoundingBox(): BABYLON.BoundingBox {
-        const halfWidth = this.getRoomWidth() * 0.5;
-        const halfDepth = this.getRoomDepth() * 0.5;
-
-        const min = new BABYLON.Vector3(-halfWidth, 0, -halfDepth);
-        const max = new BABYLON.Vector3(halfWidth, this.getRoomHeight(), halfDepth);
-
-        return new BABYLON.BoundingBox(min, max);
-    }
-
-    private fireRoomChanged() {
-        const event = new CustomEvent("Environment.Room.Change", {
-            detail: {
-                bbox: this.getBoundingBox()
-            }
-        });
-
-        document.dispatchEvent(event);
     }
 }

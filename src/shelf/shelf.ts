@@ -3,6 +3,7 @@ import { ModelLoader } from "./../modelloader";
 import { Board } from "./board";
 import { Strut } from "./strut";
 import { Measurements } from "../measurements";
+import { LiteEvent } from "../event_engine/LiteEvent";
 
 export class Shelf {
     private height_m: number;
@@ -15,6 +16,27 @@ export class Shelf {
     private highlightLayer: BABYLON.HighlightLayer;
 
     private root: BABYLON.TransformNode;
+    
+    private readonly onBoardChanged = new LiteEvent<Board>();
+    public get BoardChanged() {
+        return this.onBoardChanged.expose();
+    }
+    private readonly onBboxChanged = new LiteEvent<BABYLON.BoundingBox>();
+    public get BboxChanged() {
+        return this.onBboxChanged.expose();
+    }
+    private readonly onBoardGrabbed = new LiteEvent<Board>();
+    public get BoardGrabbed() {
+        return this.onBoardGrabbed.expose();
+    }
+    private readonly onBoardReleased = new LiteEvent<Board>();
+    public get BoardReleased() {
+        return this.onBoardReleased.expose();
+    }
+    private readonly onPositionChanged = new LiteEvent<BABYLON.Vector3>();
+    public get PositionChanged() {
+        return this.onPositionChanged.expose();
+    }
 
     static HEADER_SERIALIZED_LENGTH = 6;
     static BOARD_SERIALIZED_LENGTH = 5;
@@ -65,7 +87,7 @@ export class Shelf {
             this.struts[i].setHeight(this.height_m);
         }
 
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     getHeight(): number {
@@ -103,12 +125,12 @@ export class Shelf {
             board.setEndStrut(this.struts[board.getEndStrut().getIndex() + 1]);
         }
 
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     addStrutToEnd() {
         this.struts.push(this.createStrut(0, this.struts.length));
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     private createStrut(offset: number, index: number) : Strut{
@@ -124,7 +146,7 @@ export class Shelf {
         pointerDragBehavior.onDragObservable.add((event) => {
             const currentPosition = event.dragPlanePoint;
             
-            this.fireShelfMoved(currentPosition);
+            this.onPositionChanged.trigger(currentPosition);
 
             //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
         });
@@ -167,7 +189,7 @@ export class Shelf {
             board.setEndStrut(this.struts[endIndex - 1]);
         }
 
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     removeStrutAtEnd() {
@@ -198,7 +220,7 @@ export class Shelf {
             }
         }
 
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     setStrutSpacing(spacing: number) {
@@ -217,7 +239,7 @@ export class Shelf {
             this.struts[i].setOffset(i * spacing);
         }
         
-        this.fireBboxChanged();
+        this.onBboxChanged.trigger(this.getBoundingBox());
     }
 
     getStrutSpacing(): number {
@@ -261,7 +283,7 @@ export class Shelf {
         pointerDragBehavior.onDragStartObservable.add((event) => {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
             currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
-            this.fireBoardGrabbed(board);
+            this.onBoardGrabbed.trigger(board);
     
             boardNode.getChildMeshes().forEach((mesh) => {
                 this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
@@ -276,7 +298,7 @@ export class Shelf {
         });
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
-            this.fireBoardReleased(board);
+            this.onBoardReleased.trigger(board);
 
             boardNode.getChildMeshes().forEach((mesh) => {
                 this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
@@ -359,7 +381,12 @@ export class Shelf {
             event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
 
             if (updateRequired) {
-                this.fireBoardChanged(board);
+                // sort boards by height
+                this.boards.sort((a, b) => {
+                    return a.getHeight() - b.getHeight();
+                });
+
+                this.onBoardChanged.trigger(board);
             }
         });
 
@@ -483,59 +510,5 @@ export class Shelf {
         }
 
         this.boards = [];
-    }
-
-    private fireBoardChanged(board: Board) {
-        // sort boards by height
-        this.boards.sort((a, b) => {
-            return a.getHeight() - b.getHeight();
-        });
-
-        const event = new CustomEvent("Shelf.Board.Change", {
-            detail: {
-                shelf: this,
-                board: board
-            }
-        });
-        document.dispatchEvent(event);
-    }
-
-    private fireBboxChanged() {
-        const event = new CustomEvent("Shelf.bbox.Change", {
-            detail: {
-                shelf: this
-            }
-        });
-        document.dispatchEvent(event);
-    }
-
-    private fireBoardGrabbed(board: Board) {
-        const event = new CustomEvent("Shelf.Board.Grabbed", {
-            detail: {
-                shelf: this,
-                board: board
-            }
-        });
-        document.dispatchEvent(event);
-    }
-
-    private fireBoardReleased(board: Board) {
-        const event = new CustomEvent("Shelf.Board.Released", {
-            detail: {
-                shelf: this,
-                board: board
-            }
-        });
-        document.dispatchEvent(event);
-    }
-
-    private fireShelfMoved(currentPos : BABYLON.Vector3) {
-        const event = new CustomEvent("Shelf.Moved", {
-            detail: {
-                shelf: this,
-                position: currentPos
-            }
-        });
-        document.dispatchEvent(event);
     }
 }

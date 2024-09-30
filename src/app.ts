@@ -71,14 +71,16 @@ class App {
             },
         ];
 
-        document.addEventListener("Environment.Room.Change", (e) => {
-            const detail = (e as CustomEvent).detail;
-            const bbox = detail.bbox as BABYLON.BoundingBox;
-
+        const environment = new ENVIRONMENT.Environment(scene);
+        environment.RoomChanged.on((bbox) => {
             camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
             camera.target = bbox.center;
         });
-        const environment = new ENVIRONMENT.Environment(scene);
+
+        environment.setRoomHeight(2.4);
+        environment.setRoomWidth(3.5);
+        environment.setRoomDepth(4.5);
+
         const shadowGenerator = environment.getShadowGenerator();
 
         const modelLoader = new ModelLoader(scene, shadowGenerator);
@@ -91,36 +93,19 @@ class App {
 
             let measurements = new Measurements(scene, shelf, camera, shelf_root);
 
-            document.addEventListener("Shelf.Board.Change", (e) => {
-                const detail = (e as CustomEvent).detail;
-                const board = detail.board;
-
+            shelf.BoardChanged.on((board) => {
                 measurements.updateBoardMeasurement(board);
             });
 
-            document.addEventListener("Shelf.Board.Grabbed", (e) => {
-                const detail = (e as CustomEvent).detail;
-                const board = detail.board;
-
+            shelf.BoardGrabbed.on((board) => {
                 measurements.enableForBoard(board);
             });
 
-            document.addEventListener("Shelf.Board.Released", (e) => {
-                const detail = (e as CustomEvent).detail;
-                const board = detail.board;
-
+            shelf.BoardReleased.on((board) => {
                 measurements.disableForBoard(board);
             });
 
-            document.addEventListener("Shelf.bbox.Change", (e) => {
-                const detail = (e as CustomEvent).detail;
-                const shelf = detail.shelf;
-            });
-
-            document.addEventListener("Shelf.Moved", (e) => {
-                const detail = (e as CustomEvent).detail;
-                const position = detail.position;
-
+            shelf.PositionChanged.on((position) => {
                 position.y = 0;
 
                 // clamp the shelf to the room
