@@ -93,6 +93,11 @@ export class Board {
         this.decor.push(decor);
     }
 
+    removeDecor(decor: Decor) {
+        decor.dispose();
+        this.decor = this.decor.filter((d) => d !== decor);
+    }
+
     getDecor(): Decor[] {
         return this.decor;
     }

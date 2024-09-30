@@ -69,6 +69,26 @@ class App {
                 url: "models/decor_placeholder.glb",
                 material: new BABYLON.StandardMaterial("placeholder", scene)
             },
+            {
+                url: "models/decor_books_01.glb",
+                material: new BABYLON.StandardMaterial("books01", scene)
+            },
+            {
+                url: "models/decor_books_02.glb",
+                material: new BABYLON.StandardMaterial("books02", scene)
+            },
+            {
+                url: "models/decor_books_03.glb",
+                material: new BABYLON.StandardMaterial("books03", scene)
+            },
+            {
+                url: "models/decor_books_04.glb",
+                material: new BABYLON.StandardMaterial("books04", scene)
+            },
+            {
+                url: "models/decor_trinket_01.glb",
+                material: new BABYLON.StandardMaterial("trinket01", scene)
+            },
         ];
 
         const environment = new ENVIRONMENT.Environment(scene);
@@ -88,6 +108,24 @@ class App {
         Promise.all(modelUrls.map(entry => modelLoader.preloadModel(entry.url, entry.material))).then(() => {
             const shelf_root = new BABYLON.TransformNode("shelf_root", scene);
             const shelf = new Shelf(scene, modelLoader, shelf_root);
+            
+            shelf.setHeight(2.4);
+
+            shelf.addStrutToEnd();
+            shelf.addStrutToEnd();
+            shelf.addStrutToEnd();
+            shelf.addStrutToEnd();
+            
+            shelf.setStrutSpacing(0.5);
+
+            shelf.addBoard(0.4, 1, 3);
+            shelf.addBoard(0.8, 0, 2);
+            shelf.addBoard(1.0, 2, 3);
+            shelf.addBoard(1.2, 1, 2);
+            shelf.addBoard(1.4, 2, 3);
+            shelf.addBoard(1.6, 0, 2);
+            shelf.addBoard(2.0, 1, 3);
+
             const decor_builder = new DecorBuilder(modelLoader, shelf);
             decor_builder.fillDecor();
 
@@ -95,6 +133,8 @@ class App {
 
             shelf.BoardChanged.on((board) => {
                 measurements.updateBoardMeasurement(board);
+                decor_builder.disableDecorForBoard(board);
+                decor_builder.validateDecorForBoard(board);
             });
 
             shelf.BoardGrabbed.on((board) => {
@@ -103,6 +143,7 @@ class App {
 
             shelf.BoardReleased.on((board) => {
                 measurements.disableForBoard(board);
+                decor_builder.enableDecorForBoard(board);
             });
 
             shelf.PositionChanged.on((position) => {

@@ -52,4 +52,8 @@ export class Decor {
     clone(): Decor {
         return new Decor(this.modelloader, this.url, this.minHeight, this.maxHeight);
     }
+
+    dispose() {
+        this.node.dispose();
+    }
 }

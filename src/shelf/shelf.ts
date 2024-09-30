@@ -50,23 +50,6 @@ export class Shelf {
         this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
             renderingGroupId: 0,
         });
-
-        this.setHeight(2.4);
-
-        this.addStrutToEnd();
-        this.addStrutToEnd();
-        this.addStrutToEnd();
-        this.addStrutToEnd();
-
-        this.setStrutSpacing(0.5);
-
-        this.addBoard(0.4, 1, 3);
-        this.addBoard(0.8, 0, 2);
-        this.addBoard(1.0, 2, 3);
-        this.addBoard(1.2, 1, 2);
-        this.addBoard(1.4, 2, 3);
-        this.addBoard(1.6, 0, 2);
-        this.addBoard(2.0, 1, 3);
     }
 
     setHeight(height_m: number) {
