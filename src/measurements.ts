@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { Shelf } from "./shelf/shelf";
-import { Board } from "./shelf/board";
+import { Board } from "./shelf/entities/board";
 
 export class Measurements {
     private scene: BABYLON.Scene;
@@ -28,11 +28,11 @@ export class Measurements {
     static BOARD_MEASURE_COLOR = new BABYLON.Color3(0.012, 0.47, 0.85);
     static DIMENSIONS_MEASURE_COLOR = BABYLON.Color3.Black();
 
-    constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera, root: BABYLON.TransformNode) {
+    constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera) {
         this.scene = scene;
         this.shelf = shelf;
         this.camera = camera;
-        this.root = root;
+        this.root = shelf.root;
 
         this.createMeasurements();
         this.createBoardDistances();
@@ -309,7 +309,7 @@ export class Measurements {
         }
 
         // upper start
-        let startPos = board.getBabylonNode().getAbsolutePosition().clone()
+        let startPos = board.getPosition().clone() /* CHANGE HERE */
             .add(BABYLON.Vector3.Right().scale(0.05));
         let endPos = upperStart === undefined
             ? new BABYLON.Vector3(startPos.x, this.shelf.getHeight(), startPos.z)
@@ -330,7 +330,7 @@ export class Measurements {
         lowerStartLine.setEnabled(false);
 
         // upper end
-        startPos = board.getBabylonNode().getAbsolutePosition().clone()
+        startPos = board.getPosition().clone() /* CHANGE HERE */
             .add(BABYLON.Vector3.Right().scale(this.shelf.getStrutSpacing() * (endIndex - startIndex)))
             .add(BABYLON.Vector3.Right().scale(-0.05));
         endPos = upperEnd === undefined

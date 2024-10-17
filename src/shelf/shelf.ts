@@ -1,9 +1,9 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./../modelloader";
-import { Board } from "./board";
-import { Strut } from "./strut";
 import { Measurements } from "../measurements";
 import { LiteEvent } from "../event_engine/LiteEvent";
+import { Strut } from "./entities/strut";
+import { Board } from "./entities/board";
 
 export class Shelf {
     private height_m: number;
@@ -15,7 +15,7 @@ export class Shelf {
     private modelloader: ModelLoader;
     private highlightLayer: BABYLON.HighlightLayer;
 
-    private root: BABYLON.TransformNode;
+    root: BABYLON.TransformNode;
     
     private readonly onBoardChanged = new LiteEvent<Board>();
     public get BoardChanged() {
@@ -42,10 +42,11 @@ export class Shelf {
     static BOARD_SERIALIZED_LENGTH = 5;
     static FOOT_HEIGHT = 0.04;
 
-    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.TransformNode) {
+    constructor(scene: BABYLON.Scene, modelloader: ModelLoader) {
         this.scene = scene;
         this.modelloader = modelloader;
-        this.root = root;
+        
+        this.root = new BABYLON.TransformNode("shelf_root", this.scene);
 
         this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
             renderingGroupId: 0,
@@ -53,11 +54,6 @@ export class Shelf {
     }
 
     setHeight(height_m: number) {
-        // cant be higher than 616.95 meters (due to serialization using two bytes for height)
-        if (height_m > 616.95) {
-            throw new Error("Height is too high");
-        }
-
         if (height_m < 0) {
             throw new Error("Height is too low");
         }
@@ -104,8 +100,7 @@ export class Shelf {
         // update all boards start and end struts
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
-            board.setStartStrut(this.struts[board.getStartStrut().getIndex() + 1]);
-            board.setEndStrut(this.struts[board.getEndStrut().getIndex() + 1]);
+            board.setSpanStruts(this.struts[board.getStartStrut().getIndex()], this.struts[board.getEndStrut().getIndex()]);
         }
 
         this.onBboxChanged.trigger(this.getBoundingBox());
@@ -117,7 +112,7 @@ export class Shelf {
     }
 
     private createStrut(offset: number, index: number) : Strut{
-        const strut = new Strut(this.scene, this.modelloader, this.root, this.getHeight(), offset, index);
+        const strut = new Strut(this.modelloader, this.getHeight(), offset, index);
 
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({
             dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
@@ -134,7 +129,9 @@ export class Shelf {
             //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
         });
 
-        strut.getBabylonNode().addBehavior(pointerDragBehavior);
+        strut.addBehavior(pointerDragBehavior);
+
+        strut.setParent(this.root);
 
         return strut;
     }
@@ -155,7 +152,7 @@ export class Shelf {
             if (startIndex === 1) {
                 if (endIndex - startIndex > 0) {
                     // shorten the board
-                    board.setStartStrut(this.struts[startIndex - 1]);
+                    board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex]);
                 } else {
                     // the board needs to be removed
                     const index = this.boards.indexOf(board);
@@ -168,8 +165,7 @@ export class Shelf {
                 }
             }
 
-            board.setStartStrut(this.struts[startIndex - 1]);
-            board.setEndStrut(this.struts[endIndex - 1]);
+            board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex - 1]);
         }
 
         this.onBboxChanged.trigger(this.getBoundingBox());
@@ -199,7 +195,7 @@ export class Shelf {
                     continue;
                 }
 
-                board.setEndStrut(this.struts[endIndex - 1]);
+                board.setSpanStruts(this.struts[startIndex], this.struts[endIndex - 1]);
             }
         }
 
@@ -246,10 +242,9 @@ export class Shelf {
             throw new Error("Start strut must be before end strut");
         }
 
-        const board = new Board(this.scene, this.modelloader, this.root, height, this.struts[startStrut], this.struts[endStrut]);
+        const board = new Board(this.modelloader, height, this.struts[startStrut], this.struts[endStrut]);
         this.boards.push(board);
-
-        const boardNode = board.getBabylonNode();
+        board.setParent(this.root);
     
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
         pointerDragBehavior.useObjectOrientationForDragging = false;
@@ -268,12 +263,12 @@ export class Shelf {
             currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
             this.onBoardGrabbed.trigger(board);
     
-            boardNode.getChildMeshes().forEach((mesh) => {
+            board.root.getChildMeshes().forEach((mesh) => {
                 this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
             });
 
-            board.getDecor().forEach((decor) => {
-                const decorNode = decor.getBabylonNode();
+            board.getAllDecor().forEach((decor) => {
+                const decorNode = decor.root;
                 decorNode.getChildMeshes().forEach((mesh) => {
                     this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
                 });
@@ -283,12 +278,12 @@ export class Shelf {
         pointerDragBehavior.onDragEndObservable.add((event) => {
             this.onBoardReleased.trigger(board);
 
-            boardNode.getChildMeshes().forEach((mesh) => {
+            board.root.getChildMeshes().forEach((mesh) => {
                 this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
             });
 
-            board.getDecor().forEach((decor) => {
-                const decorNode = decor.getBabylonNode();
+            board.getAllDecor().forEach((decor) => {
+                const decorNode = decor.root;
                 decorNode.getChildMeshes().forEach((mesh) => {
                     this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
                 });
@@ -309,16 +304,14 @@ export class Shelf {
             const strutTransition = currentPosition.x - currentStrutPosX;
 
             if (startIndex > 0 && strutTransition < 0) {
-                board.setStartStrut(this.struts[startIndex - 1]);
-                board.setEndStrut(this.struts[endIndex - 1]);
+                board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex - 1]);
 
                 currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
                 updateRequired = true;
             }
             
             if (endIndex < this.struts.length - 1 && strutTransition > this.getStrutSpacing()) {
-                board.setEndStrut(this.struts[endIndex + 1]);
-                board.setStartStrut(this.struts[startIndex + 1]);
+                board.setSpanStruts(this.struts[startIndex + 1], this.struts[endIndex + 1]);
 
                 currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
                 updateRequired = true;
@@ -347,7 +340,7 @@ export class Shelf {
                     continue;
                 }
 
-                const otherBoardHeight = otherBoard.getBabylonNode().position.y;
+                const otherBoardHeight = otherBoard.getHeight();
                 const difference = Math.abs(snappedHeight - otherBoardHeight);
 
                 if (difference < Board.BOARD_THICKNESS) {
@@ -377,7 +370,7 @@ export class Shelf {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "default";
         });
 
-        boardNode.addBehavior(pointerDragBehavior);
+        board.addBehavior(pointerDragBehavior);
 
         // sort boards by height
         this.boards.sort((a, b) => {
@@ -403,6 +396,7 @@ export class Shelf {
         return this.boards;
     }
 
+    // TODO: reuse entity?
     getBoundingBox(): BABYLON.BoundingBox {
         const halfBoardWidth = Board.BOARD_WIDTH / 2;
         const min = new BABYLON.Vector3(-halfBoardWidth, 0, -halfBoardWidth).add(this.root.position);
@@ -411,76 +405,7 @@ export class Shelf {
         return new BABYLON.BoundingBox(min, max);
     }
 
-    serialize(): string {
-        var serialized = "";
-
-        // serialize height in two bytes
-        const height = this.height_m * 100;
-        const height_bytes = new Uint16Array([height]);
-        // serialize as hex string (big endian, padded with leading zeros)
-        serialized += height_bytes[0].toString(16).padStart(3, "0");
-
-        // serialize number of struts in one byte
-        const numberOfStruts = this.struts.length - 1;
-        // serialize as hex string (big endian, remove leading zeros)
-        serialized += numberOfStruts.toString(16);
-
-        // serialize strut spacing in two bytes
-        const strutSpacing = this.getStrutSpacing() * 100;
-        const strutSpacing_bytes = new Uint16Array([strutSpacing]);
-        // serialize as hex string (big endian, padded with leading zeros)
-        serialized += strutSpacing_bytes[0].toString(16).padStart(2, "0");
-
-        // serialize boards
-        for (let i = 0; i < this.boards.length; i++) {
-            const board = this.boards[i];
-
-            // serialize height in two bytes
-            serialized += new Uint16Array([board.getHeight() * 100])[0].toString(16).padStart(3, "0");
-
-            // serialize start strut in one byte
-            serialized += board.getStartStrut().getIndex().toString(16);
-
-            // serialize end strut in one byte
-            serialized += board.getEndStrut().getIndex().toString(16);
-        }
-
-        return serialized;
-    }
-
-    static deserialize(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.AbstractMesh, data: string): Shelf {
-        const shelf = new Shelf(scene, modelloader, root);
-        
-        // remove the default config parts
-        shelf.remove();
-
-        // first three chars are the height in hex
-        shelf.setHeight(parseInt("0" + data.substr(0, 3), 16) / 100);
-
-        // next char is the number of struts in hex with leading zeros removed
-        const numStruts = parseInt(data.substr(3, 1), 16) + 1;
-        for (let i = 0; i < numStruts; i++) {
-            shelf.addStrutToEnd();
-        }
-
-        // next two chars are the strut spacing in hex
-        shelf.setStrutSpacing(parseInt(data.substr(4, 2), 16) / 100);
-
-        // the rest of the data is the boards
-        for (let i = Shelf.HEADER_SERIALIZED_LENGTH; i < data.length; i += Shelf.BOARD_SERIALIZED_LENGTH) {
-            const board_data = data.substr(i, Shelf.BOARD_SERIALIZED_LENGTH);
-
-            const board_height = parseInt("0" + board_data.substr(0, 3), 16) / 100;
-
-            const startStrut = parseInt(board_data.substr(3, 1), 16);
-            const endStrut = parseInt(board_data.substr(4, 1), 16);
-
-            shelf.boards.push(new Board(scene, modelloader, root, board_height, shelf.struts[startStrut], shelf.struts[endStrut]));
-        }
-
-        return shelf;
-    }
-
+    // TODO: reuse entity?
     remove() {
         for (let i = 0; i < this.struts.length; i++) {
             this.struts[i].remove();

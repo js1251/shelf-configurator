@@ -1,15 +1,13 @@
 import * as BABYLON from "@babylonjs/core";
-import { ModelLoader } from "./../modelloader";
+import { Entity } from "../../entity_engine/entity";
+import { ModelLoader } from "../../modelloader";
 import { Strut } from "./strut";
-import { Decor } from "./decor";
+import { Decor } from "../decor";
 
-export class Board {
+export class Board extends Entity {
     private height_m: number;
     private startStrut: Strut;
     private endStrut: Strut;
-
-    private scene: BABYLON.Scene;
-    private modelloader: ModelLoader;
 
     private start: BABYLON.AbstractMesh;
     private middles: BABYLON.AbstractMesh[] = [];
@@ -17,71 +15,58 @@ export class Board {
     private end: BABYLON.AbstractMesh;
 
     private decor: Decor[] = [];
-
-    private root: BABYLON.Node;
-
+    
     static BOARD_WIDTH = 0.2;
-    static BOARD_THICKNESS = 0.018;
+    static BOARD_THICKNESS = 0.02; // technically its 0.018 but it makes the numbers easier using 0.02
 
-    constructor(scene: BABYLON.Scene, modelloader: ModelLoader, root: BABYLON.Node, height_m: number, startStrut: Strut, endStrut: Strut) {
-        this.scene = scene;
-        this.modelloader = modelloader;
-        this.root = root;
-
-        this.spawnBoard();
+    constructor(modelloader: ModelLoader, height_m: number, startStrut: Strut, endStrut: Strut) {
+        super(modelloader);
 
         this.setHeight(height_m);
-        this.setStartStrut(startStrut);
-        this.setEndStrut(endStrut);
+        this.setSpanStruts(startStrut, endStrut);
     }
 
     setHeight(height_m: number) {
         this.height_m = height_m;
 
-        this.start.setParent(null);
-        this.start.position.y = this.height_m;
-        this.start.setParent(this.root);
+        const newPosition = this.getPosition().clone();
+        newPosition.y = this.height_m;
+        this.setPositon(newPosition);
+
+        this.updateBoundingBox();
     }
 
     getHeight(): number {
         return this.height_m;
     }
 
-    setStartStrut(startStrut: Strut) {
+    setSpanStruts(startStrut: Strut, endStrut: Strut) {
         this.startStrut = startStrut;
+        this.endStrut = endStrut;
 
-        this.end.setParent(null);
-        for (var i = 0; i < this.middles.length; i++) {
-            this.middles[i].setParent(null);
-        }
-        for (var i = 0; i < this.stretches.length; i++) {
-            this.stretches[i].setParent(null);
-        }
+        const startParent = this.start.parent;
 
         this.start.setParent(null);
+        this.end.setParent(null);
 
-        const startStrutPosition = this.startStrut.getBabylonNode().getAbsolutePosition().clone();
-        this.start.position.x = startStrutPosition.x;
-        this.start.position.z = startStrutPosition.z;
-        this.start.setParent(this.root);
+        const startStrutPosition = this.startStrut.getPosition().clone();
+        startStrutPosition.y = this.height_m;
+        this.setPositon(startStrutPosition);
 
+        const endStrutPosition = this.endStrut.getPosition().clone();
+        endStrutPosition.y = this.height_m;
+        this.end.position = endStrutPosition;
+        
         this.end.setParent(this.start);
+        this.start.setParent(startParent);
 
         this.handleMiddle();
+        this.updateBoundingBox();
     }
+
 
     getStartStrut(): Strut {
         return this.startStrut;
-    }
-
-    setEndStrut(endStrut: Strut) {
-        this.endStrut = endStrut;
-
-        this.end.setParent(null);
-        this.end.position.x = this.endStrut.getBabylonNode().getAbsolutePosition().clone().x;
-        this.end.setParent(this.start);
-        
-        this.handleMiddle();
     }
 
     getEndStrut(): Strut {
@@ -89,66 +74,43 @@ export class Board {
     }
 
     addDecor(decor: Decor) {
-        decor.getBabylonNode().setParent(this.start);
         this.decor.push(decor);
     }
 
-    removeDecor(decor: Decor) {
-        decor.dispose();
-        this.decor = this.decor.filter((d) => d !== decor);
-    }
-
-    getDecor(): Decor[] {
+    getAllDecor(): Decor[] {
         return this.decor;
     }
 
-    remove() {
-        this.start.dispose();
+    removeDecor(decor: Decor) {
+        const index = this.decor.indexOf(decor);
+        if (index >= 0) {
+            this.decor.splice(index, 1);
+            decor.remove();
+        }
     }
 
-    getBabylonNode(): BABYLON.AbstractMesh {
-        return this.start;
-    }
-
-    getBoundingBox(): BABYLON.BoundingBox {
-        const min = new BABYLON.Vector3(
-            this.start.getAbsolutePosition().x - Board.BOARD_WIDTH / 2,
-            this.start.getAbsolutePosition().y - Board.BOARD_THICKNESS,
-            this.start.getAbsolutePosition().z - Board.BOARD_WIDTH / 2
-        );
-
-        const max = new BABYLON.Vector3(
-            this.end.getAbsolutePosition().x + Board.BOARD_WIDTH / 2,
-            this.start.getAbsolutePosition().y,
-            this.start.getAbsolutePosition().z + Board.BOARD_WIDTH / 2
-        );
-        
-        return new BABYLON.BoundingBox(min, max);
-    }
-
-    private spawnBoard() {
-        const spawnPosition = BABYLON.Vector3.Zero();
-
-        const start = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
-        const startClamp = this.modelloader.createInstance("models/clamp.glb", spawnPosition.clone());
+    protected constructMeshes(): BABYLON.AbstractMesh {
+        const start = this.modelloader.createInstance("models/shelf_end.glb");
+        const startClamp = this.modelloader.createInstance("models/clamp.glb");
         startClamp.setParent(start);
 
         start.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
-        start.setParent(this.root);
-        start.setEnabled(true);
-        this.scene.addMesh(start);
 
         this.start = start;
 
-        const end = this.modelloader.createInstance("models/shelf_end.glb", spawnPosition.clone());
-        const endClamp = this.modelloader.createInstance("models/clamp.glb", spawnPosition.clone());
+        const end = this.modelloader.createInstance("models/shelf_end.glb");
+        const endClamp = this.modelloader.createInstance("models/clamp.glb");
         endClamp.setParent(end);
 
         end.setParent(start);
-        end.setEnabled(true);
-        this.scene.addMesh(end);
 
         this.end = end;
+
+        return start;
+    }
+
+    protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] {
+        return [min, max];
     }
 
     private handleMiddle() {
@@ -176,11 +138,10 @@ export class Board {
             middle.setParent(this.start);
             middle.setEnabled(true);
 
-            this.scene.addMesh(middle);
             this.middles.push(middle);
         }
 
-        const startStrutPosition = this.startStrut.getBabylonNode().getAbsolutePosition().clone();
+        const startStrutPosition = this.startStrut.getPosition().clone();
 
         for (var i = 0; i < this.middles.length; i++) {
             const middle = this.middles[i];
@@ -203,7 +164,6 @@ export class Board {
             stretch.setParent(this.start);
             stretch.setEnabled(true);
     
-            this.scene.addMesh(stretch);
             this.stretches.push(stretch);
         }
 

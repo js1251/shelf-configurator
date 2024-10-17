@@ -1,7 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 
 export class ModelLoader {
-    private scene: BABYLON.Scene;
+    scene: BABYLON.Scene;
     private shadowGenerator: BABYLON.ShadowGenerator;
     private preloadedMeshes: Map<string, BABYLON.Mesh>;
     private spawnCount: number = 0;
@@ -57,7 +57,7 @@ export class ModelLoader {
         });
     }
 
-    public createInstance(modelUrl: string, position: BABYLON.Vector3): BABYLON.AbstractMesh {
+    public createInstance(modelUrl: string, position: BABYLON.Vector3 = BABYLON.Vector3.Zero()): BABYLON.AbstractMesh {
         const preloadedMesh = this.preloadedMeshes.get(modelUrl);
         if (preloadedMesh) {
             const instance = preloadedMesh.clone(`${modelUrl}_instance_${this.spawnCount++}`);

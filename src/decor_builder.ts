@@ -1,8 +1,15 @@
 import { ModelLoader } from "./modelloader";
-import { Board } from "./shelf/board";
 import { Decor } from "./shelf/decor";
 import { Shelf } from "./shelf/shelf";
-import { Strut } from "./shelf/strut";
+import { Board } from "./shelf/entities/board";
+import { Strut } from "./shelf/entities/strut";
+import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
+import { Books01 } from "./shelf/entities/decor/decor_books_01";
+import { Books02 } from "./shelf/entities/decor/decor_books_02";
+import { PottedPlant02 } from "./shelf/entities/decor/potted_plant02";
+import { Books03 } from "./shelf/entities/decor/decor_books_03";
+import { Books04 } from "./shelf/entities/decor/decor_books_04";
+import { Trinket01 } from "./shelf/entities/decor/decor_trinket_01";
 
 export class DecorBuilder {
     private shelf: Shelf;
@@ -12,16 +19,16 @@ export class DecorBuilder {
     constructor(modelloader: ModelLoader, shelf: Shelf) {
         this.shelf = shelf;
 
-        this.decorOptions.push(new Decor(modelloader, "models/decor_potted_plant_01.glb", 0.8, -1));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_placeholder.glb", 0, -1));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_books_01.glb", 0, -1));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_books_02.glb", 0, -1));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_books_03.glb", 0, -1));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_books_04.glb", 0.4, 1.6));
-        this.decorOptions.push(new Decor(modelloader, "models/decor_trinket_01.glb", 0.4, 1.6));
+        this.decorOptions.push(new PottedPlant01(modelloader));
+        this.decorOptions.push(new PottedPlant02(modelloader));
+        this.decorOptions.push(new Books01(modelloader));
+        this.decorOptions.push(new Books02(modelloader));
+        this.decorOptions.push(new Books03(modelloader));
+        this.decorOptions.push(new Books04(modelloader));
+        this.decorOptions.push(new Trinket01(modelloader));
 
-        this.decorOptions.forEach(decor => {
-            decor.getBabylonNode().setEnabled(false);
+        this.decorOptions.forEach(option => {
+            option.root.setEnabled(false);
         });
     }
 
@@ -37,7 +44,7 @@ export class DecorBuilder {
         const allBoards = this.shelf.getBoards();
         const boardIndex = allBoards.indexOf(board);
 
-        const decorOptions = this.getDecorOptions(height, boardIndex);
+        const decorOptions = this.getDecorOptions(height);
 
         if (decorOptions.length === 0) {
             return;
@@ -57,50 +64,46 @@ export class DecorBuilder {
             let widthBudget = this.shelf.getStrutSpacing() - Strut.STRUT_DIAMETER;
 
             // start right at the strut
-            let spawnPosition = board.getBabylonNode().getAbsolutePosition().clone();
+            let spawnPosition = board.getPosition().clone();
             spawnPosition.x += this.shelf.getStrutSpacing() * j + Strut.STRUT_DIAMETER / 2;
+            spawnPosition.y += 0.001;
 
             const spawnedDecor = [];
             let tries = 0;
 
             // keep spawning decor until there is no more space
-            while (widthBudget > 0) {
+            while (widthBudget > 0 && tries < 3) {
                 const randomIndex = Math.floor(Math.random() * decorOptions.length);
                 const decor = decorOptions[randomIndex].clone();
                 const decorWidth = decor.getBoundingBox().extendSize.x * 2;
                 const randomOffset = getRandomOffset();
 
                 // if the decor is too wide, dispose it and try again
-                if (decorWidth + randomOffset> widthBudget) {
-                    decor.getBabylonNode().dispose();
+                if (decorWidth + randomOffset > widthBudget) {
+                    decor.remove();
 
-                    if (tries++ > 3) {
-                        break;
-                    }
-
+                    tries++
                     continue;
                 }
 
                 // center the decor on the spawn position
                 spawnPosition.x += decorWidth / 2 + randomOffset;
-                decor.getBabylonNode().position = spawnPosition.clone();
+                decor.setPositon(spawnPosition.clone());
 
                 // check if the decor intersects with any other board (above)
                 if (this.collides(decor, boardIndex)) {
-                    decor.getBabylonNode().dispose();
+                    decor.remove();
 
                     // reset the spawn position
                     spawnPosition.x -= decorWidth / 2 + randomOffset;
 
-                    if (tries++ > 3) {
-                        break;
-                    }
-
+                    tries++
                     continue;
                 }
 
                 board.addDecor(decor);
                 spawnedDecor.push(decor);
+                decor.root.setParent(this.shelf.root);
 
                 widthBudget -= decorWidth + randomOffset;
                 spawnPosition.x += decorWidth / 2;
@@ -109,7 +112,7 @@ export class DecorBuilder {
     }
 
     disableDecorForBoard(board: Board) {
-        const decors = board.getDecor();
+        const decors = board.getAllDecor();
         decors.forEach(decor => {
             board.removeDecor(decor);
         });
@@ -117,7 +120,8 @@ export class DecorBuilder {
 
     enableDecorForBoard(board: Board) {
         // if the board was just grabbed but never changed, ignore
-        if (board.getDecor().length > 0) {
+        
+        if (board.getAllDecor().length > 0) {
             return;
         }
 
@@ -137,7 +141,7 @@ export class DecorBuilder {
             const board = this.shelf.getBoards()[i];
 
             // check if the decor intersects with any other board (above)
-            const decors = board.getDecor();
+            const decors = board.getAllDecor();
             let collisionOccured = false;
             decors.forEach(decor => {
                 if (this.collides(decor, i)) {
@@ -160,36 +164,28 @@ export class DecorBuilder {
 
     private collides(decor: Decor, boardIndex: number): boolean {
         // check if the decor intersects with any other board (above)
-        const decorBbox = decor.getBoundingBox();
         const boards = this.shelf.getBoards();
+        const currentBoard = boards[boardIndex];
 
         const numberOfBoards = boards.length;
 
         // check for ceiling collision
+        const decorHeight = currentBoard.getHeight() + decor.getBoundingBox().extendSize.y * 2;
         if (boardIndex + 1 >= numberOfBoards) {
-            const shelfHeight = this.shelf.getHeight();
-            if (decorBbox.maximum.y > shelfHeight) {
+            const ceilingHeight = this.shelf.getHeight();
+            if (decorHeight > ceilingHeight) {
                 return true;
             }
         }
 
         // check for board collision
-        for (let k = boardIndex + 1; k < numberOfBoards; k++) {
-            const otherBoard = boards[k];
-            const otherBoardBbox = otherBoard.getBoundingBox();
-
-            if (decorBbox.minimum.x < otherBoardBbox.maximum.x
-                && decorBbox.maximum.x > otherBoardBbox.minimum.x
-                && decorBbox.maximum.y > otherBoardBbox.minimum.y) {
-                return true;
-            }
-        }
-
-        return false;
+        return boards.some((board, index) => {
+            return board.collidesBbox(decor.getBoundingBox());
+        });
     }
 
 
-    private getDecorOptions(startHeight: number, boardIndex: number): Decor[] {
+    private getDecorOptions(startHeight: number): Decor[] {
         const options = [];
 
         for (let i = 0; i < this.decorOptions.length; i++) {
