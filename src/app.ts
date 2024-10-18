@@ -33,6 +33,7 @@ class App {
         camera.attachControl(canvas, true);
         
         var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-0.5, 1, 0), this.scene);
+        light1.intensity = 1.5;
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         environment.RoomChanged.on((bbox) => {
