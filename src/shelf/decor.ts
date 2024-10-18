@@ -10,6 +10,12 @@ export abstract class Decor extends Entity {
 
         this.minHeight = minHeight;
         this.maxHeight = maxHeight;
+
+        // prevent ray picking
+        this.root.isPickable = false;
+        this.root.getChildMeshes().forEach(mesh => {
+            mesh.isPickable = false;
+        });
     }
 
     getMinHeight(): number {
