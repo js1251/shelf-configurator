@@ -143,6 +143,7 @@ export class Measurements {
         line.edgesWidth = Measurements.LINE_THICKNESS;
         line.edgesColor = BABYLON.Color4.FromColor3(color);
         line.renderingGroupId = 1;
+        line.isPickable = false;
 
         line.setParent(this.root);
 
@@ -157,6 +158,7 @@ export class Measurements {
         const billboard = BABYLON.MeshBuilder.CreatePlane(`line_${this.lineId++}`, { width: planeWidth, height: planeHeight }, this.scene);
         billboard.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
         billboard.renderingGroupId = 2;
+        billboard.isPickable = false;
         
         const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
         billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
@@ -173,6 +175,7 @@ export class Measurements {
         const plane = BABYLON.MeshBuilder.CreatePlane("floatingText", { width: 1, height: 0.5 }, this.scene);
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
         plane.renderingGroupId = 3;
+        plane.isPickable = false;
         
         plane.material = textMaterial;
 
@@ -228,6 +231,7 @@ export class Measurements {
         endLine.edgesWidth = Measurements.LINE_THICKNESS;
         endLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
         endLine.renderingGroupId = 1;
+        endLine.isPickable = false;
 
         endOptions.points = [
             start.add(ortho.scale(0.04)),
@@ -241,6 +245,7 @@ export class Measurements {
         startLine.edgesWidth = Measurements.LINE_THICKNESS;
         startLine.edgesColor = BABYLON.Color4.FromColor3(lineColor);
         startLine.renderingGroupId = 1;
+        startLine.isPickable = false;
     }
 
     private respondeMeasurementsToCamera() {
