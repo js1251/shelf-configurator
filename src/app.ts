@@ -55,8 +55,12 @@ class App {
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
 
-            navigation3D.BoardGrabbed.on((board) => {
+            navigation3D.BoardSelected.on((board) => {
                 measurements.enableForBoard(board);
+            });
+
+            navigation3D.BoardDeselected.on((board) => {
+                measurements.disableForBoard(board);
             });
 
             navigation3D.BoardChanged.on((board) => {
@@ -66,9 +70,7 @@ class App {
                 decor_builder.validateNeighborDecorForBoard(board);
             });
 
-            navigation3D.BoardReleased.on((board) => {
-                measurements.disableForBoard(board);
-
+            navigation3D.BoardStoppedDragged.on((board) => {
                 decor_builder.enableDecorForBoard(board);
             });
         });

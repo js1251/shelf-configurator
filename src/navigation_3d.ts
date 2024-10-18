@@ -7,21 +7,81 @@ import { Measurements } from "./measurements";
 import { LiteEvent } from "./event_engine/LiteEvent";
 import { Environment } from "./environment";
 
-export class Navigation3D {
-    private scene: BABYLON.Scene;
-    private shelf: Shelf;
-    private environment: Environment;
+// TODO: movement plane seems to be off still, boards pop up / side to side when moved
+// TODO: highlight entire shelf when grabbing it
 
-    private highlightLayer: BABYLON.HighlightLayer;
+class DeselectDetector {
+    private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
+    private allowDeselection: boolean = false;
+    private selectedBoard: Board;
 
-    private readonly onBoardGrabbed = new LiteEvent<Board>();
-    public get BoardGrabbed() {
-        return this.onBoardGrabbed.expose();
+    setSelectedBoard(board: Board) {
+        this.selectedBoard = board;
     }
 
-    private readonly onBoardReleased = new LiteEvent<Board>();
-    public get BoardReleased() {
-        return this.onBoardReleased.expose();
+    constructor(scene: BABYLON.Scene, deselectBoard: () => void) {
+        scene.onPointerObservable.add((pointerInfo) => {
+            if (this.selectedBoard === undefined) {
+                return;
+            }
+            
+            if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
+                this.previousPointerPosition = new BABYLON.Vector2(pointerInfo.event.clientX, pointerInfo.event.clientY);
+                this.allowDeselection = true;
+                return;
+            }
+            
+            if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+                const moveDistance = BABYLON.Vector2.Distance(this.previousPointerPosition, new BABYLON.Vector2(pointerInfo.event.clientX, pointerInfo.event.clientY));
+                if (moveDistance < 5) {
+                    this.allowDeselection = false;
+                }
+
+                this.allowDeselection = false;
+                return;
+            }
+            
+            if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERUP) {
+                if (!this.allowDeselection) {
+                    return;
+                }
+
+                const pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                if (pickedMesh !== null) {
+                    
+                    if (this.selectedBoard.root.getChildMeshes().some((child) => {
+                        return child === pickedMesh;
+                    })) {
+                        return;
+                    }
+                }
+
+                deselectBoard();
+                this.allowDeselection = false;
+            }
+        });
+    }
+}
+
+export class Navigation3D {
+    private readonly onBoardSelected = new LiteEvent<Board>();
+    public get BoardSelected() {
+        return this.onBoardSelected.expose();
+    }
+
+    private readonly onBoardDeselected = new LiteEvent<Board>();
+    public get BoardDeselected() {
+        return this.onBoardDeselected.expose();
+    }
+
+    private readonly onBoardDragged = new LiteEvent<Board>();
+    public get BoardDragged() {
+        return this.onBoardDragged.expose();
+    }
+
+    private readonly onBoardStoppedDragged = new LiteEvent<Board>();
+    public get BoardStoppedDragged() {
+        return this.onBoardStoppedDragged.expose();
     }
 
     private readonly onBoardChanged = new LiteEvent<Board>();
@@ -34,14 +94,23 @@ export class Navigation3D {
         return this.onShelfMoved.expose();
     }
 
-    private manager: BABYLONGUI.GUI3DManager;
+    private scene: BABYLON.Scene;
+    private shelf: Shelf;
+    private environment: Environment;
+
+    private selectedBoard: Board;
+    private highlightLayer: BABYLON.HighlightLayer;
+
+    private uiManager: BABYLONGUI.GUI3DManager;
+    private deselectDetector: DeselectDetector;
 
     constructor(scene: BABYLON.Scene, shelf: Shelf, environment: Environment) {
         this.scene = scene;
         this.shelf = shelf;
         this.environment = environment;
 
-        this.manager = new BABYLONGUI.GUI3DManager(this.scene);
+        this.uiManager = new BABYLONGUI.GUI3DManager(this.scene);
+        this.deselectDetector = new DeselectDetector(this.scene, this.deselectBoard.bind(this));
 
         this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
             renderingGroupId: 0,
@@ -59,7 +128,54 @@ export class Navigation3D {
         });
     }
 
+    private setSelectedBoard(board: Board) {
+        this.selectedBoard = board;
+        this.deselectDetector.setSelectedBoard(this.selectedBoard);
+        //this.selectedBoard.root.actionManager.hoverCursor = "grab";
+
+        board.root.getChildMeshes().forEach((mesh) => {
+            this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+        });
+
+        board.getAllDecor().forEach((decor) => {
+            const decorNode = decor.root;
+            decorNode.getChildMeshes().forEach((mesh) => {
+                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+            });
+        });
+        
+        this.onBoardSelected.trigger(board);
+    }
+
+    private deselectBoard() {
+        if (!this.selectedBoard) {
+            return
+        }
+        
+        this.selectedBoard.root.getChildMeshes().forEach((mesh) => {
+            this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+        });
+
+        this.selectedBoard.getAllDecor().forEach((decor) => {
+            const decorNode = decor.root;
+            decorNode.getChildMeshes().forEach((mesh) => {
+                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+            });
+        });
+
+        this.onBoardDeselected.trigger(this.selectedBoard);
+
+        this.selectedBoard.root.actionManager.hoverCursor = "pointer";
+        this.selectedBoard = undefined;
+        this.deselectDetector.setSelectedBoard(this.selectedBoard);
+    }
+
     attachBoardDragControls(board: Board) {
+        const actionManager = new BABYLON.ActionManager(this.scene);
+        actionManager.isRecursive = true;
+        actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
+        board.root.actionManager = actionManager;
+        
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: BABYLON.Vector3.Up() });
         pointerDragBehavior.useObjectOrientationForDragging = false;
         pointerDragBehavior.updateDragPlane = false;
@@ -73,25 +189,20 @@ export class Navigation3D {
         };
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
-            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
-            currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
-            this.onBoardGrabbed.trigger(board);
-    
-            board.root.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
-            });
+            if (this.selectedBoard !== board) {
+                this.deselectBoard();
+            }
 
-            board.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
-                });
-            });
+            board.root.actionManager.hoverCursor = "grab";
+            this.setSelectedBoard(board);
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
 
+            // otherwise the hand would flicker when moved outside the board even during grabbing
+            board.root.actionManager.hoverCursor = "grabbing";
+            
             const currentPosition = event.dragPlanePoint;
             let updateRequired = false;
 
@@ -100,9 +211,8 @@ export class Navigation3D {
             let endStrut = board.getEndStrut();
             let endIndex = endStrut.getIndex();
 
-            /*
-            * Check if board is moved to the left or right of the current strut
-            */
+            // Check if board is moved to the left or right of the current strut
+
             const strutTransition = currentPosition.x - currentStrutPosX;
 
             if (startIndex > 0 && strutTransition < 0) {
@@ -124,9 +234,7 @@ export class Navigation3D {
             endStrut = board.getEndStrut();
             endIndex = endStrut.getIndex();
 
-            /*
-            * Check if board is moved up or down
-            */
+            // Check if board is moved up or down
 
             // snap to the nearest increment and clamp to the shelf height
             const snappedHeight = Math.min(this.shelf.getHeight() - Shelf.FOOT_HEIGHT,Math.max(Shelf.FOOT_HEIGHT, Math.round(currentPosition.y / increment) * increment));
@@ -170,23 +278,20 @@ export class Navigation3D {
 
                 this.onBoardChanged.trigger(board);
             }
+
+            this.onBoardDragged.trigger(board);
         });
 
         pointerDragBehavior.onDragEndObservable.add((event) => {
-            this.scene.getEngine().getRenderingCanvas().style.cursor = "default";
+            this.scene.getEngine().getRenderingCanvas().style.cursor = "grab";
 
-            board.root.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-            });
+            // reset back to grab, because of the flickering
+            board.root.actionManager.hoverCursor = "grab";
 
-            board.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-                });
-            });
+            this.onBoardStoppedDragged.trigger(board);
             
-            this.onBoardReleased.trigger(board);
+            // reselect the current board, just to highlight all decor again
+            this.setSelectedBoard(board);
         });
 
         board.addBehavior(pointerDragBehavior);
@@ -269,7 +374,7 @@ export class Navigation3D {
 
     private create3DButton(onClick: () => void) {
         const button = new BABYLONGUI.Button3D("button");
-        this.manager.addControl(button);
+        this.uiManager.addControl(button);
         button.scaling = new BABYLON.Vector3(0.1, 0.1, 0.01);
         button.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 

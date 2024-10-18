@@ -15,7 +15,7 @@ export abstract class Entity {
         value = value && this.root.isEnabled();
 
         this._showAABB = value;
-        this.bboxMesh.isVisible = value;
+        this.bboxMesh.setEnabled(value);
     }
 
     constructor(modelloader: ModelLoader) {
@@ -142,7 +142,7 @@ export abstract class Entity {
         }
 
         this.bboxMesh.material = Entity.boundingBoxMaterial;
-        this.bboxMesh.isVisible = this._showAABB;
+        this.bboxMesh.setEnabled(this._showAABB);
         this.bboxMesh.isPickable = false;
     } 
 }

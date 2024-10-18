@@ -1,10 +1,8 @@
 import * as BABYLON from "@babylonjs/core";
-import * as BABYLONGUI from "@babylonjs/gui";
 import { Entity } from "../../entity_engine/entity";
 import { ModelLoader } from "../../modelloader";
 import { Strut } from "./strut";
 import { Decor } from "../decor";
-import { Measurements } from "../../measurements";
 
 export class Board extends Entity {
     private height_m: number;
