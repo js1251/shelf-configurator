@@ -59,7 +59,7 @@ export class Strut extends Entity {
         this.offset = offset;
         const newPosition = this.getPosition().clone();
         newPosition.x = this.offset;
-        this.setPositon(newPosition);
+        this.setPosition(newPosition);
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {

@@ -35,7 +35,7 @@ export abstract class Entity {
         return this.root.getBoundingInfo().boundingBox;
     }
 
-    setPositon(position) {
+    setPosition(position) {
         this.root.setAbsolutePosition(position);
         this.updateBoundingBox();
     }
@@ -78,8 +78,6 @@ export abstract class Entity {
         const updateBBox = (mesh : BABYLON.AbstractMesh, min: BABYLON.Vector3, max: BABYLON.Vector3) : [BABYLON.Vector3, BABYLON.Vector3] => {
             mesh.computeWorldMatrix(true);
 
-            const boundingBox = mesh.getBoundingInfo().boundingBox;
-
             const hierarchyBounds = mesh.getHierarchyBoundingVectors();
             min = BABYLON.Vector3.Minimize(min, hierarchyBounds.min);
             max = BABYLON.Vector3.Maximize(max, hierarchyBounds.max);
@@ -98,12 +96,20 @@ export abstract class Entity {
 
         var updatedMinMax = updateBBox(this.root, min, max);
 
+        if (min.equals(BABYLON.Vector3.One().scale(Infinity))) {
+            min = BABYLON.Vector3.Zero();
+        }
+        if (max.equals(BABYLON.Vector3.One().scale(-Infinity))) {
+            max = BABYLON.Vector3.Zero();
+        }
+
         min = updatedMinMax[0].subtract(this.root.getAbsolutePosition());
         max = updatedMinMax[1].subtract(this.root.getAbsolutePosition());
 
         updatedMinMax = this.modifyBoundixInfo(min, max);
         min = updatedMinMax[0];
         max = updatedMinMax[1];
+
         var boundingInfo = new BABYLON.BoundingInfo(min, max);
         
         this.root.setBoundingInfo(boundingInfo);

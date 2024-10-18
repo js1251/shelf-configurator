@@ -1,56 +1,35 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./../modelloader";
-import { Measurements } from "../measurements";
 import { LiteEvent } from "../event_engine/LiteEvent";
 import { Strut } from "./entities/strut";
 import { Board } from "./entities/board";
+import { Entity } from "../entity_engine/entity";
 
-export class Shelf {
+export class Shelf extends Entity {
+    protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] { 
+        return [min, max];
+    }
+
+    protected constructMeshes(): BABYLON.AbstractMesh {
+        return new BABYLON.Mesh("shelf_root", this.modelloader.scene);
+    }
+
     private height_m: number;
 
     private struts: Strut[] = [];
     private boards: Board[] = [];
-
-    private scene: BABYLON.Scene;
-    private modelloader: ModelLoader;
-    private highlightLayer: BABYLON.HighlightLayer;
-
-    root: BABYLON.TransformNode;
     
-    private readonly onBoardChanged = new LiteEvent<Board>();
-    public get BoardChanged() {
-        return this.onBoardChanged.expose();
-    }
     private readonly onBboxChanged = new LiteEvent<BABYLON.BoundingBox>();
     public get BboxChanged() {
         return this.onBboxChanged.expose();
-    }
-    private readonly onBoardGrabbed = new LiteEvent<Board>();
-    public get BoardGrabbed() {
-        return this.onBoardGrabbed.expose();
-    }
-    private readonly onBoardReleased = new LiteEvent<Board>();
-    public get BoardReleased() {
-        return this.onBoardReleased.expose();
-    }
-    private readonly onPositionChanged = new LiteEvent<BABYLON.Vector3>();
-    public get PositionChanged() {
-        return this.onPositionChanged.expose();
     }
 
     static HEADER_SERIALIZED_LENGTH = 6;
     static BOARD_SERIALIZED_LENGTH = 5;
     static FOOT_HEIGHT = 0.04;
 
-    constructor(scene: BABYLON.Scene, modelloader: ModelLoader) {
-        this.scene = scene;
-        this.modelloader = modelloader;
-        
-        this.root = new BABYLON.TransformNode("shelf_root", this.scene);
-
-        this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
-            renderingGroupId: 0,
-        });
+    constructor(modelloader: ModelLoader) {
+        super(modelloader);
     }
 
     setHeight(height_m: number) {
@@ -66,7 +45,7 @@ export class Shelf {
             this.struts[i].setHeight(this.height_m);
         }
 
-        this.onBboxChanged.trigger(this.getBoundingBox());
+        this.updateBoundingBox();
     }
 
     getHeight(): number {
@@ -85,12 +64,10 @@ export class Shelf {
         return this.struts;
     }
 
-    setPosition(position: BABYLON.Vector3) {
-        this.root.position = position;
-    }
-
     addStrutToStart() {
-        this.struts.unshift(this.createStrut(0, 0));
+        const strut = new Strut(this.modelloader, this.getHeight(), 0, 0);
+        strut.setParent(this.root);
+        this.struts.unshift(strut);
 
         // update all struts indices
         for (let i = 0; i < this.struts.length; i++) {
@@ -103,37 +80,15 @@ export class Shelf {
             board.setSpanStruts(this.struts[board.getStartStrut().getIndex()], this.struts[board.getEndStrut().getIndex()]);
         }
 
-        this.onBboxChanged.trigger(this.getBoundingBox());
+        this.updateBoundingBox();
     }
 
     addStrutToEnd() {
-        this.struts.push(this.createStrut(0, this.struts.length));
-        this.onBboxChanged.trigger(this.getBoundingBox());
-    }
-
-    private createStrut(offset: number, index: number) : Strut{
-        const strut = new Strut(this.modelloader, this.getHeight(), offset, index);
-
-        const pointerDragBehavior = new BABYLON.PointerDragBehavior({
-            dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
-        });
-        pointerDragBehavior.useObjectOrientationForDragging = false;
-        //pointerDragBehavior.updateDragPlane = false;
-        pointerDragBehavior.moveAttached = false;
-
-        pointerDragBehavior.onDragObservable.add((event) => {
-            const currentPosition = event.dragPlanePoint;
-            
-            this.onPositionChanged.trigger(currentPosition);
-
-            //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
-        });
-
-        strut.addBehavior(pointerDragBehavior);
-
+        const strut = new Strut(this.modelloader, this.getHeight(), 0, this.struts.length);
         strut.setParent(this.root);
-
-        return strut;
+        this.struts.push(strut);
+        
+        this.updateBoundingBox();
     }
 
     removeStrutAtStart() {
@@ -168,7 +123,7 @@ export class Shelf {
             board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex - 1]);
         }
 
-        this.onBboxChanged.trigger(this.getBoundingBox());
+        this.updateBoundingBox();
     }
 
     removeStrutAtEnd() {
@@ -199,7 +154,7 @@ export class Shelf {
             }
         }
 
-        this.onBboxChanged.trigger(this.getBoundingBox());
+        this.updateBoundingBox();
     }
 
     setStrutSpacing(spacing: number) {
@@ -218,7 +173,7 @@ export class Shelf {
             this.struts[i].setOffset(i * spacing);
         }
         
-        this.onBboxChanged.trigger(this.getBoundingBox());
+        this.updateBoundingBox();
     }
 
     getStrutSpacing(): number {
@@ -245,137 +200,14 @@ export class Shelf {
         const board = new Board(this.modelloader, height, this.struts[startStrut], this.struts[endStrut]);
         this.boards.push(board);
         board.setParent(this.root);
-    
-        const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: new BABYLON.Vector3(0, 1, 0) });
-        pointerDragBehavior.useObjectOrientationForDragging = false;
-        pointerDragBehavior.updateDragPlane = false;
-        pointerDragBehavior.moveAttached = false;
-
-        const increment = 0.01; // Define the increment value
-        let currentStrutPosX = 0; // Define the start position
-
-        const getCurrentStrutPosX = (xPos: number): number => {
-            return Math.floor(xPos / this.getStrutSpacing()) * this.getStrutSpacing();
-        };
-
-        pointerDragBehavior.onDragStartObservable.add((event) => {
-            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
-            currentStrutPosX = getCurrentStrutPosX(event.dragPlanePoint.x);
-            this.onBoardGrabbed.trigger(board);
-    
-            board.root.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
-            });
-
-            board.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
-                });
-            });
-        });
-
-        pointerDragBehavior.onDragEndObservable.add((event) => {
-            this.onBoardReleased.trigger(board);
-
-            board.root.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-            });
-
-            board.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-                });
-            });
-        });
-
-        pointerDragBehavior.onDragObservable.add((event) => {
-            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
-
-            const currentPosition = event.dragPlanePoint;
-            let updateRequired = false;
-
-            let startStrut = board.getStartStrut();
-            let startIndex = startStrut.getIndex();
-            let endStrut = board.getEndStrut();
-            let endIndex = endStrut.getIndex();
-
-            const strutTransition = currentPosition.x - currentStrutPosX;
-
-            if (startIndex > 0 && strutTransition < 0) {
-                board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex - 1]);
-
-                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
-                updateRequired = true;
-            }
-            
-            if (endIndex < this.struts.length - 1 && strutTransition > this.getStrutSpacing()) {
-                board.setSpanStruts(this.struts[startIndex + 1], this.struts[endIndex + 1]);
-
-                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
-                updateRequired = true;
-            }
-
-            startStrut = board.getStartStrut();
-            startIndex = startStrut.getIndex();
-            endStrut = board.getEndStrut();
-            endIndex = endStrut.getIndex();
-
-            // snap to the nearest increment and clamp to the shelf height
-            const snappedHeight = Math.min(this.getHeight() - Shelf.FOOT_HEIGHT,Math.max(Shelf.FOOT_HEIGHT, Math.round(currentPosition.y / increment) * increment));
-            
-            // ensure board does not clip any other boards
-            let clipped = false;
-            for (let i = 0; i < this.boards.length; i++) {
-                const otherBoard = this.boards[i];
-                if (otherBoard === board) {
-                    continue;
-                }
-
-                const otherStartIndex = otherBoard.getStartStrut().getIndex();
-                const otherEndIndex = otherBoard.getEndStrut().getIndex();
-                
-                if (startIndex > otherEndIndex || endIndex < otherStartIndex) {
-                    continue;
-                }
-
-                const otherBoardHeight = otherBoard.getHeight();
-                const difference = Math.abs(snappedHeight - otherBoardHeight);
-
-                if (difference < Board.BOARD_THICKNESS) {
-                    clipped = true;
-                    break;
-                }
-            }
-            
-            if (snappedHeight !== board.getHeight() && !clipped) {
-                board.setHeight(snappedHeight);
-                updateRequired = true;
-            }
-    
-            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
-
-            if (updateRequired) {
-                // sort boards by height
-                this.boards.sort((a, b) => {
-                    return a.getHeight() - b.getHeight();
-                });
-
-                this.onBoardChanged.trigger(board);
-            }
-        });
-
-        pointerDragBehavior.onDragEndObservable.add(() => {
-            this.scene.getEngine().getRenderingCanvas().style.cursor = "default";
-        });
-
-        board.addBehavior(pointerDragBehavior);
 
         // sort boards by height
         this.boards.sort((a, b) => {
             return a.getHeight() - b.getHeight();
         });
+
+        // TODO: not really needed, instead the modifyBoundixInfo could be used to always add +10cm in width and depth on both sides
+        this.updateBoundingBox();
     }
 
     removeBoard(board: Board) {
@@ -390,33 +222,12 @@ export class Shelf {
         this.boards.sort((a, b) => {
             return a.getHeight() - b.getHeight();
         });
+
+        // TODO: not reaaaally needed unless there is 0 boards on the shelf
+        this.updateBoundingBox();
     }
 
     getBoards(): Board[] {
         return this.boards;
-    }
-
-    // TODO: reuse entity?
-    getBoundingBox(): BABYLON.BoundingBox {
-        const halfBoardWidth = Board.BOARD_WIDTH / 2;
-        const min = new BABYLON.Vector3(-halfBoardWidth, 0, -halfBoardWidth).add(this.root.position);
-        const max = new BABYLON.Vector3(this.getStrutSpacing() * (this.getStruts().length - 1) + halfBoardWidth, this.getHeight(), halfBoardWidth).add(this.root.position);
-
-        return new BABYLON.BoundingBox(min, max);
-    }
-
-    // TODO: reuse entity?
-    remove() {
-        for (let i = 0; i < this.struts.length; i++) {
-            this.struts[i].remove();
-        }
-
-        this.struts = [];
-
-        for (let i = 0; i < this.boards.length; i++) {
-            this.boards[i].remove();
-        }
-
-        this.boards = [];
     }
 }

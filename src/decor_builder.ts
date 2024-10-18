@@ -30,9 +30,11 @@ export class DecorBuilder {
         this.decorOptions.forEach(option => {
             option.root.setEnabled(false);
         });
+
+        this.fillDecor();
     }
 
-    fillDecor() {
+    private fillDecor() {
         const boards = this.shelf.getBoards();
         for (let i = 0; i < boards.length; i++) {
             this.buildDecorForBoard(boards[i]);
@@ -88,7 +90,7 @@ export class DecorBuilder {
 
                 // center the decor on the spawn position
                 spawnPosition.x += decorWidth / 2 + randomOffset;
-                decor.setPositon(spawnPosition.clone());
+                decor.setPosition(spawnPosition.clone());
 
                 // check if the decor intersects with any other board (above)
                 if (this.collides(decor, boardIndex)) {
@@ -112,10 +114,7 @@ export class DecorBuilder {
     }
 
     disableDecorForBoard(board: Board) {
-        const decors = board.getAllDecor();
-        decors.forEach(decor => {
-            board.removeDecor(decor);
-        });
+        board.removeAllDecor();
     }
 
     enableDecorForBoard(board: Board) {
@@ -129,7 +128,7 @@ export class DecorBuilder {
         this.buildDecorForBoard(board);
     }
 
-    validateDecorForBoard(board: Board) {
+    validateNeighborDecorForBoard(board: Board) {
         const boardIndex = this.shelf.getBoards().indexOf(board);
 
         if (boardIndex === 0) {

@@ -6,11 +6,9 @@ import * as CAMERA from "./camera";
 import * as ENVIRONMENT from "./environment";
 import { ModelLoader } from "./modelloader";
 import { Shelf } from "./shelf/shelf";
-import { Board } from "./shelf/entities/board";
-import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
 import { Measurements } from "./measurements";
 import { DecorBuilder } from "./decor_builder";
-//import { Measurements } from "./measurements";
+import { Navigation3D } from "./navigation_3d";
 
 class App {
     private scene: BABYLON.Scene;
@@ -18,8 +16,9 @@ class App {
     private modelLoader: ModelLoader;
     private shelf: Shelf;
 
+    // TODO: Clean up, encapsulate into methods
+    // NOTE: If things change at runtime, measurements, decor and navigation3D might not yet be updated
     constructor() {
-        // create the canvas html element and attach it to the webpage
         var canvas = document.createElement("canvas");
         canvas.style.width = "100%";
         canvas.style.height = "100%";
@@ -53,45 +52,24 @@ class App {
             this.shelf = this.createShelf();
 
             const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
-            decor_builder.fillDecor();
+            const measurements = new Measurements(this.scene, this.shelf, camera);
+            const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
 
-            let measurements = new Measurements(this.scene, this.shelf, camera);
-
-            this.shelf.BoardChanged.on((board) => {
-                measurements.updateBoardMeasurement(board);
-                decor_builder.disableDecorForBoard(board);
-                decor_builder.validateDecorForBoard(board);
-            });
-
-            this.shelf.BoardGrabbed.on((board) => {
+            navigation3D.BoardGrabbed.on((board) => {
                 measurements.enableForBoard(board);
             });
 
-            this.shelf.BoardReleased.on((board) => {
-                measurements.disableForBoard(board);
-                decor_builder.enableDecorForBoard(board);
+            navigation3D.BoardChanged.on((board) => {
+                measurements.updateBoardMeasurement(board);
+
+                decor_builder.disableDecorForBoard(board);
+                decor_builder.validateNeighborDecorForBoard(board);
             });
 
-            this.shelf.PositionChanged.on((position) => {
-                position.y = 0;
+            navigation3D.BoardReleased.on((board) => {
+                measurements.disableForBoard(board);
 
-                // clamp the shelf to the room
-                const room_bbox = environment.getBoundingBox();
-
-                if (position.x - Board.BOARD_WIDTH / 2 < room_bbox.minimum.x) {
-                    position.x = room_bbox.minimum.x + Board.BOARD_WIDTH / 2;
-                } else if (position.x + this.shelf.getWidth() - Board.BOARD_WIDTH / 2 > room_bbox.maximum.x) {
-                    position.x = room_bbox.maximum.x - this.shelf.getWidth() + Board.BOARD_WIDTH / 2;
-                }
-
-                if (position.z - Board.BOARD_WIDTH / 2 < room_bbox.minimum.z) {
-                    position.z = room_bbox.minimum.z + Board.BOARD_WIDTH / 2;
-                } else if (position.z + this.shelf.getDepth() - Board.BOARD_WIDTH / 2 > room_bbox.maximum.z) {
-                    position.z = room_bbox.maximum.z - this.shelf.getDepth() + Board.BOARD_WIDTH / 2;
-                }
-
-                // move the shelf to the new position
-                this.shelf.setPosition(position);
+                decor_builder.enableDecorForBoard(board);
             });
         });
 
@@ -186,7 +164,7 @@ class App {
     }
 
     private createShelf() : Shelf {
-        const shelf = new Shelf(this.scene, this.modelLoader);
+        const shelf = new Shelf(this.modelLoader);
             
         shelf.setHeight(2.4);
 

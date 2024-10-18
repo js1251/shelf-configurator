@@ -21,7 +21,7 @@ export class Measurements {
 
     private lineId: number = 0;
     private boardMap: Map<Board, BABYLON.LinesMesh[]> = new Map();
-    private precision: number = 1;
+    private precision: number = 0;
 
     private static LINE_THICKNESS = 1.2;
 
@@ -32,6 +32,7 @@ export class Measurements {
         this.scene = scene;
         this.shelf = shelf;
         this.camera = camera;
+        this.root = new BABYLON.TransformNode("measurements_root", scene);
         this.root = shelf.root;
 
         this.createMeasurements();

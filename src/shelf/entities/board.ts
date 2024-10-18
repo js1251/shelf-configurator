@@ -1,8 +1,10 @@
 import * as BABYLON from "@babylonjs/core";
+import * as BABYLONGUI from "@babylonjs/gui";
 import { Entity } from "../../entity_engine/entity";
 import { ModelLoader } from "../../modelloader";
 import { Strut } from "./strut";
 import { Decor } from "../decor";
+import { Measurements } from "../../measurements";
 
 export class Board extends Entity {
     private height_m: number;
@@ -31,7 +33,7 @@ export class Board extends Entity {
 
         const newPosition = this.getPosition().clone();
         newPosition.y = this.height_m;
-        this.setPositon(newPosition);
+        this.setPosition(newPosition);
 
         this.updateBoundingBox();
     }
@@ -51,7 +53,7 @@ export class Board extends Entity {
 
         const startStrutPosition = this.startStrut.getPosition().clone();
         startStrutPosition.y = this.height_m;
-        this.setPositon(startStrutPosition);
+        this.setPosition(startStrutPosition);
 
         const endStrutPosition = this.endStrut.getPosition().clone();
         endStrutPosition.y = this.height_m;
@@ -83,10 +85,24 @@ export class Board extends Entity {
 
     removeDecor(decor: Decor) {
         const index = this.decor.indexOf(decor);
-        if (index >= 0) {
+        if (index > -1) {
             this.decor.splice(index, 1);
             decor.remove();
         }
+    }
+
+    removeAllDecor() {
+        this.decor.forEach((decor) => {
+            decor.remove();
+        });
+        this.decor = [];
+    }
+
+    override remove() {
+        this.decor.forEach((decor) => {
+            decor.remove();
+        });
+        super.remove();
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {
