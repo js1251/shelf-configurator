@@ -6,6 +6,21 @@ import { Board } from "./entities/board";
 import { Entity } from "../entity_engine/entity";
 
 export class Shelf extends Entity {
+    private readonly onBoardChanged = new LiteEvent<Board>();
+    public get BoardChanged() {
+        return this.onBoardChanged.expose();
+    }
+
+    private readonly onBoardAdded = new LiteEvent<Board>();
+    public get BoardAdded() {
+        return this.onBoardAdded.expose();
+    }
+
+    private readonly onBoardRemoved = new LiteEvent<Board>();
+    public get BoardRemoved() {
+        return this.onBoardRemoved.expose();
+    }
+    
     protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] { 
         return [min, max];
     }
@@ -18,11 +33,6 @@ export class Shelf extends Entity {
 
     private struts: Strut[] = [];
     private boards: Board[] = [];
-    
-    private readonly onBboxChanged = new LiteEvent<BABYLON.BoundingBox>();
-    public get BboxChanged() {
-        return this.onBboxChanged.expose();
-    }
 
     static HEADER_SERIALIZED_LENGTH = 6;
     static BOARD_SERIALIZED_LENGTH = 5;
@@ -201,6 +211,10 @@ export class Shelf extends Entity {
         this.boards.push(board);
         board.setParent(this.root);
 
+        board.BoardChanged.on(() => {
+            this.onBoardChanged.trigger(board);
+        });
+
         // sort boards by height
         this.boards.sort((a, b) => {
             return a.getHeight() - b.getHeight();
@@ -208,6 +222,8 @@ export class Shelf extends Entity {
 
         // TODO: not really needed, instead the modifyBoundixInfo could be used to always add +10cm in width and depth on both sides
         this.updateBoundingBox();
+
+        this.onBoardAdded.trigger(board);
     }
 
     removeBoard(board: Board) {
@@ -225,6 +241,8 @@ export class Shelf extends Entity {
 
         // TODO: not reaaaally needed unless there are 0 boards on the shelf
         this.updateBoundingBox();
+
+        this.onBoardRemoved.trigger(board);
     }
 
     getBoards(): Board[] {

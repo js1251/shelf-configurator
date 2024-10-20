@@ -3,6 +3,7 @@ import { Entity } from "../../entity_engine/entity";
 import { ModelLoader } from "../../modelloader";
 import { Strut } from "./strut";
 import { Decor } from "../decor";
+import { LiteEvent } from "../../event_engine/LiteEvent";
 
 export class Board extends Entity {
     private height_m: number;
@@ -19,6 +20,11 @@ export class Board extends Entity {
     static BOARD_WIDTH = 0.2;
     static BOARD_THICKNESS = 0.02; // technically its 0.018 but it makes the numbers easier using 0.02
 
+    private readonly onBoardChanged = new LiteEvent<void>();
+    public get BoardChanged() {
+        return this.onBoardChanged.expose();
+    }
+
     constructor(modelloader: ModelLoader, height_m: number, startStrut: Strut, endStrut: Strut) {
         super(modelloader);
 
@@ -34,6 +40,8 @@ export class Board extends Entity {
         this.setPosition(newPosition);
 
         this.updateBoundingBox();
+
+        this.onBoardChanged.trigger();
     }
 
     getHeight(): number {
@@ -62,6 +70,8 @@ export class Board extends Entity {
 
         this.handleMiddle();
         this.updateBoundingBox();
+        
+        this.onBoardChanged.trigger();
     }
 
 

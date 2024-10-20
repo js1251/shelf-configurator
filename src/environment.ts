@@ -32,7 +32,7 @@ export class Environment {
         this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
 
         this.defaultMaterial = new BABYLON.PBRMetallicRoughnessMaterial("defaultMaterial", this.scene);
-        this.defaultMaterial.baseColor = BABYLON.Color3.White();
+        this.defaultMaterial.baseColor = BABYLON.Color3.White().scale(0.9);
         this.defaultMaterial.metallic = 0.1;
         this.defaultMaterial.roughness = 0.6;
         this.defaultMaterial.alpha = 1;
@@ -114,8 +114,10 @@ export class Environment {
 
         if (isNight) {
             this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.1, 1));
+            this.light.intensity = 0;
         } else {
             this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
+            this.light.intensity = 0.5;
         }
     }
 

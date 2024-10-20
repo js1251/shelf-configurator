@@ -71,14 +71,6 @@ class App {
                 navigation2D.setSelectedBoard(null);
             });
 
-            navigation3D.BoardChanged.on((board) => {
-                measurements.removeForBoard(board);
-                measurements.createForBoard(board);
-
-                decor_builder.removeDecorForBoard(board);
-                decor_builder.validateNeighborDecorForBoard(board);
-            });
-
             navigation3D.BoardStoppedDragged.on((board) => {
                 if (board.getAllDecor().length === 0) {
                     decor_builder.buildDecorForBoard(board);
@@ -96,6 +88,21 @@ class App {
 
             navigation2D.RulerButtonPressed.on((active) => {
                 measurements.setVisibility(active);
+            });
+
+            this.shelf.BoardChanged.on((board) => {
+                measurements.removeForBoard(board);
+                measurements.createForBoard(board);
+
+                decor_builder.removeDecorForBoard(board);
+                decor_builder.validateNeighborDecorForBoard(board);
+            });
+
+            this.shelf.BoardRemoved.on((board) => {
+                measurements.removeForBoard(board);
+                decor_builder.removeDecorForBoard(board);
+                navigation2D.setSelectedBoard(null);
+                navigation3D.setSelectedBoard(null);
             });
         });
 

@@ -84,11 +84,6 @@ export class Navigation3D {
         return this.onBoardStoppedDragged.expose();
     }
 
-    private readonly onBoardChanged = new LiteEvent<Board>();
-    public get BoardChanged() {
-        return this.onBoardChanged.expose();
-    }
-
     private readonly onShelfMoved = new LiteEvent<Board>();
     public get ShelfMoved() {
         return this.onShelfMoved.expose();
@@ -131,9 +126,13 @@ export class Navigation3D {
         });
     }
 
-    private setSelectedBoard(board: Board) {        
+    setSelectedBoard(board: Board) {
         this.selectedBoard = board;
         this.deselectDetector.setSelectedBoard(this.selectedBoard);
+
+        if (!board) {
+            return;
+        }
 
         board.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
@@ -172,7 +171,7 @@ export class Navigation3D {
         this.deselectDetector.setSelectedBoard(undefined);
     }
 
-    attachBoardDragControls(board: Board) {
+    private attachBoardDragControls(board: Board) {
         const actionManager = new BABYLON.ActionManager(this.scene);
         actionManager.isRecursive = true;
         actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
@@ -275,8 +274,6 @@ export class Navigation3D {
                 this.shelf.getBoards().sort((a, b) => {
                     return a.getHeight() - b.getHeight();
                 });
-
-                this.onBoardChanged.trigger(board);
             }
 
             this.onBoardDragged.trigger(board);

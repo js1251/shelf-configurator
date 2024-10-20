@@ -65,7 +65,7 @@ export class Navigation2D {
                 return;
             }
             
-            this.selectedBoard.remove();
+            this.shelf.removeBoard(this.selectedBoard);
             this.setSelectedBoard(null);
         });
         bottomBar.appendChild(buttonDelete);
