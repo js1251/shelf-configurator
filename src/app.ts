@@ -36,8 +36,8 @@ class App {
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(this.scene, canvas);
         camera.attachControl(canvas, true);
         
-        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1, 1, -1), this.scene);
-        light1.intensity = 1.3;
+        var sun: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("sun", new BABYLON.Vector3(-1, 1, -1), this.scene);
+        sun.intensity = 1.3;
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         environment.RoomChanged.on((bbox) => {
@@ -86,7 +86,8 @@ class App {
             });
 
             navigation2D.DayNightButtonPressed.on((active) => {
-                // toggle day/night
+                environment.setNight(active);
+                sun.intensity = active ? 0.3 : 1.3;
             });
 
             navigation2D.DecorButtonPressed.on((active) => {

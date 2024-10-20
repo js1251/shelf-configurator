@@ -6,6 +6,7 @@ import { Shelf } from "./shelf/shelf";
 export class Navigation2D {    
     private shelf: Shelf;
     private selectedBoard: Board;
+    private pinnedBoards: Board[] = [];
 
     private readonly onRulerButtonPressed = new LiteEvent<boolean>();
     public get RulerButtonPressed() {
@@ -40,6 +41,12 @@ export class Navigation2D {
 
         // show the bottom bar
         document.getElementById("bottomBar").style.display = "block";
+
+        if (this.pinnedBoards.includes(board)) {
+            document.getElementById("pinButton").classList.add("active");
+        } else {
+            document.getElementById("pinButton").classList.remove("active");
+        }
     }
 
     private createBottomBar() {
@@ -82,6 +89,47 @@ export class Navigation2D {
         });
         bottomBar.appendChild(buttonDuplicate);
 
+        const buttonPin = document.createElement("button");
+        buttonPin.innerHTML = ICON.pin;
+        buttonPin.className = "button";
+        buttonPin.id = "pinButton";
+        buttonPin.addEventListener('click', () => {
+            if (!this.selectedBoard) {
+                return;
+            }
+
+            buttonPin.classList.toggle("active");
+            if (buttonPin.classList.contains("active")) {
+                this.pinnedBoards.push(this.selectedBoard);
+            } else {
+                const index = this.pinnedBoards.indexOf(this.selectedBoard);
+                if (index > -1) {
+                    this.pinnedBoards.splice(index, 1);
+                }
+            }
+        });
+        bottomBar.appendChild(buttonPin);
+
+        const buttonShorten = document.createElement("button");
+        buttonShorten.innerHTML = ICON.shorten;
+        buttonShorten.className = "button";
+        buttonShorten.addEventListener('click', () => {
+            if (!this.selectedBoard) {
+                return;
+            }
+
+            const currentStartIndex = this.selectedBoard.getStartStrut().getIndex();
+            const currentEndIndex = this.selectedBoard.getEndStrut().getIndex();
+
+            if (currentEndIndex - currentStartIndex === 1) {
+                console.warn("Board is already at minimum length");
+                return;
+            }
+
+            this.selectedBoard.setSpanStruts(this.shelf.getStruts()[currentStartIndex], this.shelf.getStruts()[currentEndIndex - 1]);
+        });
+        bottomBar.appendChild(buttonShorten);
+
         const buttonWiden = document.createElement("button");
         buttonWiden.innerHTML = ICON.widen;
         buttonWiden.className = "button";
@@ -108,26 +156,6 @@ export class Navigation2D {
             this.selectedBoard.setSpanStruts(this.shelf.getStruts()[newStartIndex], this.shelf.getStruts()[newEndIndex]);
         });
         bottomBar.appendChild(buttonWiden);
-
-        const buttonShorten = document.createElement("button");
-        buttonShorten.innerHTML = ICON.shorten;
-        buttonShorten.className = "button";
-        buttonShorten.addEventListener('click', () => {
-            if (!this.selectedBoard) {
-                return;
-            }
-
-            const currentStartIndex = this.selectedBoard.getStartStrut().getIndex();
-            const currentEndIndex = this.selectedBoard.getEndStrut().getIndex();
-
-            if (currentEndIndex - currentStartIndex === 1) {
-                console.warn("Board is already at minimum length");
-                return;
-            }
-
-            this.selectedBoard.setSpanStruts(this.shelf.getStruts()[currentStartIndex], this.shelf.getStruts()[currentEndIndex - 1]);
-        });
-        bottomBar.appendChild(buttonShorten);
     }
 
     private createSideBar() {

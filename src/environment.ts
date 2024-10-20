@@ -1,6 +1,8 @@
 import * as BABYLON from "@babylonjs/core";
 import { LiteEvent } from "./event_engine/LiteEvent";
 
+// TODO: could be an entity
+
 export class Environment {
     private scene: BABYLON.Scene;
     private shadowGenerator: BABYLON.ShadowGenerator;
@@ -16,6 +18,7 @@ export class Environment {
     private backWall: BABYLON.Mesh;
 
     private light: BABYLON.PointLight;
+    private isNight: boolean = true;
 
     private readonly onRoomChanged = new LiteEvent<BABYLON.BoundingBox>();
     public get RoomChanged() {
@@ -104,6 +107,16 @@ export class Environment {
         const max = new BABYLON.Vector3(halfWidth, this.getRoomHeight(), halfDepth);
 
         return new BABYLON.BoundingBox(min, max);
+    }
+
+    setNight(isNight: boolean) {
+        this.isNight = isNight;
+
+        if (isNight) {
+            this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.1, 1));
+        } else {
+            this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
+        }
     }
 
     private createShadowGenerator() {

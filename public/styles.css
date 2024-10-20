@@ -64,6 +64,15 @@ body, html {
     color: #7a96b4;
 }
 
+.button.active {
+    background-color: white;
+    color: black;
+}
+
+.button.active:hover {
+    background-color: #d3d3d3;
+}
+
 .button-secondary {
     background-color: white;
     color: black;

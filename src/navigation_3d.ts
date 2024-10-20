@@ -102,6 +102,9 @@ export class Navigation3D {
     private highlightLayer: BABYLON.HighlightLayer;
 
     private deselectDetector: DeselectDetector;
+    private dragStartX: number;
+
+    private xDragThreshold;
 
     constructor(scene: BABYLON.Scene, shelf: Shelf, environment: Environment) {
         this.scene = scene;
@@ -109,6 +112,9 @@ export class Navigation3D {
         this.environment = environment;
 
         this.deselectDetector = new DeselectDetector(this.scene, this.deselectBoard.bind(this));
+
+        // TODO: needs to update when shelf strut spacing changes
+        this.xDragThreshold = this.shelf.getStrutSpacing() / 2;
 
         this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
             renderingGroupId: 0,
@@ -172,17 +178,12 @@ export class Navigation3D {
         actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
         board.root.actionManager = actionManager;
         
-        const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragAxis: BABYLON.Vector3.Up() });
-        pointerDragBehavior.useObjectOrientationForDragging = false;
-        pointerDragBehavior.updateDragPlane = false;
+        const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragPlaneNormal: BABYLON.Vector3.Forward() });
+        //pointerDragBehavior.useObjectOrientationForDragging = false;
+        //pointerDragBehavior.updateDragPlane = false;
         pointerDragBehavior.moveAttached = false;
 
         const increment = 0.01; // Define the increment value
-        let currentStrutPosX = 0; // Define the start position
-
-        const getCurrentStrutPosX = (xPos: number): number => {
-            return Math.floor(xPos / this.shelf.getStrutSpacing()) * this.shelf.getStrutSpacing();
-        };
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
             if (this.selectedBoard !== board) {
@@ -191,6 +192,8 @@ export class Navigation3D {
 
             board.root.actionManager.hoverCursor = "grab";
             this.setSelectedBoard(board);
+
+            this.dragStartX = event.dragPlanePoint.x;
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
@@ -208,20 +211,21 @@ export class Navigation3D {
             let endIndex = endStrut.getIndex();
 
             // Check if board is moved to the left or right of the current strut
+            const draggedDistance = currentPosition.x - this.dragStartX;
 
-            const strutTransition = currentPosition.x - currentStrutPosX;
-
-            if (startIndex > 0 && strutTransition < 0) {
+            // moving to left
+            if (startIndex > 0 && draggedDistance < -this.xDragThreshold) {
                 board.setSpanStruts(this.shelf.getStruts()[startIndex - 1], this.shelf.getStruts()[endIndex - 1]);
 
-                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+                this.dragStartX -= this.shelf.getStrutSpacing();
                 updateRequired = true;
             }
             
-            if (endIndex < this.shelf.getStruts().length - 1 && strutTransition > this.shelf.getStrutSpacing()) {
+            // moving to right
+            if (endIndex < this.shelf.getStruts().length - 1 && draggedDistance > this.xDragThreshold) {
                 board.setSpanStruts(this.shelf.getStruts()[startIndex + 1], this.shelf.getStruts()[endIndex + 1]);
 
-                currentStrutPosX = getCurrentStrutPosX(currentPosition.x);
+                this.dragStartX += this.shelf.getStrutSpacing();
                 updateRequired = true;
             }
 
@@ -264,7 +268,7 @@ export class Navigation3D {
                 updateRequired = true;
             }
     
-            event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
+            //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
 
             if (updateRequired) {
                 // sort boards by height
