@@ -75,42 +75,16 @@ export abstract class Entity {
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
     protected updateBoundingBox() {
-        const updateBBox = (mesh : BABYLON.AbstractMesh, min: BABYLON.Vector3, max: BABYLON.Vector3) : [BABYLON.Vector3, BABYLON.Vector3] => {
-            mesh.computeWorldMatrix(true);
+        const hierarchyBounds = this.root.getHierarchyBoundingVectors();
 
-            const hierarchyBounds = mesh.getHierarchyBoundingVectors();
-            min = BABYLON.Vector3.Minimize(min, hierarchyBounds.min);
-            max = BABYLON.Vector3.Maximize(max, hierarchyBounds.max);
+        hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
+        hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());
 
-            mesh.getChildMeshes().forEach((child) => {
-                const result = updateBBox(child, min, max);
-                min = result[0];
-                max = result[1];
-            });
+        const updatedMinMax = this.modifyBoundixInfo(hierarchyBounds.min, hierarchyBounds.max);
+        hierarchyBounds.min = updatedMinMax[0];
+        hierarchyBounds.max = updatedMinMax[1];
 
-            return [min, max];
-        }
-        
-        var min = BABYLON.Vector3.One().scale(Infinity);
-        var max = BABYLON.Vector3.One().scale(-Infinity);
-
-        var updatedMinMax = updateBBox(this.root, min, max);
-
-        if (min.equals(BABYLON.Vector3.One().scale(Infinity))) {
-            min = BABYLON.Vector3.Zero();
-        }
-        if (max.equals(BABYLON.Vector3.One().scale(-Infinity))) {
-            max = BABYLON.Vector3.Zero();
-        }
-
-        min = updatedMinMax[0].subtract(this.root.getAbsolutePosition());
-        max = updatedMinMax[1].subtract(this.root.getAbsolutePosition());
-
-        updatedMinMax = this.modifyBoundixInfo(min, max);
-        min = updatedMinMax[0];
-        max = updatedMinMax[1];
-
-        var boundingInfo = new BABYLON.BoundingInfo(min, max);
+        var boundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
         
         this.root.setBoundingInfo(boundingInfo);
 
