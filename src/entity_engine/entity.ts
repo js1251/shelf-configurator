@@ -45,7 +45,7 @@ export abstract class Entity {
     }
 
     setParent(parent: BABYLON.Node) {
-        this.root.parent = parent;
+        this.root.setParent(parent);
     }
 
     getParent() {

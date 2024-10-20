@@ -33,6 +33,26 @@ export class DecorBuilder {
         });
 
         this.fillDecor();
+
+        this.shelf.BoardMoved.on((board) => {
+            this.removeDecorForBoard(board);
+            this.validateNeighborDecorForBoard(board);
+        });
+
+        this.shelf.BoardSizeChanged.on((board) => {
+            this.removeDecorForBoard(board);
+            this.buildDecorForBoard(board);
+            this.validateNeighborDecorForBoard(board);
+        });
+
+        this.shelf.BoardRemoved.on((board) => {
+            this.removeDecorForBoard(board);
+        });
+
+        this.shelf.BoardAdded.on((board) => {
+            this.buildDecorForBoard(board);
+            this.validateNeighborDecorForBoard(board);
+        });
     }
 
     private fillDecor() {

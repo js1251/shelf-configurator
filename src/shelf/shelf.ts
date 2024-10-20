@@ -6,9 +6,14 @@ import { Board } from "./entities/board";
 import { Entity } from "../entity_engine/entity";
 
 export class Shelf extends Entity {
-    private readonly onBoardChanged = new LiteEvent<Board>();
-    public get BoardChanged() {
-        return this.onBoardChanged.expose();
+    private readonly onBoardSizeChanged = new LiteEvent<Board>();
+    public get BoardSizeChanged() {
+        return this.onBoardSizeChanged.expose();
+    }
+
+    private readonly onBoardMoved = new LiteEvent<Board>();
+    public get BoardMoved() {
+        return this.onBoardMoved.expose();
     }
 
     private readonly onBoardAdded = new LiteEvent<Board>();
@@ -211,8 +216,12 @@ export class Shelf extends Entity {
         this.boards.push(board);
         board.setParent(this.root);
 
-        board.BoardChanged.on(() => {
-            this.onBoardChanged.trigger(board);
+        board.BoardSizeChanged.on(() => {
+            this.onBoardSizeChanged.trigger(board);
+        });
+
+        board.BoardMoved.on(() => {
+            this.onBoardMoved.trigger(board);
         });
 
         // sort boards by height

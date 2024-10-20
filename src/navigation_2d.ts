@@ -6,7 +6,7 @@ import { Shelf } from "./shelf/shelf";
 export class Navigation2D {    
     private shelf: Shelf;
     private selectedBoard: Board;
-    private pinnedBoards: Board[] = [];
+    private pinnedBoards: Board[] = []; // What if a board is removed?
 
     private readonly onRulerButtonPressed = new LiteEvent<boolean>();
     public get RulerButtonPressed() {
@@ -28,6 +28,10 @@ export class Navigation2D {
 
         this.createSideBar();
         this.createBottomBar();
+
+        this.shelf.BoardRemoved.on((board) => {
+            this.setSelectedBoard(null);
+        });
     }
 
     setSelectedBoard(board: Board) {
@@ -101,6 +105,14 @@ export class Navigation2D {
             buttonPin.classList.toggle("active");
             if (buttonPin.classList.contains("active")) {
                 this.pinnedBoards.push(this.selectedBoard);
+
+                // ensure its removed from the list when the board is removed
+                this.shelf.BoardRemoved.on((board) => {
+                    const index = this.pinnedBoards.indexOf(board);
+                    if (index > -1) {
+                        this.pinnedBoards.splice(index, 1);
+                    }
+                });
             } else {
                 const index = this.pinnedBoards.indexOf(this.selectedBoard);
                 if (index > -1) {

@@ -43,6 +43,21 @@ export class Measurements {
         this.camera.onViewMatrixChangedObservable.add(() => {
             this.respondeMeasurementsToCamera();
         });
+
+        this.shelf.BoardMoved.on((board) => {
+            this.removeForBoard(board);
+            this.createForBoard(board);
+        });
+
+        this.shelf.BoardSizeChanged.on((board) => {
+            // update measurements to use new board size
+            this.removeForBoard(board);
+            this.createForBoard(board);
+        });
+
+        this.shelf.BoardRemoved.on((board) => {
+            this.removeForBoard(board);
+        });
     }
 
     remove() {

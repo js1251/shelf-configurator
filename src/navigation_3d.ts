@@ -1,14 +1,10 @@
 import * as BABYLON from "@babylonjs/core";
-import * as BABYLONGUI from "@babylonjs/gui";
 import { Board } from "./shelf/entities/board";
 import { Shelf } from "./shelf/shelf";
 import { Strut } from "./shelf/entities/strut";
 import { Measurements } from "./measurements";
 import { LiteEvent } from "./event_engine/LiteEvent";
 import { Environment } from "./environment";
-
-// TODO: movement plane seems to be off still, boards pop up / side to side when moved
-// TODO: highlight entire shelf when grabbing it
 
 class DeselectDetector {
     private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
@@ -124,6 +120,19 @@ export class Navigation3D {
         this.shelf.getStruts().forEach((strut) => {
             this.attachStrutDragControls(strut);
         });
+
+        this.shelf.BoardSizeChanged.on((board) => {
+            // reselect to refresh highlight
+            this.setSelectedBoard(board);
+        });
+
+        this.shelf.BoardRemoved.on((board) => {
+            this.setSelectedBoard(null);
+        });
+
+        this.shelf.BoardAdded.on((board) => {
+            this.attachBoardDragControls(board);
+        });
     }
 
     setSelectedBoard(board: Board) {
@@ -171,7 +180,7 @@ export class Navigation3D {
         this.deselectDetector.setSelectedBoard(undefined);
     }
 
-    private attachBoardDragControls(board: Board) {
+    attachBoardDragControls(board: Board) {
         const actionManager = new BABYLON.ActionManager(this.scene);
         actionManager.isRecursive = true;
         actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
