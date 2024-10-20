@@ -15,6 +15,7 @@ export class DecorBuilder {
     private shelf: Shelf;
 
     private decorOptions: Decor[] = [];
+    private isVisible: boolean = true;
 
     constructor(modelloader: ModelLoader, shelf: Shelf) {
         this.shelf = shelf;
@@ -109,6 +110,7 @@ export class DecorBuilder {
                 board.addDecor(decor);
                 spawnedDecor.push(decor);
                 decor.root.setParent(this.shelf.root);
+                decor.root.setEnabled(this.isVisible);
 
                 widthBudget -= decorWidth + randomOffset;
                 spawnPosition.x += decorWidth / 2;
@@ -153,27 +155,14 @@ export class DecorBuilder {
         }
     }
 
-    hideDecorForBoard(board: Board) {
-        board.getAllDecor().forEach(decor => {
-            decor.root.setEnabled(false);
-        });
-    }
+    setVisibility(visible: boolean) {
+        this.isVisible = visible;
 
-    hideAllDecor() {
         this.shelf.getBoards().forEach(board => {
-            this.hideDecorForBoard(board);
-        });
-    }
-
-    showDecorForBoard(board: Board) {
-        board.getAllDecor().forEach(decor => {
-            decor.root.setEnabled(true);
-        });
-    }
-
-    showAllDecor() {
-        this.shelf.getBoards().forEach(board => {
-            this.showDecorForBoard(board);
+            const decors = board.getAllDecor();
+            decors.forEach(decor => {
+                decor.root.setEnabled(visible);
+            });
         });
     }
 

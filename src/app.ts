@@ -90,11 +90,7 @@ class App {
             });
 
             navigation2D.DecorButtonPressed.on((active) => {
-                if (active) {
-                    decor_builder.showAllDecor();
-                } else {
-                    decor_builder.hideAllDecor();
-                }
+                decor_builder.setVisibility(active);
             });
 
             navigation2D.RulerButtonPressed.on((active) => {
