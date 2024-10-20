@@ -23,6 +23,8 @@ export class Measurements {
     private boardMap: Map<Board, BABYLON.LinesMesh[]> = new Map();
     private precision: number = 0;
 
+    private isVisibile: boolean = true;
+
     private static LINE_THICKNESS = 1.2;
 
     static BOARD_MEASURE_COLOR = new BABYLON.Color3(0.012, 0.47, 0.85);
@@ -36,7 +38,6 @@ export class Measurements {
         this.root = shelf.root;
 
         this.createMeasurements();
-        this.createBoardDistances();
 
         // attach a listener to when the camera is moved
         this.camera.onViewMatrixChangedObservable.add(() => {
@@ -249,6 +250,10 @@ export class Measurements {
     }
 
     private respondeMeasurementsToCamera() {
+        if (!this.isVisibile) {
+            return;
+        }
+
         const rotation = this.camera.alpha;
         const camDir = new BABYLON.Vector3(Math.cos(rotation), 0, Math.sin(rotation));
 
@@ -360,29 +365,41 @@ export class Measurements {
         this.boardMap.set(board, [upperStartLine, lowerStartLine, upperEndLine, lowerEndLine]);
     }
 
-    private createBoardDistances() {
-        // create a line for each board at its start and end, both up and down (4 lines per board)
-        for (let i = 0; i < this.shelf.getBoards().length; i++) {
-            this.drawDistanceForBoard(this.shelf.getBoards()[i]);
-        }
-    }
-
-    updateBoardMeasurement(board: Board) {
-        let lines = this.boardMap.get(board);
-        lines.forEach(line => line.dispose());
-
+    createForBoard(board: Board) {
+        this.removeForBoard(board);
         this.drawDistanceForBoard(board);
 
-        lines = this.boardMap.get(board);
-        lines.forEach(line => line.setEnabled(true));
-    }
-
-    enableForBoard(board: Board) {
-        this.updateBoardMeasurement(board);
-    }
-
-    disableForBoard(board: Board) {
         const lines = this.boardMap.get(board);
-        lines.forEach(line => line.setEnabled(false));
+        lines.forEach(line => line.setEnabled(this.isVisibile));
+    }
+
+    removeForBoard(board: Board) {
+        const lines = this.boardMap.get(board);
+        if (lines === undefined) {
+            return;
+        }
+
+        lines.forEach(line => line.dispose());
+    }
+
+    setVisibility(isVisible: boolean) {
+        this.isVisibile = isVisible;
+
+        this.boardMap.forEach((lines, board) => {
+            lines.forEach(line => line.setEnabled(isVisible));
+        });
+
+        if (!isVisible) {
+            this.widthLineFront.setEnabled(false);
+            this.widthLineBack.setEnabled(false);
+            this.depthLineLeft.setEnabled(false);
+            this.depthLineRight.setEnabled(false);
+            this.heightLineFrontLeft.setEnabled(false);
+            this.heightLineFrontRight.setEnabled(false);
+            this.heightLineBackLeft.setEnabled(false);
+            this.heightLineBackRight.setEnabled(false);
+        } else {
+            this.respondeMeasurementsToCamera();
+        }
     }
 }

@@ -101,7 +101,6 @@ export class Navigation3D {
     private selectedBoard: Board;
     private highlightLayer: BABYLON.HighlightLayer;
 
-    private uiManager: BABYLONGUI.GUI3DManager;
     private deselectDetector: DeselectDetector;
 
     constructor(scene: BABYLON.Scene, shelf: Shelf, environment: Environment) {
@@ -109,7 +108,6 @@ export class Navigation3D {
         this.shelf = shelf;
         this.environment = environment;
 
-        this.uiManager = new BABYLONGUI.GUI3DManager(this.scene);
         this.deselectDetector = new DeselectDetector(this.scene, this.deselectBoard.bind(this));
 
         this.highlightLayer = new BABYLON.HighlightLayer("highlight", scene, {
@@ -119,7 +117,6 @@ export class Navigation3D {
         // TODO: add controls to new boards when they are created!
         this.shelf.getBoards().forEach((board) => {
             this.attachBoardDragControls(board);
-            //this.createButtonsForBoard(board);
         });
 
         // TODO: add controls to new struts when they are created!
@@ -128,10 +125,9 @@ export class Navigation3D {
         });
     }
 
-    private setSelectedBoard(board: Board) {
+    private setSelectedBoard(board: Board) {        
         this.selectedBoard = board;
         this.deselectDetector.setSelectedBoard(this.selectedBoard);
-        //this.selectedBoard.root.actionManager.hoverCursor = "grab";
 
         board.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
@@ -167,7 +163,7 @@ export class Navigation3D {
 
         this.selectedBoard.root.actionManager.hoverCursor = "pointer";
         this.selectedBoard = undefined;
-        this.deselectDetector.setSelectedBoard(this.selectedBoard);
+        this.deselectDetector.setSelectedBoard(undefined);
     }
 
     attachBoardDragControls(board: Board) {
@@ -341,45 +337,5 @@ export class Navigation3D {
         });
 
         strut.addBehavior(pointerDragBehavior);
-    }
-
-    createButtonsForBoard(board: Board) {
-        const getPosition = (strut: Strut, offset: number) => {
-            const spawnPos = strut.getPosition().clone();
-            spawnPos.y = board.getHeight();
-            spawnPos.x += offset;
-            return spawnPos;
-        }
-
-        const extendLeftButton = this.create3DButton(() => {
-            const startStrut = board.getStartStrut();
-            const endStrut = board.getEndStrut();
-            const startStrutIndex = startStrut.getIndex();
-            const endStrutIndex = endStrut.getIndex();
-            board.setSpanStruts(this.shelf.getStruts()[Math.max(0, startStrutIndex - 1)], endStrut);
-            extendLeftButton.position = getPosition(startStrut, -0.3);
-        });
-        extendLeftButton.position = getPosition(board.getStartStrut(), -0.3);
-
-        const contractLeftButton = this.create3DButton(() => {
-            const startStrut = board.getStartStrut();
-            const endStrut = board.getEndStrut();
-            const startStrutIndex = startStrut.getIndex();
-            const endStrutIndex = endStrut.getIndex();
-            board.setSpanStruts(this.shelf.getStruts()[Math.max(endStrutIndex - 1, startStrutIndex + 1)], endStrut);
-            extendLeftButton.position = getPosition(startStrut, -0.18);
-        });
-        contractLeftButton.position = getPosition(board.getStartStrut(), -0.18);
-    }
-
-    private create3DButton(onClick: () => void) {
-        const button = new BABYLONGUI.Button3D("button");
-        this.uiManager.addControl(button);
-        button.scaling = new BABYLON.Vector3(0.1, 0.1, 0.01);
-        button.mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
-
-        button.onPointerClickObservable.add(onClick);
-
-        return button;
     }
 }

@@ -42,6 +42,9 @@ export class DecorBuilder {
     }
 
     buildDecorForBoard(board: Board) {
+        // remove any existing decor
+        board.removeAllDecor();
+
         const height = board.getHeight();
         const allBoards = this.shelf.getBoards();
         const boardIndex = allBoards.indexOf(board);
@@ -113,19 +116,8 @@ export class DecorBuilder {
         }
     }
 
-    disableDecorForBoard(board: Board) {
+    removeDecorForBoard(board: Board) {
         board.removeAllDecor();
-    }
-
-    enableDecorForBoard(board: Board) {
-        // if the board was just grabbed but never changed, ignore
-        
-        if (board.getAllDecor().length > 0) {
-            return;
-        }
-
-        // rebuild the decor
-        this.buildDecorForBoard(board);
     }
 
     validateNeighborDecorForBoard(board: Board) {
@@ -159,6 +151,30 @@ export class DecorBuilder {
                 this.buildDecorForBoard(board);
             }
         }
+    }
+
+    hideDecorForBoard(board: Board) {
+        board.getAllDecor().forEach(decor => {
+            decor.root.setEnabled(false);
+        });
+    }
+
+    hideAllDecor() {
+        this.shelf.getBoards().forEach(board => {
+            this.hideDecorForBoard(board);
+        });
+    }
+
+    showDecorForBoard(board: Board) {
+        board.getAllDecor().forEach(decor => {
+            decor.root.setEnabled(true);
+        });
+    }
+
+    showAllDecor() {
+        this.shelf.getBoards().forEach(board => {
+            this.showDecorForBoard(board);
+        });
     }
 
     private collides(decor: Decor, boardIndex: number): boolean {

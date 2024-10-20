@@ -1,0 +1,84 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#bottomBar {
+    position: fixed;
+    left: 50%; /* Align the center of the overlay with the center of the screen */
+    bottom: 20px; /* Position 20px above the bottom of the screen */
+    transform: translateX(-50%); /* Offset the overlay by half its width to center it */
+    z-index: 10; /* Ensure the overlay is above the canvas */
+    background-color: #007bff;
+    border-radius: 40px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#bottomBar button {
+    margin-right: 10px;
+}
+
+#bottomBar button:last-child {
+    margin-right: 0;
+}
+
+#sideBar {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: space-between;
+}
+
+#sideBar button {
+    margin-bottom: 10px;
+}
+
+#sideBar button:last-child {
+    margin-bottom: 0;
+}
+
+.button {
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #4da3ff;
+}
+
+.button:disabled {
+    color: #7a96b4;
+}
+
+.button-secondary {
+    background-color: white;
+    color: black;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.button-secondary:hover {
+    background-color: #d3d3d3;
+}
+
+.button-secondary.active {
+    background-color: black;
+    color: white;
+}
+
+.button-secondary.active:hover {
+    background-color: #4e4e4e;
+}

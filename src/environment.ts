@@ -26,7 +26,7 @@ export class Environment {
         this.scene = scene;
 
         this.createShadowGenerator();
-        this.setBackgroundColor(new BABYLON.Color4(1, 1, 1, 1));
+        this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
 
         this.defaultMaterial = new BABYLON.PBRMetallicRoughnessMaterial("defaultMaterial", this.scene);
         this.defaultMaterial.baseColor = BABYLON.Color3.White();
@@ -108,7 +108,7 @@ export class Environment {
 
     private createShadowGenerator() {
         this.light = new BABYLON.PointLight("light", new BABYLON.Vector3(0.1, 0, 0), this.scene);
-        this.light.intensity = 1;
+        this.light.intensity = 0.5;
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
         shadowGenerator.setDarkness(0.7);
@@ -149,6 +149,7 @@ export class Environment {
         roughnessTexture.uScale = 0.5;
         roughnessTexture.vScale = 0.5;
         pbr.metallicRoughnessTexture = roughnessTexture;
+        pbr.metallic = 0.05;
 
         this.ground.material = pbr;
 

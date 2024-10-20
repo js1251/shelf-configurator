@@ -223,11 +223,29 @@ export class Shelf extends Entity {
             return a.getHeight() - b.getHeight();
         });
 
-        // TODO: not reaaaally needed unless there is 0 boards on the shelf
+        // TODO: not reaaaally needed unless there are 0 boards on the shelf
         this.updateBoundingBox();
     }
 
     getBoards(): Board[] {
         return this.boards;
+    }
+
+    getBoardBelow(board: Board): Board {
+        const index = this.boards.indexOf(board);
+        if (index === 0) {
+            return null;
+        }
+
+        return this.boards[index - 1];
+    }
+
+    getBoardAbove(board: Board): Board {
+        const index = this.boards.indexOf(board);
+        if (index === this.boards.length - 1) {
+            return null;
+        }
+
+        return this.boards[index + 1];
     }
 }

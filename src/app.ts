@@ -9,6 +9,7 @@ import { Shelf } from "./shelf/shelf";
 import { Measurements } from "./measurements";
 import { DecorBuilder } from "./decor_builder";
 import { Navigation3D } from "./navigation_3d";
+import { Navigation2D } from "./navigation_2d";
 
 class App {
     private scene: BABYLON.Scene;
@@ -25,15 +26,18 @@ class App {
         canvas.id = "gameCanvas";
         document.body.appendChild(canvas);
 
-        // initialize babylon scene and engine
         var engine = new BABYLON.Engine(canvas, true, { stencil: true });
+        window.addEventListener("resize", () => {
+            engine.resize();
+        });
+
         this.scene = new BABYLON.Scene(engine);
 
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(this.scene, canvas);
         camera.attachControl(canvas, true);
         
-        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-0.5, 1, 0), this.scene);
-        light1.intensity = 1.5;
+        var light1: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(-1, 1, -1), this.scene);
+        light1.intensity = 1.3;
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         environment.RoomChanged.on((bbox) => {
@@ -55,24 +59,46 @@ class App {
             const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
+            const navigation2D = new Navigation2D(this.shelf);
 
             navigation3D.BoardSelected.on((board) => {
-                measurements.enableForBoard(board);
+                measurements.createForBoard(board);
+                navigation2D.setSelectedBoard(board);
             });
 
             navigation3D.BoardDeselected.on((board) => {
-                measurements.disableForBoard(board);
+                measurements.removeForBoard(board);
+                navigation2D.setSelectedBoard(null);
             });
 
             navigation3D.BoardChanged.on((board) => {
-                measurements.updateBoardMeasurement(board);
+                measurements.removeForBoard(board);
+                measurements.createForBoard(board);
 
-                decor_builder.disableDecorForBoard(board);
+                decor_builder.removeDecorForBoard(board);
                 decor_builder.validateNeighborDecorForBoard(board);
             });
 
             navigation3D.BoardStoppedDragged.on((board) => {
-                decor_builder.enableDecorForBoard(board);
+                if (board.getAllDecor().length === 0) {
+                    decor_builder.buildDecorForBoard(board);
+                }
+            });
+
+            navigation2D.DayNightButtonPressed.on((active) => {
+                // toggle day/night
+            });
+
+            navigation2D.DecorButtonPressed.on((active) => {
+                if (active) {
+                    decor_builder.showAllDecor();
+                } else {
+                    decor_builder.hideAllDecor();
+                }
+            });
+
+            navigation2D.RulerButtonPressed.on((active) => {
+                measurements.setVisibility(active);
             });
         });
 
