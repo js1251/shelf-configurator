@@ -6,15 +6,38 @@ body, html {
     overflow: hidden;
 }
 
+#mainGrid {
+    display: grid;
+    grid-template-columns: auto 500px;
+    width: 100%;
+    height: 100%;
+}
+
+#sceneWrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#sceneCanvas {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    border-radius: 0%;
+}
+
 #bottomBar {
     position: fixed;
-    left: 50%; /* Align the center of the overlay with the center of the screen */
-    bottom: 20px; /* Position 20px above the bottom of the screen */
-    transform: translateX(-50%); /* Offset the overlay by half its width to center it */
-    z-index: 10; /* Ensure the overlay is above the canvas */
+    bottom: 20px;
+    z-index: 10;
     background-color: #007bff;
     border-radius: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: fit-content;
+    height: fit-content;
 }
 
 #bottomBar button {

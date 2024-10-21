@@ -20,17 +20,22 @@ class App {
     // TODO: Clean up, encapsulate into methods
     // NOTE: If things change at runtime, measurements, decor and navigation3D might not yet be updated
     constructor() {
-        var canvas = document.createElement("canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.id = "gameCanvas";
-        document.body.appendChild(canvas);
+        const grid = document.createElement("div");
+        grid.id = "mainGrid";
+        document.body.appendChild(grid);
+
+        const sceneWrapper = document.createElement("div");
+        sceneWrapper.id = "sceneWrapper";
+        grid.appendChild(sceneWrapper);
+
+        const canvas = document.createElement("canvas");
+        canvas.id = "sceneCanvas";
+        sceneWrapper.appendChild(canvas);
 
         var engine = new BABYLON.Engine(canvas, true, { stencil: true });
         window.addEventListener("resize", () => {
             engine.resize();
         });
-
         this.scene = new BABYLON.Scene(engine);
 
         var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(this.scene, canvas);
@@ -59,7 +64,7 @@ class App {
             const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
-            const navigation2D = new Navigation2D(this.shelf);
+            const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
 
             navigation3D.BoardSelected.on((board) => {
                 measurements.createForBoard(board);

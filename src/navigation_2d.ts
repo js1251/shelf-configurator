@@ -3,7 +3,8 @@ import * as ICON from "./icons";
 import { Board } from "./shelf/entities/board";
 import { Shelf } from "./shelf/shelf";
 
-export class Navigation2D {    
+export class Navigation2D {
+    private grid: HTMLDivElement;
     private shelf: Shelf;
     private selectedBoard: Board;
     private pinnedBoards: Board[] = []; // What if a board is removed?
@@ -23,7 +24,8 @@ export class Navigation2D {
         return this.onDayNightButtonPressed.expose();
     }
     
-    constructor(shelf: Shelf) {
+    constructor(grid: HTMLDivElement, shelf: Shelf) {
+        this.grid = grid;
         this.shelf = shelf;
 
         this.createSideBar();
@@ -45,6 +47,7 @@ export class Navigation2D {
 
         // show the bottom bar
         document.getElementById("bottomBar").style.display = "block";
+        console.log(document.getElementById("bottomBar"));
 
         if (this.pinnedBoards.includes(board)) {
             document.getElementById("pinButton").classList.add("active");
@@ -58,7 +61,7 @@ export class Navigation2D {
         const bottomBar = document.createElement("div");
         bottomBar.id = "bottomBar";
         bottomBar.style.display = "none";
-        document.body.appendChild(bottomBar);
+        this.grid.appendChild(bottomBar);
 
         // Add some buttons to the overlay
         const buttonDelete = document.createElement("button");
@@ -175,7 +178,7 @@ export class Navigation2D {
         const sideBar = document.createElement("div");
         sideBar.id = "sideBar";
         sideBar.style.display = "flex";
-        document.body.appendChild(sideBar);
+        this.grid.appendChild(sideBar);
         
         const buttonDayNight = document.createElement("button");
         buttonDayNight.innerHTML = ICON.night;
