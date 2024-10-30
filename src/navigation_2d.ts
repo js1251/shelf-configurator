@@ -41,13 +41,14 @@ export class Navigation2D {
         
         if (!board) {
             // hide the bottom bar
-            document.getElementById("bottomBar").style.display = "none";
+            document.getElementById("bottomBar").classList.remove("visible");
+            document.getElementById("bottomBar").classList.add("hidden");
             return;
         }
 
         // show the bottom bar
-        document.getElementById("bottomBar").style.display = "block";
-        console.log(document.getElementById("bottomBar"));
+        document.getElementById("bottomBar").classList.add("visible");
+        document.getElementById("bottomBar").classList.remove("hidden");
 
         if (this.pinnedBoards.includes(board)) {
             document.getElementById("pinButton").classList.add("active");
@@ -60,13 +61,13 @@ export class Navigation2D {
         // Create the 2D overlay div
         const bottomBar = document.createElement("div");
         bottomBar.id = "bottomBar";
-        bottomBar.style.display = "none";
+        bottomBar.classList.add("hidden");
         this.grid.appendChild(bottomBar);
 
         // Add some buttons to the overlay
         const buttonDelete = document.createElement("button");
         buttonDelete.innerHTML = ICON.trashbin;
-        buttonDelete.className = "button";
+        buttonDelete.className = "button button-rounded";
         buttonDelete.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -79,7 +80,7 @@ export class Navigation2D {
 
         const buttonDuplicate = document.createElement("button");
         buttonDuplicate.innerHTML = ICON.duplicate;
-        buttonDuplicate.className = "button";
+        buttonDuplicate.className = "button button-rounded";
         buttonDuplicate.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -98,7 +99,7 @@ export class Navigation2D {
 
         const buttonPin = document.createElement("button");
         buttonPin.innerHTML = ICON.pin;
-        buttonPin.className = "button";
+        buttonPin.className = "button button-rounded";
         buttonPin.id = "pinButton";
         buttonPin.addEventListener('click', () => {
             if (!this.selectedBoard) {
@@ -127,7 +128,7 @@ export class Navigation2D {
 
         const buttonShorten = document.createElement("button");
         buttonShorten.innerHTML = ICON.shorten;
-        buttonShorten.className = "button";
+        buttonShorten.className = "button button-rounded";
         buttonShorten.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -147,7 +148,7 @@ export class Navigation2D {
 
         const buttonWiden = document.createElement("button");
         buttonWiden.innerHTML = ICON.widen;
-        buttonWiden.className = "button";
+        buttonWiden.className = "button button-rounded";
         buttonWiden.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -182,7 +183,7 @@ export class Navigation2D {
         
         const buttonDayNight = document.createElement("button");
         buttonDayNight.innerHTML = ICON.night;
-        buttonDayNight.className = "button button-secondary";
+        buttonDayNight.className = "button button-rounded button-rounded-secondary";
         buttonDayNight.addEventListener('click', () => {
             buttonDayNight.classList.toggle("active");
             this.onDayNightButtonPressed.trigger(buttonDayNight.classList.contains("active"));
@@ -191,7 +192,7 @@ export class Navigation2D {
 
         const buttonDecor = document.createElement("button");
         buttonDecor.innerHTML = ICON.books;
-        buttonDecor.className = "button button-secondary";
+        buttonDecor.className = "button button-rounded button-rounded-secondary";
         buttonDecor.classList.add("active");
         buttonDecor.addEventListener('click', () => {
             buttonDecor.classList.toggle("active");
@@ -201,7 +202,7 @@ export class Navigation2D {
 
         const buttonRuler = document.createElement("button");
         buttonRuler.innerHTML = ICON.ruler;
-        buttonRuler.className = "button button-secondary";
+        buttonRuler.className = "button button-rounded button-rounded-secondary";
         buttonRuler.classList.add("active");
         buttonRuler.addEventListener('click', () => {
             buttonRuler.classList.toggle("active");

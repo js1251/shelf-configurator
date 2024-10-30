@@ -6,11 +6,103 @@ body, html {
     overflow: hidden;
 }
 
+h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2em;
+    font-weight: 600;
+}
+
+h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+h3 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.17em;
+    font-weight: 600;
+}
+
+p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+}
+
+a {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1em;
+    color: black;
+}
+
 #mainGrid {
     display: grid;
     grid-template-columns: auto 500px;
     width: 100%;
     height: 100%;
+}
+
+.button {
+    color: white;
+    border: none;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s;
+}
+
+.button-rounded {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.button-rounded:hover {
+    background-color: #4da3ff;
+}
+
+.button-rounded:disabled {
+    color: #7a96b4;
+}
+
+.button-rounded.active {
+    background-color: white;
+    color: black;
+}
+
+.button-rounded.active:hover {
+    background-color: #d3d3d3;
+}
+
+.button-rounded-secondary {
+    background-color: white;
+    color: black;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.button-rounded-secondary:hover {
+    background-color: #d3d3d3;
+}
+
+.button-rounded-secondary.active {
+    background-color: black;
+    color: white;
+}
+
+.button-rounded-secondary.active:hover {
+    background-color: #4e4e4e;
+}
+
+.button-regular {
+    background-color: #007bff;
+    border-radius: 50px;
+    font-size: medium;
+    padding: 15px;
+}
+
+.button-regular:hover {
+    background-color: #4da3ff;
 }
 
 #sceneWrapper {
@@ -30,6 +122,7 @@ body, html {
 }
 
 #bottomBar {
+    display: block;
     position: fixed;
     bottom: 20px;
     z-index: 10;
@@ -38,6 +131,16 @@ body, html {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     width: fit-content;
     height: fit-content;
+}
+
+#bottomBar.hidden {
+    transform: translateY(calc(100% + 20px));
+    transition: transform 0.3s ease;
+}
+
+#bottomBar.visible {
+    transform: translateY(0);
+    transition: transform 0.3s ease;
 }
 
 #bottomBar button {
@@ -66,51 +169,119 @@ body, html {
     margin-bottom: 0;
 }
 
-.button {
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.3s;
+#controlPanel {
 }
 
-.button:hover {
-    background-color: #4da3ff;
+#priceDisplay{
+    display: flex;
+    justify-content: top;
+
+    #currencySymbol {
+        padding-top: 5px;
+        padding-right: 5px;
+    }
+    
+    #intAmount {
+    }
+    
+    #decimelAmount {
+        padding-top: 5px;
+    }
 }
 
-.button:disabled {
-    color: #7a96b4;
-}
-
-.button.active {
+#detailPanel {
+    position: absolute;
+    width: 500px; /* TODO: make this dynamic using auto */
+    height: 100%;
     background-color: white;
-    color: black;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+
+    #topBar {
+        height: fit-content;
+        display: flex;
+        padding: 20px;
+        justify-content: right;
+
+        .button {
+            color: black;
+        }
+    }
+
+    #carousel {
+        position: relative;
+        display: flex;
+        margin: 20px;
+        margin-bottom: 0;
+        img {
+            width: 100%;
+        }
+
+        #leftButton {
+            position: absolute;
+            left: 10px;
+            bottom: 50%;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        #rightButton {
+            position: absolute;
+            right: 10px;
+            bottom: 50%;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        #indexIndicatorContainer {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            width: 100%;
+            justify-content: center;
+
+            #indexIndicator {
+                background-color: white;
+                width: 25px;
+                height: 4px;
+                margin-right: 5px;
+                border-radius: 2px;
+                cursor: pointer;
+                border: none;
+            }
+
+            #indexIndicator.active {
+                background-color: #d3d3d3;
+            }
+
+            #indexIndicator:last-child {
+                margin-right: 0;
+            }
+        }
+    }
+    
+
+    #contentContainer {
+        padding: 20px;
+
+        #propertiesContainer {
+            #property {
+                display: flex;
+            }
+        }
+    }
 }
 
-.button.active:hover {
-    background-color: #d3d3d3;
+#detailPanel.hidden {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
 }
 
-.button-secondary {
-    background-color: white;
-    color: black;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.button-secondary:hover {
-    background-color: #d3d3d3;
-}
-
-.button-secondary.active {
-    background-color: black;
-    color: white;
-}
-
-.button-secondary.active:hover {
-    background-color: #4e4e4e;
+#detailPanel.visible {
+    transform: translateX(0);
+    transition: transform 0.3s ease;
 }

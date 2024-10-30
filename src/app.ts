@@ -10,12 +10,16 @@ import { Measurements } from "./measurements";
 import { DecorBuilder } from "./decor_builder";
 import { Navigation3D } from "./navigation_3d";
 import { Navigation2D } from "./navigation_2d";
+import { ControlPanel } from "./control_panel";
 
 class App {
     private scene: BABYLON.Scene;
     private shadowGenerator: BABYLON.ShadowGenerator;
     private modelLoader: ModelLoader;
+
     private shelf: Shelf;
+    private ambientLight: BABYLON.HemisphericLight;
+    private sun: BABYLON.DirectionalLight;
 
     // TODO: Clean up, encapsulate into methods
     // NOTE: If things change at runtime, measurements, decor and navigation3D might not yet be updated
@@ -38,23 +42,37 @@ class App {
         });
         this.scene = new BABYLON.Scene(engine);
 
-        var camera: BABYLON.ArcRotateCamera = CAMERA.createCamera(this.scene, canvas);
+        const camera = CAMERA.createCamera(this.scene, canvas);
         camera.attachControl(canvas, true);
+
+        const ssao = new BABYLON.SSAO2RenderingPipeline("ssao", this.scene, 1.0, [camera]);
+        ssao.radius = 0.5;
+        ssao.totalStrength = 0.4;
+        ssao.expensiveBlur = true;
+        ssao.samples = 16;
+        ssao.maxZ = 10;
+        ssao.minZAspect = 0.1;
+        ssao.textureSamples = 4;
         
-        var sun: BABYLON.HemisphericLight = new BABYLON.HemisphericLight("sun", new BABYLON.Vector3(-1, 1, -1), this.scene);
-        sun.intensity = 1.3;
+        this.ambientLight = new BABYLON.HemisphericLight("ambient", new BABYLON.Vector3(-1, 1, -1), this.scene);
+        this.ambientLight.diffuse = new BABYLON.Color3(1, 0.95, 0.9);
+
+        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(1, -5, 3), this.scene);
+        this.sun.diffuse = new BABYLON.Color3(1, 1, 0.95);
+
+        this.setDay();
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         environment.RoomChanged.on((bbox) => {
             camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
             camera.target = bbox.center;
         });
+        
+        this.shadowGenerator = environment.getShadowGenerator();
 
         environment.setRoomHeight(2.4);
         environment.setRoomWidth(3.5);
         environment.setRoomDepth(4.5);
-
-        this.shadowGenerator = environment.getShadowGenerator();
 
         this.modelLoader = new ModelLoader(this.scene, this.shadowGenerator);
         // wait for all models to be loaded and create shelf afterwards
@@ -65,15 +83,18 @@ class App {
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
             const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
+            const controlPanel = new ControlPanel(grid, this.shelf);
 
             navigation3D.BoardSelected.on((board) => {
                 measurements.createForBoard(board);
                 navigation2D.setSelectedBoard(board);
+                controlPanel.setSelectedEntity(board);
             });
 
             navigation3D.BoardDeselected.on((board) => {
                 measurements.removeForBoard(board);
                 navigation2D.setSelectedBoard(null);
+                controlPanel.setSelectedEntity(null);
             });
 
             navigation3D.BoardStoppedDragged.on((board) => {
@@ -82,9 +103,14 @@ class App {
                 }
             });
 
-            navigation2D.DayNightButtonPressed.on((active) => {
-                environment.setNight(active);
-                sun.intensity = active ? 0.3 : 1.3;
+            navigation2D.DayNightButtonPressed.on((isNight) => {
+                environment.setNight(isNight);
+
+                if (isNight) {
+                    this.setNight();
+                } else {
+                    this.setDay();
+                }
             });
 
             navigation2D.DecorButtonPressed.on((active) => {
@@ -112,6 +138,17 @@ class App {
         engine.runRenderLoop(() => {
             this.scene.render();
         });
+    }
+
+    // TODO: have a sun only during day and a ceiling light during night
+    private setNight() {
+        this.ambientLight.intensity = 0.3;
+        this.sun.intensity = 0.1;
+    }
+
+    private setDay() {
+        this.ambientLight.intensity = 0.5;
+        this.sun.intensity = 0.5;   
     }
 
     private loadModels() : Promise<void[]> {

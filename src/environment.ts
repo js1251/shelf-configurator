@@ -122,12 +122,15 @@ export class Environment {
     }
 
     private createShadowGenerator() {
-        this.light = new BABYLON.PointLight("light", new BABYLON.Vector3(0.1, 0, 0), this.scene);
-        this.light.intensity = 0.5;
+        this.light = new BABYLON.PointLight("roomLight", new BABYLON.Vector3(0, 0, 0), this.scene);
+        this.light.diffuse = new BABYLON.Color3(1, 1, 0.95);
+        this.light.intensity = 0.8;
+        this.light.position = new BABYLON.Vector3(0, 2.2, 0);
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
-        shadowGenerator.setDarkness(0.7);
+        shadowGenerator.setDarkness(0);
         shadowGenerator.bias = 0.000002;
+        shadowGenerator.usePoissonSampling = true;
 
         this.shadowGenerator = shadowGenerator;
     }

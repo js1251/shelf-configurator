@@ -136,6 +136,10 @@ export class Navigation3D {
     }
 
     setSelectedBoard(board: Board) {
+        if (this.selectedBoard === board) {
+            return;
+        }
+
         this.selectedBoard = board;
         this.deselectDetector.setSelectedBoard(this.selectedBoard);
 
