@@ -1,10 +1,12 @@
 import * as BABYLON from "@babylonjs/core";
+import * as BABYLON_GUI from "@babylonjs/gui";
 import { Board } from "./shelf/entities/board";
 import { Shelf } from "./shelf/shelf";
 import { Strut } from "./shelf/entities/strut";
 import { Measurements } from "./measurements";
 import { LiteEvent } from "./event_engine/LiteEvent";
 import { Environment } from "./environment";
+import * as ICON from "./icons";
 
 class DeselectDetector {
     private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
@@ -116,10 +118,7 @@ export class Navigation3D {
             this.attachBoardDragControls(board);
         });
 
-        // TODO: add controls to new struts when they are created!
-        this.shelf.getStruts().forEach((strut) => {
-            this.attachStrutDragControls(strut);
-        });
+        this.attachShelfDragControls();
 
         this.shelf.BoardSizeChanged.on((board) => {
             // reselect to refresh highlight
@@ -147,18 +146,35 @@ export class Navigation3D {
             return;
         }
 
+        this.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+        
+        this.onBoardSelected.trigger(board);
+    }
+
+    highlightBoard(board: Board, color: BABYLON.Color3) {
         board.root.getChildMeshes().forEach((mesh) => {
-            this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+            this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
         });
 
         board.getAllDecor().forEach((decor) => {
             const decorNode = decor.root;
             decorNode.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, Measurements.BOARD_MEASURE_COLOR);
+                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
             });
         });
-        
-        this.onBoardSelected.trigger(board);
+    }
+
+    removeHighlightBoard(board: Board) {
+        board.root.getChildMeshes().forEach((mesh) => {
+            this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+        });
+
+        board.getAllDecor().forEach((decor) => {
+            const decorNode = decor.root;
+            decorNode.getChildMeshes().forEach((mesh) => {
+                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+            });
+        });
     }
 
     private deselectBoard() {
@@ -166,16 +182,7 @@ export class Navigation3D {
             return
         }
         
-        this.selectedBoard.root.getChildMeshes().forEach((mesh) => {
-            this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-        });
-
-        this.selectedBoard.getAllDecor().forEach((decor) => {
-            const decorNode = decor.root;
-            decorNode.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-            });
-        });
+        this.removeHighlightBoard(this.selectedBoard);
 
         this.onBoardDeselected.trigger(this.selectedBoard);
 
@@ -300,16 +307,43 @@ export class Navigation3D {
 
             this.onBoardStoppedDragged.trigger(board);
             
-            // reselect the current board, just to highlight all decor again
-            this.setSelectedBoard(board);
+            this.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
         });
 
         board.addBehavior(pointerDragBehavior);
     }
 
-    attachStrutDragControls(strut: Strut) {
+    attachShelfDragControls() {
+        const billBoardPos = this.shelf.getBoundingBox().center;
+        billBoardPos.y = 0;
+
+        const billboard = BABYLON.MeshBuilder.CreateDisc("billboard", { radius: 0.06 }, this.scene);
+        billboard.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+        billboard.renderingGroupId = 1;
+        billboard.position = billBoardPos;
+
+        const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
+        billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
+        billBoardMaterial.specularColor = BABYLON.Color3.Black();
+        billBoardMaterial.emissiveColor = BABYLON.Color3.Black();
+        billBoardMaterial.alpha = 0.5;
+        billboard.material = billBoardMaterial;
+
+        const plane = BABYLON.MeshBuilder.CreatePlane("plane", { size: 0.1 }, this.scene);
+        plane.parent = billboard;
+
+        var url = "data:image/svg+xml;base64," + window.btoa(ICON.drag.replace(/currentColor/g, "white"));
+        var img = new BABYLON_GUI.Image("image", url);
+
+        var advancedTexture = BABYLON_GUI.AdvancedDynamicTexture.CreateForMesh(plane, 256, 256);
+        advancedTexture.addControl(img);
+        plane.renderingGroupId = 2;
+        plane.isPickable = false;
+
+        billboard.setParent(this.shelf.root);
+
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({
-            dragPlaneNormal: new BABYLON.Vector3(0, 1, 0),
+            dragPlaneNormal: BABYLON.Vector3.Up(),
         });
         pointerDragBehavior.useObjectOrientationForDragging = false;
         //pointerDragBehavior.updateDragPlane = false;
@@ -323,11 +357,13 @@ export class Navigation3D {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
 
             const currentPosition = event.dragPlanePoint;
+            currentPosition.x -= this.shelf.getBoundingBox().center.x;
             currentPosition.y = 0;
 
             // clamp the shelf to the room
             const room_bbox = this.environment.getBoundingBox();
 
+            // TODO: use bounding box instead
             if (currentPosition.x - Board.BOARD_WIDTH / 2 < room_bbox.minimum.x) {
                 currentPosition.x = room_bbox.minimum.x + Board.BOARD_WIDTH / 2;
             } else if (currentPosition.x + this.shelf.getWidth() - Board.BOARD_WIDTH / 2 > room_bbox.maximum.x) {
@@ -350,6 +386,11 @@ export class Navigation3D {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "default";
         });
 
-        strut.addBehavior(pointerDragBehavior);
+        billboard.addBehavior(pointerDragBehavior);
+        
+        const actionManager = new BABYLON.ActionManager(this.scene);
+        actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
+        actionManager.hoverCursor = "grab";
+        billboard.actionManager = actionManager;
     }
 }

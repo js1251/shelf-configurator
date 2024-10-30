@@ -120,6 +120,14 @@ class App {
             navigation2D.RulerButtonPressed.on((active) => {
                 measurements.setVisibility(active);
             });
+
+            navigation2D.BoardShortened.on((board) => {
+                navigation3D.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+            });
+
+            navigation2D.BoardWidened.on((board) => {
+                navigation3D.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+            });
         });
 
         // hide/show the Inspector

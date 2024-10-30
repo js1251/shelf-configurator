@@ -23,6 +23,16 @@ export class Navigation2D {
     public get DayNightButtonPressed() {
         return this.onDayNightButtonPressed.expose();
     }
+
+    private readonly onBoardShortened = new LiteEvent<Board>();
+    public get BoardShortened() {
+        return this.onBoardShortened.expose();
+    }
+
+    private readonly onBoardWidened = new LiteEvent<Board>();
+    public get BoardWidened() {
+        return this.onBoardWidened.expose();
+    }
     
     constructor(grid: HTMLDivElement, shelf: Shelf) {
         this.grid = grid;
@@ -143,6 +153,8 @@ export class Navigation2D {
             }
 
             this.selectedBoard.setSpanStruts(this.shelf.getStruts()[currentStartIndex], this.shelf.getStruts()[currentEndIndex - 1]);
+        
+            this.onBoardShortened.trigger(this.selectedBoard);
         });
         bottomBar.appendChild(buttonShorten);
 
@@ -170,6 +182,8 @@ export class Navigation2D {
             }
 
             this.selectedBoard.setSpanStruts(this.shelf.getStruts()[newStartIndex], this.shelf.getStruts()[newEndIndex]);
+        
+            this.onBoardWidened.trigger(this.selectedBoard);
         });
         bottomBar.appendChild(buttonWiden);
     }
