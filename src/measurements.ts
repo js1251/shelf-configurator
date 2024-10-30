@@ -147,6 +147,7 @@ export class Measurements {
         this.heightLineBackRight.setEnabled(false);
     }
 
+    // TODO: re-use same material for all lines
     private drawLabeledLine(start: BABYLON.Vector3, end: BABYLON.Vector3, color: BABYLON.Color3, text: string) : BABYLON.LinesMesh {
         const options = {
             points: [start, end],

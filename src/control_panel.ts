@@ -162,27 +162,4 @@ export class ControlPanel {
 
         return detailPanel;
     }
-
-    private createOrderPanel() {
-        const orderPanel = document.createElement("div");
-        orderPanel.id = "orderPanel";
-        orderPanel.classList.add("panel");
-
-        const itemCount = document.createElement("span");
-        itemCount.innerText = "15 items";
-        orderPanel.appendChild(itemCount);
-
-        const closeButton = document.createElement("button");
-        closeButton.className = "button button-regular";
-        closeButton.innerText = "Add to cart ⟶";
-        closeButton.style.fontWeight = "bold";
-        orderPanel.appendChild(closeButton);
-
-        const moreButton = document.createElement("button");
-        moreButton.className = "button button-rounded button-rounded-secondary";
-        moreButton.innerHTML = ICON.hamburger;
-        orderPanel.appendChild(moreButton);
-
-        this.grid.appendChild(orderPanel);
-    }
 }
