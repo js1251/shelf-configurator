@@ -204,7 +204,12 @@ a {
         justify-content: right;
 
         .button {
+            display: flex;
             color: black;
+        }
+
+        .button:hover {
+            background-color: #d3d3d3;
         }
     }
 
