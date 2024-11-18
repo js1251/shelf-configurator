@@ -1,15 +1,15 @@
 import { ModelLoader } from "./modelloader";
-import { Decor } from "./shelf/decor";
-import { Shelf } from "./shelf/shelf";
-import { Board } from "./shelf/entities/board";
-import { Strut } from "./shelf/entities/strut";
-import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
-import { Books01 } from "./shelf/entities/decor/decor_books_01";
-import { Books02 } from "./shelf/entities/decor/decor_books_02";
-import { PottedPlant02 } from "./shelf/entities/decor/potted_plant02";
-import { Books03 } from "./shelf/entities/decor/decor_books_03";
-import { Books04 } from "./shelf/entities/decor/decor_books_04";
-import { Trinket01 } from "./shelf/entities/decor/decor_trinket_01";
+import { Decor } from "../shelf/decor";
+import { Shelf } from "../shelf/shelf";
+import { Board } from "../shelf/entities/board";
+import { Strut } from "../shelf/entities/strut";
+import { PottedPlant01 } from "../shelf/entities/decor/potted_plant01";
+import { Books01 } from "../shelf/entities/decor/decor_books_01";
+import { Books02 } from "../shelf/entities/decor/decor_books_02";
+import { PottedPlant02 } from "../shelf/entities/decor/potted_plant02";
+import { Books03 } from "../shelf/entities/decor/decor_books_03";
+import { Books04 } from "../shelf/entities/decor/decor_books_04";
+import { Trinket01 } from "../shelf/entities/decor/decor_trinket_01";
 
 export class DecorBuilder {
     private shelf: Shelf;

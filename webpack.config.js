@@ -28,6 +28,11 @@ module.exports = {
                 use: "ts-loader",
                 exclude: /node_modules/,
             },
+            {
+                test: /\.css$/, // Regel für CSS-Dateien
+                use: ["style-loader", "css-loader"], // Lädt CSS und fügt es dem DOM hinzu
+                exclude: /node_modules/,
+            },
         ],
     },
     plugins: [

@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { Decor } from "../../decor";
-import { ModelLoader } from "../../../modelloader";
+import { ModelLoader } from "../../../3d/modelloader";
 
 export class Books02 extends Decor {
     constructor(modelloader: ModelLoader) {

@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { ModelLoader } from "./../modelloader";
+import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
 import { Strut } from "./entities/strut";
 import { Board } from "./entities/board";

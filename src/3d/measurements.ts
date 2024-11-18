@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
-import { Shelf } from "./shelf/shelf";
-import { Board } from "./shelf/entities/board";
+import { Shelf } from "../shelf/shelf";
+import { Board } from "../shelf/entities/board";
 
 export class Measurements {
     private scene: BABYLON.Scene;
@@ -27,8 +27,9 @@ export class Measurements {
 
     private static LINE_THICKNESS = 1.2;
 
-    static BOARD_MEASURE_COLOR = new BABYLON.Color3(0.012, 0.47, 0.85);
-    static DIMENSIONS_MEASURE_COLOR = BABYLON.Color3.Black();
+    static BOARD_MEASURE_COLOR = BABYLON.Color3.FromHexString("#BA3F1E");
+    static DIMENSIONS_MEASURE_COLOR = BABYLON.Color3.FromHexString("#090D2A");
+    private static TEXT_COLOR_STRING = "#F6F1E8";
 
     constructor(scene: BABYLON.Scene, shelf: Shelf, camera: BABYLON.ArcRotateCamera) {
         this.scene = scene;
@@ -71,7 +72,7 @@ export class Measurements {
         this.heightLineBackRight.dispose();
     }
 
-    private createMeasurements() {
+    createMeasurements() {
         const bbox = this.shelf.getBoundingBox();
         const width = ((bbox.maximum.x - bbox.minimum.x) * 100).toFixed(this.precision);
         const height = ((bbox.maximum.y - bbox.minimum.y) * 100).toFixed(this.precision);
@@ -201,7 +202,7 @@ export class Measurements {
         const context = dynamicTexture.getContext();
         context.font = `bold ${fontSize}px Arial`;
         context.clearRect(0, 0, textureWidth, textureHeight);
-        context.fillStyle = "white";
+        context.fillStyle = Measurements.TEXT_COLOR_STRING;
 
         // Center the text
         const textMetrics = context.measureText(text);

@@ -1,0 +1,14 @@
+#priceDisplay{
+    display: flex;
+    justify-content: top;
+    color: var(--text-l-2);
+
+    #currencySymbol {
+        padding-top: 8px;
+        padding-right: 5px;
+    }
+    
+    #decimelAmount {
+        padding-top: 8px;
+    }
+}

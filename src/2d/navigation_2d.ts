@@ -1,7 +1,7 @@
-import { LiteEvent } from "./event_engine/LiteEvent";
+import { LiteEvent } from "../event_engine/LiteEvent";
 import * as ICON from "./icons";
-import { Board } from "./shelf/entities/board";
-import { Shelf } from "./shelf/shelf";
+import { Board } from "../shelf/entities/board";
+import { Shelf } from "../shelf/shelf";
 
 export class Navigation2D {
     private grid: HTMLDivElement;

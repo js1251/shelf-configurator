@@ -1,11 +1,14 @@
+require("./price_display.css");
+
 export class PriceDisplay {
+    private root: HTMLElement;
     private intAmount: HTMLSpanElement;
     private decimelAmount: HTMLSpanElement;
     
-    constructor(parent: HTMLElement) {
+    constructor() {
         const container = document.createElement("div");
         container.id = "priceDisplay";
-        parent.appendChild(container);
+        this.root = container;
 
         const currencySymbol = document.createElement("h3");
         currencySymbol.innerHTML = "€";
@@ -28,7 +31,15 @@ export class PriceDisplay {
     }
 
     setAmount(amount: number) {
-        this.intAmount.innerHTML = Math.floor(amount) + "";
+        let intString = Math.floor(amount) + "";
+        // add space every 3 digits
+        intString = intString.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+        this.intAmount.innerHTML = intString;
         this.decimelAmount.innerHTML = "." + ((amount - Math.floor(amount))* 100).toFixed(0).padStart(2, "0");
+    }
+    
+    get rootElement() {
+        return this.root;
     }
 }

@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { ModelLoader } from "../../../modelloader";
+import { ModelLoader } from "../../../3d/modelloader";
 import { Decor } from "../../decor";
 
 export class PottedPlant01 extends Decor {

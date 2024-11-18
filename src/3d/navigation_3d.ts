@@ -1,25 +1,25 @@
 import * as BABYLON from "@babylonjs/core";
 import * as BABYLON_GUI from "@babylonjs/gui";
-import { Board } from "./shelf/entities/board";
-import { Shelf } from "./shelf/shelf";
-import { Strut } from "./shelf/entities/strut";
+import { Board } from "../shelf/entities/board";
+import { Shelf } from "../shelf/shelf";
 import { Measurements } from "./measurements";
-import { LiteEvent } from "./event_engine/LiteEvent";
+import { LiteEvent } from "../event_engine/LiteEvent";
 import { Environment } from "./environment";
-import * as ICON from "./icons";
+import * as ICON from "../2d/icons";
+import { Entity } from "../entity_engine/entity";
 
 class DeselectDetector {
     private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
     private allowDeselection: boolean = false;
-    private selectedBoard: Board;
+    private selectedEntity: Entity;
 
-    setSelectedBoard(board: Board) {
-        this.selectedBoard = board;
+    setSelectedEntity(entity: Entity) {
+        this.selectedEntity = entity;
     }
 
-    constructor(scene: BABYLON.Scene, deselectBoard: () => void) {
+    constructor(scene: BABYLON.Scene, deselectEntity: () => void) {
         scene.onPointerObservable.add((pointerInfo) => {
-            if (this.selectedBoard === undefined) {
+            if (this.selectedEntity === undefined) {
                 return;
             }
             
@@ -47,14 +47,14 @@ class DeselectDetector {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
                 if (pickedMesh !== null) {
                     
-                    if (this.selectedBoard.root.getChildMeshes().some((child) => {
+                    if (this.selectedEntity.root.getChildMeshes().some((child) => {
                         return child === pickedMesh;
                     })) {
                         return;
                     }
                 }
 
-                deselectBoard();
+                deselectEntity();
                 this.allowDeselection = false;
             }
         });
@@ -62,14 +62,14 @@ class DeselectDetector {
 }
 
 export class Navigation3D {
-    private readonly onBoardSelected = new LiteEvent<Board>();
-    public get BoardSelected() {
-        return this.onBoardSelected.expose();
+    private readonly onEntitySelected = new LiteEvent<Entity>();
+    public get EntitySelected() {
+        return this.onEntitySelected.expose();
     }
 
-    private readonly onBoardDeselected = new LiteEvent<Board>();
-    public get BoardDeselected() {
-        return this.onBoardDeselected.expose();
+    private readonly onEntityDeselected = new LiteEvent<Entity>();
+    public get EntityDeselected() {
+        return this.onEntityDeselected.expose();
     }
 
     private readonly onBoardDragged = new LiteEvent<Board>();
@@ -82,7 +82,7 @@ export class Navigation3D {
         return this.onBoardStoppedDragged.expose();
     }
 
-    private readonly onShelfMoved = new LiteEvent<Board>();
+    private readonly onShelfMoved = new LiteEvent<void>();
     public get ShelfMoved() {
         return this.onShelfMoved.expose();
     }
@@ -91,7 +91,7 @@ export class Navigation3D {
     private shelf: Shelf;
     private environment: Environment;
 
-    private selectedBoard: Board;
+    private selectedEntity: Entity;
     private highlightLayer: BABYLON.HighlightLayer;
 
     private deselectDetector: DeselectDetector;
@@ -104,7 +104,7 @@ export class Navigation3D {
         this.shelf = shelf;
         this.environment = environment;
 
-        this.deselectDetector = new DeselectDetector(this.scene, this.deselectBoard.bind(this));
+        this.deselectDetector = new DeselectDetector(this.scene, this.deselectEntity.bind(this));
 
         // TODO: needs to update when shelf strut spacing changes
         this.xDragThreshold = this.shelf.getStrutSpacing() / 2;
@@ -115,10 +115,15 @@ export class Navigation3D {
 
         // TODO: add controls to new boards when they are created!
         this.shelf.getBoards().forEach((board) => {
+            this.attachEntitySelectionControls(board);
             this.attachBoardDragControls(board);
         });
 
-        this.attachShelfDragControls();
+        this.shelf.getStruts().forEach((strut) => {
+            this.attachEntitySelectionControls(strut);
+        });
+
+        //this.attachShelfDragControls();
 
         this.shelf.BoardSizeChanged.on((board) => {
             // reselect to refresh highlight
@@ -135,89 +140,98 @@ export class Navigation3D {
     }
 
     setSelectedBoard(board: Board) {
-        if (this.selectedBoard === board) {
+        if (this.selectedEntity === board) {
             return;
         }
 
-        this.selectedBoard = board;
-        this.deselectDetector.setSelectedBoard(this.selectedBoard);
+        this.selectedEntity = board;
+        this.deselectDetector.setSelectedEntity(this.selectedEntity);
 
         if (!board) {
             return;
         }
 
-        this.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+        this.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
         
-        this.onBoardSelected.trigger(board);
+        this.onEntitySelected.trigger(board);
     }
 
-    highlightBoard(board: Board, color: BABYLON.Color3) {
-        board.root.getChildMeshes().forEach((mesh) => {
+    highlightEntity(entity: Entity, color: BABYLON.Color3) {
+        entity.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
         });
 
-        board.getAllDecor().forEach((decor) => {
-            const decorNode = decor.root;
-            decorNode.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
+        if (entity instanceof Board) {
+            entity.getAllDecor().forEach((decor) => {
+                const decorNode = decor.root;
+                decorNode.getChildMeshes().forEach((mesh) => {
+                    this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
+                });
             });
-        });
+        }
     }
 
-    removeHighlightBoard(board: Board) {
-        board.root.getChildMeshes().forEach((mesh) => {
+    removeHighlightEntity(entity: Entity) {
+        entity.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
         });
 
-        board.getAllDecor().forEach((decor) => {
-            const decorNode = decor.root;
-            decorNode.getChildMeshes().forEach((mesh) => {
-                this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+        if (entity instanceof Board) {
+            entity.getAllDecor().forEach((decor) => {
+                const decorNode = decor.root;
+                decorNode.getChildMeshes().forEach((mesh) => {
+                    this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
+                });
             });
-        });
+        }
     }
 
-    private deselectBoard() {
-        if (!this.selectedBoard) {
+    private deselectEntity() {
+        if (!this.selectedEntity) {
             return
         }
         
-        this.removeHighlightBoard(this.selectedBoard);
+        this.removeHighlightEntity(this.selectedEntity);
 
-        this.onBoardDeselected.trigger(this.selectedBoard);
+        this.onEntityDeselected.trigger(this.selectedEntity);
 
-        this.selectedBoard.root.actionManager.hoverCursor = "pointer";
-        this.selectedBoard = undefined;
-        this.deselectDetector.setSelectedBoard(undefined);
+        this.selectedEntity.root.actionManager.hoverCursor = "pointer";
+        this.selectedEntity = undefined;
+        this.deselectDetector.setSelectedEntity(undefined);
     }
 
-    attachBoardDragControls(board: Board) {
+    attachEntitySelectionControls(entity: Entity) {
+        // actionManager for hover cursor
         const actionManager = new BABYLON.ActionManager(this.scene);
         actionManager.isRecursive = true;
         actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, (_) => {}));
-        board.root.actionManager = actionManager;
-        
+        entity.root.actionManager = actionManager;
+
+        actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, (evt) => {
+            if (this.selectedEntity !== entity) {
+                this.deselectEntity();
+            }
+
+            this.setSelectedBoard(entity as Board);
+        }));
+    }
+
+
+    attachBoardDragControls(board: Board) {
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({ dragPlaneNormal: BABYLON.Vector3.Forward() });
-        //pointerDragBehavior.useObjectOrientationForDragging = false;
-        //pointerDragBehavior.updateDragPlane = false;
         pointerDragBehavior.moveAttached = false;
 
         const increment = 0.01; // Define the increment value
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
-            if (this.selectedBoard !== board) {
-                this.deselectBoard();
-            }
-
-            board.root.actionManager.hoverCursor = "grab";
-            this.setSelectedBoard(board);
-
+            this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
+            // otherwise the hand would flicker when moved outside the board even during grabbing
+            board.root.actionManager.hoverCursor = "grabbing";
             this.dragStartX = event.dragPlanePoint.x;
         });
 
         pointerDragBehavior.onDragObservable.add((event) => {
             this.scene.getEngine().getRenderingCanvas().style.cursor = "grabbing";
-
             // otherwise the hand would flicker when moved outside the board even during grabbing
             board.root.actionManager.hoverCursor = "grabbing";
             
@@ -306,8 +320,6 @@ export class Navigation3D {
             board.root.actionManager.hoverCursor = "grab";
 
             this.onBoardStoppedDragged.trigger(board);
-            
-            this.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
         });
 
         board.addBehavior(pointerDragBehavior);
@@ -323,7 +335,7 @@ export class Navigation3D {
         billboard.position = billBoardPos;
 
         const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
-        billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
+        billBoardMaterial.diffuseColor = BABYLON.Color3.FromHexString("#090D2A");
         billBoardMaterial.specularColor = BABYLON.Color3.Black();
         billBoardMaterial.emissiveColor = BABYLON.Color3.Black();
         billBoardMaterial.alpha = 0.5;
@@ -332,7 +344,7 @@ export class Navigation3D {
         const plane = BABYLON.MeshBuilder.CreatePlane("plane", { size: 0.1 }, this.scene);
         plane.parent = billboard;
 
-        var url = "data:image/svg+xml;base64," + window.btoa(ICON.drag.replace(/currentColor/g, "white"));
+        var url = "data:image/svg+xml;base64," + window.btoa(ICON.drag.replace(/currentColor/g, "#F6F1E8"));
         var img = new BABYLON_GUI.Image("image", url);
 
         var advancedTexture = BABYLON_GUI.AdvancedDynamicTexture.CreateForMesh(plane, 256, 256);

@@ -2,15 +2,18 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 import * as BABYLON from "@babylonjs/core";
-import * as CAMERA from "./camera";
-import * as ENVIRONMENT from "./environment";
-import { ModelLoader } from "./modelloader";
+import * as CAMERA from "./3d/camera";
+import * as ENVIRONMENT from "./3d/environment";
+import { ModelLoader } from "./3d/modelloader";
 import { Shelf } from "./shelf/shelf";
-import { Measurements } from "./measurements";
-import { DecorBuilder } from "./decor_builder";
-import { Navigation3D } from "./navigation_3d";
-import { Navigation2D } from "./navigation_2d";
-import { ControlPanel } from "./control_panel";
+import { Measurements } from "./3d/measurements";
+import { DecorBuilder } from "./3d/decor_builder";
+import { Navigation3D } from "./3d/navigation_3d";
+import { Navigation2D } from "./2d/navigation_2d";
+import { ControlPanel } from "./2d/control_panel";
+import { Board } from "./shelf/entities/board";
+import { ProductEntity } from "./entity_engine/product_entity";
+import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
 
 class App {
     private scene: BABYLON.Scene;
@@ -34,6 +37,7 @@ class App {
 
         const canvas = document.createElement("canvas");
         canvas.id = "sceneCanvas";
+        canvas.style.zIndex = "3";
         sceneWrapper.appendChild(canvas);
 
         var engine = new BABYLON.Engine(canvas, true, { stencil: true });
@@ -64,8 +68,8 @@ class App {
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         environment.RoomChanged.on((bbox) => {
-            camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
-            camera.target = bbox.center;
+            //camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
+            //camera.target = bbox.center;
         });
         
         this.shadowGenerator = environment.getShadowGenerator();
@@ -81,25 +85,42 @@ class App {
 
             const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const measurements = new Measurements(this.scene, this.shelf, camera);
+            this.shelf.setHeight(2.8);
+            this.shelf.setPosition(new BABYLON.Vector3(0, 0, 1));
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
             const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
-            const controlPanel = new ControlPanel(grid, this.shelf);
+            const controlPanel = new ControlPanel(grid, this.shelf, environment);
 
-            navigation3D.BoardSelected.on((board) => {
-                measurements.createForBoard(board);
-                navigation2D.setSelectedBoard(board);
-                controlPanel.setSelectedEntity(board);
+
+            this.shelf.BboxChanged.on((bbox) => {
+                measurements.remove();
+                measurements.createMeasurements();
             });
 
-            navigation3D.BoardDeselected.on((board) => {
-                measurements.removeForBoard(board);
+            navigation3D.EntitySelected.on((entity) => {
+                if (entity instanceof Board) {
+                    measurements.createForBoard(entity);
+                    navigation2D.setSelectedBoard(entity);
+                }
+
+                if (entity instanceof ProductEntity) {
+                    controlPanel.setSelectedProduct(entity);
+                }
+            });
+
+            navigation3D.EntityDeselected.on((entity) => {
+                if (entity instanceof Board) {
+                    measurements.removeForBoard(entity);
+                }
+                
                 navigation2D.setSelectedBoard(null);
-                controlPanel.setSelectedEntity(null);
+                controlPanel.setSelectedProduct(null);
             });
 
             navigation3D.BoardStoppedDragged.on((board) => {
                 if (board.getAllDecor().length === 0) {
                     decor_builder.buildDecorForBoard(board);
+                    navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
                 }
             });
 
@@ -122,12 +143,15 @@ class App {
             });
 
             navigation2D.BoardShortened.on((board) => {
-                navigation3D.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+                navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
             });
 
             navigation2D.BoardWidened.on((board) => {
-                navigation3D.highlightBoard(board, Measurements.BOARD_MEASURE_COLOR);
+                navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
             });
+
+            const test = new PottedPlant01(this.modelLoader);
+            test.setPosition(new BABYLON.Vector3(-1, 0.5, 0.5));
         });
 
         // hide/show the Inspector

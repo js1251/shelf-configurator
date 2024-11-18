@@ -1,4 +1,4 @@
-import { ModelLoader } from "../modelloader";
+import { ModelLoader } from "../3d/modelloader";
 import { Entity } from "../entity_engine/entity";
 
 export abstract class Decor extends Entity {

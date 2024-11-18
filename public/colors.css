@@ -1,0 +1,20 @@
+:root {
+    --background-l-3: #090D2A;
+    --background-l-2: #172068;
+    --background-l-1: #E0D9CC;
+    --background-l-0: #F6F1E8;
+
+    --text-l-2: #172068;
+    --text-l-1: #A4A9CD;
+    --text-l-0: #F6F1E8;
+
+    --primary-l-8: #5E1810;
+    --primary-l-7: #7F1D15;
+    --primary-l-6: #9E2804;
+    --primary-l-5: #B53A15;
+    --primary-l-4: #BA3F1E;
+    --primary-l-3: #C95938;
+    --primary-l-2: #DA7052;
+    --primary-l-1: #EB8970;
+    --primary-l-0: #FFAD91;
+}

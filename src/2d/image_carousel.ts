@@ -1,7 +1,9 @@
+import { CustomElement } from "./customElement";
 import * as ICON from "./icons";
+require('./image_carousel.css');
 
-export class ImageCarousel {
-    private div: HTMLDivElement;
+export class ImageCarousel extends CustomElement {
+    private div: HTMLElement;
     private image: HTMLImageElement;
 
     private imageUrls: string[];
@@ -9,8 +11,10 @@ export class ImageCarousel {
 
     private indexButtons: HTMLButtonElement[] = [];
 
-    constructor(imageUrls: string[], div: HTMLDivElement) {
-        this.div = div;
+    constructor(imageUrls: string[]) {
+        super();
+
+        this.div = document.createElement("div");
         
         this.imageUrls = imageUrls;
         this.currentIndex = 0;
@@ -79,5 +83,9 @@ export class ImageCarousel {
         }
 
         this.div.appendChild(carousel);
+    }
+
+    get rootElement() {
+        return this.div;
     }
 }

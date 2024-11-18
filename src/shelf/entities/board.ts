@@ -1,11 +1,11 @@
 import * as BABYLON from "@babylonjs/core";
-import { Entity } from "../../entity_engine/entity";
-import { ModelLoader } from "../../modelloader";
+import { ModelLoader } from "../../3d/modelloader";
 import { Strut } from "./strut";
 import { Decor } from "../decor";
 import { LiteEvent } from "../../event_engine/LiteEvent";
+import { ProductEntity } from "../../entity_engine/product_entity";
 
-export class Board extends Entity {
+export class Board extends ProductEntity {
     private height_m: number;
     private startStrut: Strut;
     private endStrut: Strut;
@@ -117,6 +117,30 @@ export class Board extends Entity {
         });
         super.remove();
     }
+
+    get price(): number {
+        return 150;
+    }
+
+    get name(): string {
+        return "Regalboden";
+    }
+
+    get description(): string {
+        return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt";
+    }
+
+    get imageUrls(): string[] {
+        return [
+            "images/product_placeholder01.jpg",
+            "images/product_placeholder02.jpg",
+            "images/product_placeholder03.jpg",
+        ];
+    }
+
+    get shopUrl(): string {
+        return "https://www.google.com";
+    };
 
     protected constructMeshes(): BABYLON.AbstractMesh {
         const start = this.modelloader.createInstance("models/shelf_end.glb");

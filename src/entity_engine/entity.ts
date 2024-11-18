@@ -1,5 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
-import { ModelLoader } from "../modelloader";
+import { ModelLoader } from "../3d/modelloader";
+import { LiteEvent } from "../event_engine/LiteEvent";
+import { Shelf } from "../shelf/shelf";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
@@ -18,17 +20,22 @@ export abstract class Entity {
         this.bboxMesh.setEnabled(value);
     }
 
+    private readonly onBboxChanged = new LiteEvent<BABYLON.BoundingBox>();
+    public get BboxChanged() {
+        return this.onBboxChanged.expose();
+    }
+
     constructor(modelloader: ModelLoader) {
         this.modelloader = modelloader;
 
         this.root = this.constructMeshes();
         this.updateBoundingBox();
 
-        /*
+        this.root.showBoundingBox = true;
+
         setTimeout(() => {
             this.showAABB = true;
         }, 10);
-        */
     }
 
     getBoundingBox() {
@@ -74,21 +81,25 @@ export abstract class Entity {
 
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
-    protected updateBoundingBox() {
-        const hierarchyBounds = this.root.getHierarchyBoundingVectors();
+    protected updateBoundingBox() {        
+        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true);
 
         hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
         hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());
+
+        if (this instanceof Shelf) {
+            console.log(hierarchyBounds.min, hierarchyBounds.max);
+        }
 
         const updatedMinMax = this.modifyBoundixInfo(hierarchyBounds.min, hierarchyBounds.max);
         hierarchyBounds.min = updatedMinMax[0];
         hierarchyBounds.max = updatedMinMax[1];
 
         var boundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
-        
         this.root.setBoundingInfo(boundingInfo);
-
         this.updateBBMesh();
+
+        this.onBboxChanged.trigger(boundingInfo.boundingBox);
     }
 
     static boundingBoxMaterial: BABYLON.StandardMaterial;

@@ -1,0 +1,30 @@
+#sectionButtonContainer {
+    display: flex;
+    flex-direction: column;
+
+    #sectionButton {
+        background-color: transparent;
+        color: var(--text-l-2);
+        transition: padding 0.2s ease;
+
+        display: flex;
+        padding: 40px;
+        margin: 0 20px 0 20px;
+
+        font-family: 'Bodoni Moda SC', serif;
+        font-weight: 700;
+        font-optical-sizing: 30;
+        font-size: 48;
+        letter-spacing: 7.68px;
+
+        border-bottom: 1px solid var(--background-l-3);
+
+        #sectionName {
+            margin-right: auto;
+        }
+    }
+
+    #sectionButton:hover {
+        padding-right: 20px;
+    }
+}

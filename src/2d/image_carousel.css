@@ -1,0 +1,55 @@
+#carousel {
+    position: relative;
+    display: flex;
+    margin: 20px;
+    margin-bottom: 0;
+    img {
+        width: 100%;
+    }
+
+    #leftButton {
+        position: absolute;
+        left: 10px;
+        bottom: 50%;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: white;
+    }
+
+    #rightButton {
+        position: absolute;
+        right: 10px;
+        bottom: 50%;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: white;
+    }
+
+    #indexIndicatorContainer {
+        position: absolute;
+        bottom: 20px;
+        display: flex;
+        width: 100%;
+        justify-content: center;
+
+        #indexIndicator {
+            background-color: white;
+            width: 25px;
+            height: 4px;
+            margin-right: 5px;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+        }
+
+        #indexIndicator.active {
+            background-color: #d3d3d3;
+        }
+
+        #indexIndicator:last-child {
+            margin-right: 0;
+        }
+    }
+}

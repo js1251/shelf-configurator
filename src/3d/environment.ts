@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { LiteEvent } from "./event_engine/LiteEvent";
+import { LiteEvent } from "../event_engine/LiteEvent";
 
 // TODO: could be an entity
 
@@ -29,7 +29,7 @@ export class Environment {
         this.scene = scene;
 
         this.createShadowGenerator();
-        this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
+        this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
 
         this.defaultMaterial = new BABYLON.PBRMetallicRoughnessMaterial("defaultMaterial", this.scene);
         this.defaultMaterial.baseColor = BABYLON.Color3.White().scale(0.9);
@@ -113,10 +113,10 @@ export class Environment {
         this.isNight = isNight;
 
         if (isNight) {
-            this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.1, 1));
+            this.setBackgroundColor(BABYLON.Color4.FromHexString("#0D0D0D"));
             this.light.intensity = 0;
         } else {
-            this.setBackgroundColor(new BABYLON.Color4(0.9, 0.9, 0.91, 1));
+            this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
             this.light.intensity = 0.5;
         }
     }

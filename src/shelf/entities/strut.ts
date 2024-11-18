@@ -1,8 +1,8 @@
 import * as BABYLON from "@babylonjs/core";
-import { Entity } from "../../entity_engine/entity";
-import { ModelLoader } from "../../modelloader";
+import { ModelLoader } from "../../3d/modelloader";
+import { ProductEntity } from "../../entity_engine/product_entity";
 
-export class Strut extends Entity {
+export class Strut extends ProductEntity {
     private height_m: number;
     private offset: number;
     private index: number;
@@ -61,6 +61,30 @@ export class Strut extends Entity {
         newPosition.x = this.offset;
         this.setPosition(newPosition);
     }
+
+    get price(): number {
+        return 250;
+    }
+
+    get name(): string {
+        return "Strebe";
+    }
+
+    get description(): string {
+        return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt";
+    }
+
+    get imageUrls(): string[] {
+        return [
+            "images/product_placeholder01.jpg",
+            "images/product_placeholder02.jpg",
+            "images/product_placeholder03.jpg",
+        ];
+    }
+
+    get shopUrl(): string {
+        return "https://www.google.com";
+    };
 
     protected constructMeshes(): BABYLON.AbstractMesh {
         this.strut = this.modelloader.createInstance("models/strut.glb");

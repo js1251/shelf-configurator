@@ -1,91 +1,36 @@
-import { Entity } from "./entity_engine/entity";
+import { ExtendPanel } from "./extend_panel";
 import * as ICON from "./icons";
 import { ImageCarousel } from "./image_carousel";
 import { PriceDisplay } from "./priceDisplay";
-import { Board } from "./shelf/entities/board";
-import { Shelf } from "./shelf/shelf";
+import { ProductEntity } from "../entity_engine/product_entity";
+require('./product_extend_panel.css');
 
-export class ControlPanel {
-    private grid: HTMLDivElement;
-
-    private controlPanel: HTMLDivElement;
-    private selectedEntity: Entity;
-
-    constructor(grid: HTMLDivElement, shelf: Shelf) {
-        this.grid = grid;
-
-        this.createControlPanel();
-    }
-
-    // TODO: different things than board can be selected!
-    setSelectedEntity(entity: Entity) {
-        if (entity === null) {
-            const detailPanel = document.getElementById("detailPanel");
-
-            if (!detailPanel) {
-                console.warn("Detail panel not found");
-                return;
-            }
-
-            detailPanel.classList.add("hidden");
-            detailPanel.classList.remove("visible");
-
-            detailPanel.addEventListener('transitionend', () => {
-                detailPanel.parentElement.removeChild(detailPanel);
-            });
-
-            return;
-        }
-
-        if (entity) {
-            const detailPanel = this.createDetailPanel(entity);
-            setTimeout(() => {
-                detailPanel.classList.add("visible");
-            });
-        }
-    }
-
-    private createControlPanel() {
-        this.controlPanel = document.createElement("div");
-        this.controlPanel.id = "controlPanel";
-
-        this.grid.appendChild(this.controlPanel);
-    }
-
-    private createDetailPanel(entity: Entity) : HTMLElement{
-        const detailPanel = document.createElement("div");
-        detailPanel.id = "detailPanel";
-
-        const topBar = document.createElement("div");
-        topBar.id = "topBar";
-        detailPanel.appendChild(topBar);
+export class ProductExtendPanel extends ExtendPanel {
+    constructor(product: ProductEntity) {
+        super();
 
         const closeButton = document.createElement("button");
         closeButton.className = "button button-rounded";
         closeButton.innerHTML = ICON.close;
         closeButton.addEventListener('click', () => {
-            this.setSelectedEntity(null);
+            this.closeAndRemove();
         });
-        topBar.appendChild(closeButton);
+        this.appendToTopBar(closeButton);
 
-        const images = [
-            "images/product_placeholder01.jpg",
-            "images/product_placeholder02.jpg",
-            "images/product_placeholder03.jpg",
-        ];
-        new ImageCarousel(images, detailPanel);
+        const images = new ImageCarousel(product.imageUrls);
+        this.appendToBody(images.rootElement);
 
         const contentContainer = document.createElement("div");
         contentContainer.id = "contentContainer";
-        detailPanel.appendChild(contentContainer);
+        this.appendToBody(contentContainer);
 
         const title = document.createElement("h2");
-        title.innerText = "Shelf Beech Wood";
+        title.innerText = product.name;
         contentContainer.appendChild(title);
 
         const description = document.createElement("p");
         description.style.opacity = "0.7";
-        description.innerText = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt";
+        description.innerText = product.description;
         contentContainer.appendChild(description);
 
         const readMore = document.createElement("a");
@@ -93,11 +38,12 @@ export class ControlPanel {
         readMore.target = "_blank";
         readMore.rel = "noopener noreferrer";
         readMore.style.opacity = "0.7";
-        readMore.innerText = "more info";
+        readMore.innerText = "Mehr info";
         contentContainer.appendChild(readMore);
 
-        const price = new PriceDisplay(contentContainer);
-        price.setAmount(150);
+        const price = new PriceDisplay();
+        price.setAmount(product.price);
+        contentContainer.appendChild(price.rootElement);
 
         const propertiesContainer = document.createElement("div");
         propertiesContainer.id = "propertiesContainer";
@@ -130,12 +76,11 @@ export class ControlPanel {
             return trim(valueInMeter) + "m";
         };
 
-        // TODO: get properties from entity
-        const extendSize = entity.getBoundingBox().extendSize;
+        const extendSize = product.getBoundingBox().extendSize;
         const properties = [
-            { name: "Length:", value: getMeasurementString(extendSize.x * 2) },
-            { name: "Height:", value: getMeasurementString(extendSize.y * 2) },
-            { name: "Depth:", value: getMeasurementString(extendSize.z * 2) },
+            { name: "Breite:", value: getMeasurementString(extendSize.x * 2) },
+            { name: "Höhe:", value: getMeasurementString(extendSize.y * 2) },
+            { name: "Tiefe:", value: getMeasurementString(extendSize.z * 2) },
         ];
 
         properties.forEach((property) => {
@@ -157,9 +102,5 @@ export class ControlPanel {
 
         const line = document.createElement("hr");
         contentContainer.appendChild(line);
-
-        this.controlPanel.appendChild(detailPanel);
-
-        return detailPanel;
     }
 }
