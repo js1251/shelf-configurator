@@ -39,13 +39,17 @@ export class Strut extends ProductEntity {
         this.footTop.setParent(null);
         this.footBottom.setParent(null);
 
+        // Note: struts are moved local to shelf so x and z are not relative to world
         this.strut.position = new BABYLON.Vector3(this.offset, this.height_m / 2, 0);
         this.strut.getChildMeshes()[0].scaling.y = (this.height_m - 0.04 * 2) * 10;
 
-        this.footTop.position = new BABYLON.Vector3(this.offset, this.height_m - 0.04, 0);
+        // Note:
+        const strutPosition = this.getPosition().clone();
+        strutPosition.y = 0;
+        this.footTop.position = strutPosition.add(BABYLON.Vector3.Up().scale(this.height_m - 0.04));
         this.footTop.setParent(this.strut);
 
-        this.footBottom.position = new BABYLON.Vector3(this.offset, 0.04, 0);
+        this.footBottom.position = strutPosition.add(BABYLON.Vector3.Up().scale(0.04));
         this.footBottom.setParent(this.strut);
 
         this.updateBoundingBox();
