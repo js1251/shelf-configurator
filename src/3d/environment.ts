@@ -36,6 +36,7 @@ export class Environment {
         this.defaultMaterial.metallic = 0.1;
         this.defaultMaterial.roughness = 0.6;
         this.defaultMaterial.alpha = 1;
+        this.defaultMaterial.freeze();
 
         this.scaleHandle = BABYLON.MeshBuilder.CreateBox("scaleHandle", { size: 1 }, this.scene);
         this.scaleHandle.isVisible = false;
@@ -168,6 +169,8 @@ export class Environment {
         roughnessTexture.vScale = 0.5;
         pbr.metallicRoughnessTexture = roughnessTexture;
         pbr.metallic = 0.05;
+
+        pbr.freeze();
 
         this.ground.material = pbr;
 

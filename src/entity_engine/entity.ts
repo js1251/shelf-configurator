@@ -1,12 +1,12 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
-import { Shelf } from "../shelf/shelf";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
     root: BABYLON.AbstractMesh;
     private bboxMesh: BABYLON.AbstractMesh;
+    private ignoreBboxNodes: BABYLON.TransformNode[] = [];
 
     private _showAABB = false;
     get showAABB() {
@@ -31,11 +31,12 @@ export abstract class Entity {
         this.root = this.constructMeshes();
         this.updateBoundingBox();
 
+        /*
         this.root.showBoundingBox = true;
-
         setTimeout(() => {
             this.showAABB = true;
         }, 10);
+        */
     }
 
     getBoundingBox() {
@@ -59,7 +60,7 @@ export abstract class Entity {
         return this.root.parent;
     }
 
-    collidesBbox(boundingBox: BABYLON.BoundingBox) : boolean{
+    collidesBbox(boundingBox: BABYLON.BoundingBox) : boolean {
         return BABYLON.BoundingBox.Intersects(this.getBoundingBox(), boundingBox);
     }
 
@@ -73,27 +74,62 @@ export abstract class Entity {
         this.bboxMesh.dispose();
     }
 
+    addFollower(follower: BABYLON.TransformNode) {
+        follower.setParent(this.root);
+        this.addToBboxFilter(follower);
+    }
+
+    removeFollower(follower: BABYLON.TransformNode) {
+        follower.setParent(null);
+        this.removeFromBboxFilter(follower);
+    }
+
     addBehavior(behaviour: BABYLON.Behavior<BABYLON.AbstractMesh>) {
         this.root.addBehavior(behaviour);
     }
+
+    addToBboxFilter(node: BABYLON.TransformNode) {
+        this.ignoreBboxNodes.push(node);
+    }
+
+    removeFromBboxFilter(node: BABYLON.TransformNode) {
+        const index = this.ignoreBboxNodes.indexOf(node);
+
+        if (index === -1) {
+            return;
+        }
+
+        this.ignoreBboxNodes.splice(index, -1);
+    }
     
+    // TODO: Does this need to be an abstract mesh? -> Performance
     protected abstract constructMeshes(): BABYLON.AbstractMesh;
 
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
     protected updateBoundingBox() {        
-        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true);
+        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => {
+            if (this.ignoreBboxNodes.indexOf(node) > -1) {
+                return false;
+            }
+
+            for (let i = 0; i < this.ignoreBboxNodes.length; i++) {
+                if (node.isDescendantOf(this.ignoreBboxNodes[i])) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
 
         hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
         hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());
 
-        if (this instanceof Shelf) {
-            console.log(hierarchyBounds.min, hierarchyBounds.max);
-        }
-
         const updatedMinMax = this.modifyBoundixInfo(hierarchyBounds.min, hierarchyBounds.max);
         hierarchyBounds.min = updatedMinMax[0];
         hierarchyBounds.max = updatedMinMax[1];
+
+        // TODO: check if even changed
 
         var boundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
         this.root.setBoundingInfo(boundingInfo);

@@ -13,7 +13,6 @@ import { Navigation2D } from "./2d/navigation_2d";
 import { ControlPanel } from "./2d/control_panel";
 import { Board } from "./shelf/entities/board";
 import { ProductEntity } from "./entity_engine/product_entity";
-import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
 
 class App {
     private scene: BABYLON.Scene;
@@ -82,15 +81,13 @@ class App {
         // wait for all models to be loaded and create shelf afterwards
         this.loadModels().then(() => {
             this.shelf = this.createShelf();
+            this.shelf.showAABB = true;
 
-            const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const measurements = new Measurements(this.scene, this.shelf, camera);
-            this.shelf.setHeight(2.8);
-            this.shelf.setPosition(new BABYLON.Vector3(0, 0, 1));
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
+            const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
             const controlPanel = new ControlPanel(grid, this.shelf, environment);
-
 
             this.shelf.BboxChanged.on((bbox) => {
                 measurements.remove();
@@ -149,9 +146,6 @@ class App {
             navigation2D.BoardWidened.on((board) => {
                 navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
             });
-
-            const test = new PottedPlant01(this.modelLoader);
-            test.setPosition(new BABYLON.Vector3(-1, 0.5, 0.5));
         });
 
         // hide/show the Inspector
@@ -187,10 +181,15 @@ class App {
         const strutMaterial = new BABYLON.StandardMaterial("strut", this.scene);
         strutMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         strutMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        strutMaterial.freeze();
 
         const woodMaterial = new BABYLON.StandardMaterial("wood", this.scene);
         woodMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.20, 0.04);
         woodMaterial.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+        woodMaterial.freeze();
+
+        const defaultMaterial = new BABYLON.StandardMaterial("defaultMaterial", this.scene);
+        defaultMaterial.freeze();
 
         const modelUrls = [
             {
@@ -199,7 +198,7 @@ class App {
             },
             {
                 url: "models/foot.glb",
-                material: new BABYLON.StandardMaterial("foot", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/shelf_end.glb",
@@ -215,39 +214,39 @@ class App {
             },
             {
                 url: "models/clamp.glb",
-                material: new BABYLON.StandardMaterial("clamp", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_potted_plant_01.glb",
-                material: new BABYLON.StandardMaterial("plant01", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_potted_plant_02.glb",
-                material: new BABYLON.StandardMaterial("plant02", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_placeholder.glb",
-                material: new BABYLON.StandardMaterial("placeholder", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_books_01.glb",
-                material: new BABYLON.StandardMaterial("books01", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_books_02.glb",
-                material: new BABYLON.StandardMaterial("books02", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_books_03.glb",
-                material: new BABYLON.StandardMaterial("books03", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_books_04.glb",
-                material: new BABYLON.StandardMaterial("books04", this.scene)
+                material: defaultMaterial
             },
             {
                 url: "models/decor_trinket_01.glb",
-                material: new BABYLON.StandardMaterial("trinket01", this.scene)
+                material: defaultMaterial
             },
         ];
 

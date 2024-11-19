@@ -27,6 +27,9 @@ export class Measurements {
 
     private static LINE_THICKNESS = 1.2;
 
+    private static MAX_MATERIAL_CACHE = 2;
+    private static BILLBOARD_MATERIALS: {[hex: string]: BABYLON.StandardMaterial} = {};
+
     static BOARD_MEASURE_COLOR = BABYLON.Color3.FromHexString("#BA3F1E");
     static DIMENSIONS_MEASURE_COLOR = BABYLON.Color3.FromHexString("#090D2A");
     private static TEXT_COLOR_STRING = "#F6F1E8";
@@ -36,7 +39,7 @@ export class Measurements {
         this.shelf = shelf;
         this.camera = camera;
         this.root = new BABYLON.TransformNode("measurements_root", scene);
-        this.root = shelf.root;
+        this.shelf.addFollower(this.root);
 
         this.createMeasurements();
 
@@ -74,21 +77,23 @@ export class Measurements {
 
     createMeasurements() {
         const bbox = this.shelf.getBoundingBox();
-        const width = ((bbox.maximum.x - bbox.minimum.x) * 100).toFixed(this.precision);
-        const height = ((bbox.maximum.y - bbox.minimum.y) * 100).toFixed(this.precision);
-        const depth = ((bbox.maximum.z - bbox.minimum.z) * 100).toFixed(this.precision);
+        const minimum = bbox.minimumWorld;
+        const maximum = bbox.maximumWorld;
+        const width = ((maximum.x - minimum.x) * 100).toFixed(this.precision);
+        const height = ((maximum.y - minimum.y) * 100).toFixed(this.precision);
+        const depth = ((maximum.z - minimum.z) * 100).toFixed(this.precision);
 
         this.widthLineFront = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.minimum.z - Board.BOARD_WIDTH),
-            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.minimum.z - Board.BOARD_WIDTH),
+            new BABYLON.Vector3(minimum.x, 0, minimum.z - Board.BOARD_WIDTH),
+            new BABYLON.Vector3(maximum.x, 0, minimum.z - Board.BOARD_WIDTH),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             width
         );
         this.drawLineEnds(this.widthLineFront, BABYLON.Vector3.Up());
 
         this.widthLineBack = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x, 0, bbox.maximum.z + Board.BOARD_WIDTH),
-            new BABYLON.Vector3(bbox.maximum.x, 0, bbox.maximum.z + Board.BOARD_WIDTH),
+            new BABYLON.Vector3(minimum.x, 0, maximum.z + Board.BOARD_WIDTH),
+            new BABYLON.Vector3(maximum.x, 0, maximum.z + Board.BOARD_WIDTH),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             width
         );
@@ -96,16 +101,16 @@ export class Measurements {
         this.widthLineBack.setEnabled(false);
 
         this.depthLineLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, 0, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, 0, bbox.maximum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, 0, minimum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, 0, maximum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             depth
         );
         this.drawLineEnds(this.depthLineLeft, BABYLON.Vector3.Up());
 
         this.depthLineRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, 0, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, 0, bbox.maximum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, 0, minimum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, 0, maximum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             depth
         );
@@ -113,8 +118,8 @@ export class Measurements {
         this.depthLineRight.setEnabled(false);
 
         this.heightLineFrontLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.minimum.y, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.maximum.y, bbox.minimum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, minimum.y, minimum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, maximum.y, minimum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
@@ -122,16 +127,16 @@ export class Measurements {
         this.heightLineFrontLeft.setEnabled(false);
 
         this.heightLineFrontRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.minimum.y, bbox.minimum.z),
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.maximum.y, bbox.minimum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, minimum.y, minimum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, maximum.y, minimum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
         this.drawLineEnds(this.heightLineFrontRight, BABYLON.Vector3.Forward());
 
         this.heightLineBackLeft = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.minimum.y, bbox.maximum.z),
-            new BABYLON.Vector3(bbox.minimum.x - Board.BOARD_WIDTH, bbox.maximum.y, bbox.maximum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, minimum.y, maximum.z),
+            new BABYLON.Vector3(minimum.x - Board.BOARD_WIDTH, maximum.y, maximum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
@@ -139,8 +144,8 @@ export class Measurements {
         this.heightLineBackLeft.setEnabled(false);
 
         this.heightLineBackRight = this.drawLabeledLine(
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.minimum.y, bbox.maximum.z),
-            new BABYLON.Vector3(bbox.maximum.x + Board.BOARD_WIDTH, bbox.maximum.y, bbox.maximum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, minimum.y, maximum.z),
+            new BABYLON.Vector3(maximum.x + Board.BOARD_WIDTH, maximum.y, maximum.z),
             Measurements.DIMENSIONS_MEASURE_COLOR,
             height
         );
@@ -148,8 +153,20 @@ export class Measurements {
         this.heightLineBackRight.setEnabled(false);
     }
 
+    private cacheMaterial(cache: {[id: string]: BABYLON.StandardMaterial}, id: string, material: BABYLON.StandardMaterial) {
+        if (Object.keys(cache).length === Measurements.MAX_MATERIAL_CACHE - 1) {
+            console.warn("Approaching material cache limit. Error on next cache.")
+        } else if (Object.keys(cache).length === Measurements.MAX_MATERIAL_CACHE) {
+            throw Error("Too many cached materials!");
+        }
+
+        cache[id] = material;
+    }
+
     // TODO: re-use same material for all lines
     private drawLabeledLine(start: BABYLON.Vector3, end: BABYLON.Vector3, color: BABYLON.Color3, text: string) : BABYLON.LinesMesh {
+        const colorHex = color.toHexString();
+        
         const options = {
             points: [start, end],
             updatable: true
@@ -177,12 +194,17 @@ export class Measurements {
         billboard.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
         billboard.renderingGroupId = 2;
         billboard.isPickable = false;
-        
-        const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
-        billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
-        billBoardMaterial.specularColor = BABYLON.Color3.Black();
-        billBoardMaterial.emissiveColor = color;
-        billboard.material = billBoardMaterial;
+
+        if (!Measurements.BILLBOARD_MATERIALS[colorHex]) {
+            const billBoardMaterial = new BABYLON.StandardMaterial(`billBoardMaterial_${colorHex}`, this.scene);
+            billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
+            billBoardMaterial.specularColor = BABYLON.Color3.Black();
+            billBoardMaterial.emissiveColor = color;
+            billBoardMaterial.freeze();
+
+            this.cacheMaterial(Measurements.BILLBOARD_MATERIALS, colorHex, billBoardMaterial);
+        }
+        billboard.material = Measurements.BILLBOARD_MATERIALS[colorHex];
 
         const dynamicTexture = new BABYLON.DynamicTexture("dynamicTexture", { width: textureWidth, height: textureHeight }, this.scene, true);
         const textMaterial = new BABYLON.StandardMaterial("textMaterial", this.scene);

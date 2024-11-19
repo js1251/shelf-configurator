@@ -1,3 +1,4 @@
+import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./modelloader";
 import { Decor } from "../shelf/decor";
 import { Shelf } from "../shelf/shelf";
@@ -17,8 +18,13 @@ export class DecorBuilder {
     private decorOptions: Decor[] = [];
     private isVisible: boolean = true;
 
+    private root: BABYLON.TransformNode;
+
     constructor(modelloader: ModelLoader, shelf: Shelf) {
         this.shelf = shelf;
+
+        this.root = new BABYLON.TransformNode("decor_root", modelloader.scene);
+        this.shelf.addFollower(this.root);
 
         this.decorOptions.push(new PottedPlant01(modelloader));
         this.decorOptions.push(new PottedPlant02(modelloader));
@@ -129,7 +135,8 @@ export class DecorBuilder {
 
                 board.addDecor(decor);
                 spawnedDecor.push(decor);
-                decor.root.setParent(this.shelf.root);
+                decor.root.setParent(this.root);
+
                 decor.root.setEnabled(this.isVisible);
 
                 widthBudget -= decorWidth + randomOffset;

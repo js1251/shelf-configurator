@@ -123,7 +123,7 @@ export class Navigation3D {
             this.attachEntitySelectionControls(strut);
         });
 
-        //this.attachShelfDragControls();
+        this.attachShelfDragControls();
 
         this.shelf.BoardSizeChanged.on((board) => {
             // reselect to refresh highlight
@@ -329,16 +329,17 @@ export class Navigation3D {
         const billBoardPos = this.shelf.getBoundingBox().center;
         billBoardPos.y = 0;
 
-        const billboard = BABYLON.MeshBuilder.CreateDisc("billboard", { radius: 0.06 }, this.scene);
+        const billboard = BABYLON.MeshBuilder.CreateDisc("dragHandle", { radius: 0.06 }, this.scene);
         billboard.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
         billboard.renderingGroupId = 1;
         billboard.position = billBoardPos;
 
-        const billBoardMaterial = new BABYLON.StandardMaterial("billBoardMaterial", this.scene);
+        const billBoardMaterial = new BABYLON.StandardMaterial("dragHandleMaterial", this.scene);
         billBoardMaterial.diffuseColor = BABYLON.Color3.FromHexString("#090D2A");
         billBoardMaterial.specularColor = BABYLON.Color3.Black();
         billBoardMaterial.emissiveColor = BABYLON.Color3.Black();
         billBoardMaterial.alpha = 0.5;
+        billBoardMaterial.freeze();
         billboard.material = billBoardMaterial;
 
         const plane = BABYLON.MeshBuilder.CreatePlane("plane", { size: 0.1 }, this.scene);
@@ -352,13 +353,12 @@ export class Navigation3D {
         plane.renderingGroupId = 2;
         plane.isPickable = false;
 
-        billboard.setParent(this.shelf.root);
+        this.shelf.addFollower(billboard);
 
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({
             dragPlaneNormal: BABYLON.Vector3.Up(),
         });
         pointerDragBehavior.useObjectOrientationForDragging = false;
-        //pointerDragBehavior.updateDragPlane = false;
         pointerDragBehavior.moveAttached = false;
 
         pointerDragBehavior.onDragStartObservable.add((event) => {
