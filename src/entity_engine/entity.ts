@@ -169,7 +169,7 @@ export abstract class Entity {
             depth: bbox.extendSizeWorld.z * 2,
         }, this.modelloader.scene);
 
-        this.bboxMesh.position = bbox.centerWorld.clone();
+        this.bboxMesh.position = bbox.center.add(this.getPosition());
 
         if (Entity.boundingBoxMaterial === undefined) {
             var mat = new BABYLON.StandardMaterial("mat");
