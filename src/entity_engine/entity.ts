@@ -7,6 +7,7 @@ export abstract class Entity {
     root: BABYLON.AbstractMesh;
     private bboxMesh: BABYLON.AbstractMesh;
     private ignoreBboxNodes: BABYLON.TransformNode[] = [];
+    static boundingBoxMaterial: BABYLON.StandardMaterial;
 
     private _showAABB = false;
     get showAABB() {
@@ -17,6 +18,10 @@ export abstract class Entity {
         value = value && this.root.isEnabled();
 
         this._showAABB = value;
+
+        if (value) {
+            this.updateBBMesh();
+        }
         this.bboxMesh.setEnabled(value);
     }
 
@@ -70,8 +75,13 @@ export abstract class Entity {
     }
 
     remove() {
-        this.root.dispose();
-        this.bboxMesh.dispose();
+        if (this.root) {
+            this.root.dispose();
+        }
+
+        if (this.bboxMesh) {
+            this.bboxMesh.dispose();
+        }
     }
 
     addFollower(follower: BABYLON.TransformNode) {
@@ -129,16 +139,22 @@ export abstract class Entity {
         hierarchyBounds.min = updatedMinMax[0];
         hierarchyBounds.max = updatedMinMax[1];
 
-        // TODO: check if even changed
+        // check if even changed
+        const boundingInfo = this.root.getBoundingInfo();
+        if (BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.minimum, hierarchyBounds.min) <= 0.001
+            && BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.maximum, hierarchyBounds.max) <= 0.001) {
+            return;
+        }
 
-        var boundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
-        this.root.setBoundingInfo(boundingInfo);
-        this.updateBBMesh();
+        var newBoundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
+        this.root.setBoundingInfo(newBoundingInfo);
 
-        this.onBboxChanged.trigger(boundingInfo.boundingBox);
+        if (this.showAABB) {
+            this.updateBBMesh();
+        }
+
+        this.onBboxChanged.trigger(newBoundingInfo.boundingBox);
     }
-
-    static boundingBoxMaterial: BABYLON.StandardMaterial;
     
     private updateBBMesh() {
         if (this.bboxMesh !== undefined) {
@@ -153,17 +169,20 @@ export abstract class Entity {
             depth: bbox.extendSizeWorld.z * 2,
         }, this.modelloader.scene);
 
-        this.bboxMesh.position = bbox.centerWorld;
+        this.bboxMesh.position = bbox.centerWorld.clone();
 
         if (Entity.boundingBoxMaterial === undefined) {
             var mat = new BABYLON.StandardMaterial("mat");
             mat.diffuseColor = BABYLON.Color3.Green();
             mat.alpha = 0.3;
             Entity.boundingBoxMaterial = mat;
+            mat.freeze();
         }
 
         this.bboxMesh.material = Entity.boundingBoxMaterial;
         this.bboxMesh.setEnabled(this._showAABB);
         this.bboxMesh.isPickable = false;
+
+        this.addFollower(this.bboxMesh);
     } 
 }
