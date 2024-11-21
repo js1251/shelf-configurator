@@ -6,7 +6,7 @@ import { LiteEvent } from "../event_engine/LiteEvent";
 export class Environment {
     private scene: BABYLON.Scene;
     private shadowGenerator: BABYLON.ShadowGenerator;
-    private defaultMaterial: BABYLON.PBRMetallicRoughnessMaterial;
+    private defaultMaterial: BABYLON.StandardMaterial;
 
     private scaleHandle: BABYLON.Mesh;
 
@@ -20,6 +20,8 @@ export class Environment {
     private light: BABYLON.PointLight;
     private isNight: boolean = true;
 
+    private static FLOOR_SCALE = 0.4;
+
     private readonly onRoomChanged = new LiteEvent<BABYLON.BoundingBox>();
     public get RoomChanged() {
         return this.onRoomChanged.expose();
@@ -31,12 +33,30 @@ export class Environment {
         this.createShadowGenerator();
         this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
 
-        this.defaultMaterial = new BABYLON.PBRMetallicRoughnessMaterial("defaultMaterial", this.scene);
-        this.defaultMaterial.baseColor = BABYLON.Color3.White().scale(0.9);
-        this.defaultMaterial.metallic = 0.1;
-        this.defaultMaterial.roughness = 0.6;
-        this.defaultMaterial.alpha = 1;
+        this.defaultMaterial = new BABYLON.StandardMaterial("defaultMaterial", this.scene);
+        this.defaultMaterial.diffuseColor = BABYLON.Color3.FromHexString('#eae2dc');
+        this.scene.metadata.debugOverlay.attachColorPicker('Wall Color', {initialValue: this.defaultMaterial.diffuseColor.toHexString()}, (value) => {
+            this.defaultMaterial.unfreeze();
+            this.defaultMaterial.diffuseColor = BABYLON.Color3.FromHexString(value);
+            this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor;
+            this.scene.onAfterRenderObservable.add(() => {this.defaultMaterial.freeze()});
+        });
+
+        this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(0);
+        this.scene.metadata.debugOverlay.attachSlider('Wall Glow intensity', {
+            initialValue: 0,
+            min: 0,
+            max: 1,
+            step: 0.01,
+        }, (value) => {
+            this.defaultMaterial.unfreeze();
+            this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(value);
+            this.scene.onAfterRenderObservable.add(() => {this.defaultMaterial.freeze()});
+        });
+        this.defaultMaterial.specularColor = BABYLON.Color3.Black();
         this.defaultMaterial.freeze();
+
+
 
         this.scaleHandle = BABYLON.MeshBuilder.CreateBox("scaleHandle", { size: 1 }, this.scene);
         this.scaleHandle.isVisible = false;
@@ -45,6 +65,10 @@ export class Environment {
         this.createGround();
         this.createCeiling();
         this.createWalls();
+
+        this.setRoomDepth(1);
+        this.setRoomHeight(1);
+        this.setRoomWidth(1);
     }
 
     getShadowGenerator(): BABYLON.ShadowGenerator {
@@ -72,10 +96,24 @@ export class Environment {
         this.scaleHandle.scaling.x = width;
 
         const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+        material.unfreeze();
 
-        (material.baseTexture as BABYLON.Texture).uScale = width * 0.5;
-        (material.normalTexture as BABYLON.Texture).uScale = width * 0.5;
-        (material.metallicRoughnessTexture as BABYLON.Texture).uScale = width * 0.5;
+        const uScaleFactor = width * Environment.FLOOR_SCALE;
+        const uOffsetFactor = (1 - uScaleFactor) / 2;
+
+        const diffuseTexture = (material.baseTexture as BABYLON.Texture);
+        diffuseTexture.uScale = uScaleFactor;
+        diffuseTexture.uOffset = uOffsetFactor;
+
+        const normalTexture = (material.normalTexture as BABYLON.Texture);
+        normalTexture.uScale = uScaleFactor;
+        normalTexture.uOffset = uOffsetFactor;
+
+        const metallicRoughnessTexture = (material.metallicRoughnessTexture as BABYLON.Texture);
+        metallicRoughnessTexture.uScale = uScaleFactor;
+        metallicRoughnessTexture.uOffset = uOffsetFactor;
+
+        this.scene.onAfterRenderObservable.add(() => {material.freeze()});
 
         this.onRoomChanged.trigger(this.getBoundingBox());
     }
@@ -88,10 +126,24 @@ export class Environment {
         this.scaleHandle.scaling.z = depth;
         
         const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+        material.unfreeze();
 
-        (material.baseTexture as BABYLON.Texture).vScale = depth * 0.5;
-        (material.normalTexture as BABYLON.Texture).vScale = depth * 0.5;
-        (material.metallicRoughnessTexture as BABYLON.Texture).vScale = depth * 0.5;
+        const vScaleFactor = depth * Environment.FLOOR_SCALE;
+        const vOffsetFactor = (1 - vScaleFactor) / 2;
+
+        const diffuseTexture = (material.baseTexture as BABYLON.Texture);
+        diffuseTexture.vScale = vScaleFactor;
+        diffuseTexture.vOffset = vOffsetFactor;
+
+        const normalTexture = (material.normalTexture as BABYLON.Texture);
+        normalTexture.vScale = vScaleFactor;
+        normalTexture.vOffset = vOffsetFactor;
+
+        const metallicRoughnessTexture = (material.metallicRoughnessTexture as BABYLON.Texture);
+        metallicRoughnessTexture.vScale = vScaleFactor;
+        metallicRoughnessTexture.vOffset = vOffsetFactor;
+        
+        this.scene.onAfterRenderObservable.add(() => {material.freeze()});
 
         this.onRoomChanged.trigger(this.getBoundingBox());
     }
@@ -124,12 +176,23 @@ export class Environment {
 
     private createShadowGenerator() {
         this.light = new BABYLON.PointLight("roomLight", new BABYLON.Vector3(0, 0, 0), this.scene);
-        this.light.diffuse = new BABYLON.Color3(1, 1, 0.95);
-        this.light.intensity = 0.8;
+        this.light.diffuse = BABYLON.Color3.FromHexString("#FFFFFF");
+        this.scene.metadata.debugOverlay.attachColorPicker('Light Color', {initialValue: this.light.diffuse.toHexString()}, (value) => {
+            this.light.diffuse = BABYLON.Color3.FromHexString(value);
+        });
+        this.light.intensity = 0.2;
+        this.scene.metadata.debugOverlay.attachSlider('Light Intensity', {
+            initialValue: this.light.intensity,
+            min: 0,
+            max: 3,
+            step: 0.1,
+        }, (value) => {
+        this.light.intensity = value;
+    });
         this.light.position = new BABYLON.Vector3(0, 2.2, 0);
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
-        shadowGenerator.setDarkness(0);
+        shadowGenerator.setDarkness(0.1);
         shadowGenerator.bias = 0.000002;
         shadowGenerator.usePoissonSampling = true;
 
@@ -147,8 +210,6 @@ export class Environment {
             this.scene
         ) as BABYLON.Texture;
 
-        diffuseTexture.uScale = 0.5;
-        diffuseTexture.vScale = 0.5;
         pbr.baseTexture = diffuseTexture;
     
         const bumpTexture = new BABYLON.Texture(
@@ -156,8 +217,6 @@ export class Environment {
             this.scene
         ) as BABYLON.Texture;
 
-        bumpTexture.uScale = 0.5;
-        bumpTexture.vScale = 0.5;
         pbr.normalTexture = bumpTexture;
 
         const roughnessTexture = new BABYLON.Texture(
@@ -165,8 +224,6 @@ export class Environment {
             this.scene
         ) as BABYLON.Texture;
 
-        roughnessTexture.uScale = 0.5;
-        roughnessTexture.vScale = 0.5;
         pbr.metallicRoughnessTexture = roughnessTexture;
         pbr.metallic = 0.05;
 

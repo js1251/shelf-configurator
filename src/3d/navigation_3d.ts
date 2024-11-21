@@ -390,6 +390,7 @@ export class Navigation3D {
 
             // move the shelf to the new position
             this.shelf.setPosition(currentPosition);
+            this.onShelfMoved.trigger();
 
             //event.dragPlanePoint.copyFrom(new BABYLON.Vector3(currentPosition.x, currentPosition.y, currentPosition.z));
         });

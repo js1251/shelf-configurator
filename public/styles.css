@@ -74,7 +74,6 @@ a {
 }
 
 .button {
-    color: var(--text-l-0);
     border: none;
     cursor: pointer;
     justify-content: center;
@@ -83,6 +82,7 @@ a {
 }
 
 .button-rounded {
+    color: var(--text-l-0);
     width: 40px;
     height: 40px;
     border-radius: 50%;

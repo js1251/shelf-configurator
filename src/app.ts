@@ -2,7 +2,6 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 import * as BABYLON from "@babylonjs/core";
-import * as CAMERA from "./3d/camera";
 import * as ENVIRONMENT from "./3d/environment";
 import { ModelLoader } from "./3d/modelloader";
 import { Shelf } from "./shelf/shelf";
@@ -13,6 +12,8 @@ import { Navigation2D } from "./2d/navigation_2d";
 import { ControlPanel } from "./2d/control_panel";
 import { Board } from "./shelf/entities/board";
 import { ProductEntity } from "./entity_engine/product_entity";
+import { ShelfCamera } from "./3d/camera";
+import { ColorConfig } from "./color_config";
 
 class App {
     private scene: BABYLON.Scene;
@@ -30,6 +31,8 @@ class App {
         grid.id = "mainGrid";
         document.body.appendChild(grid);
 
+        const colorConfig = new ColorConfig(document.body);
+
         const sceneWrapper = document.createElement("div");
         sceneWrapper.id = "sceneWrapper";
         grid.appendChild(sceneWrapper);
@@ -45,7 +48,12 @@ class App {
         });
         this.scene = new BABYLON.Scene(engine);
 
-        const camera = CAMERA.createCamera(this.scene, canvas);
+        this.scene.metadata = {
+            debugOverlay: colorConfig,
+        };
+
+        const shelfCamera = new ShelfCamera(this.scene, canvas);
+        const camera = shelfCamera.camera;
         camera.attachControl(canvas, true);
 
         const ssao = new BABYLON.SSAO2RenderingPipeline("ssao", this.scene, 1.0, [camera]);
@@ -58,10 +66,40 @@ class App {
         ssao.textureSamples = 4;
         
         this.ambientLight = new BABYLON.HemisphericLight("ambient", new BABYLON.Vector3(-1, 1, -1), this.scene);
-        this.ambientLight.diffuse = new BABYLON.Color3(1, 0.95, 0.9);
+        colorConfig.attachAnglePicker('Ambient Light Direction', {initialValue: this.ambientLight.direction}, (value) => {
+            this.ambientLight.direction = value;
+        });
+        this.ambientLight.diffuse = BABYLON.Color3.FromHexString("#ffe5cc");
+        colorConfig.attachColorPicker('Ambient Light Color', {initialValue: this.ambientLight.diffuse.toHexString()}, (value) => {
+            this.ambientLight.diffuse = BABYLON.Color3.FromHexString(value);
+        });
+        this.ambientLight.intensity = 0.7;
+        colorConfig.attachSlider('Ambient Intensity', {
+                initialValue: this.ambientLight.intensity,
+                min: 0,
+                max: 3,
+                step: 0.1,
+            }, (value) => {
+            this.ambientLight.intensity = value;
+        });
 
-        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(1, -5, 3), this.scene);
-        this.sun.diffuse = new BABYLON.Color3(1, 1, 0.95);
+        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.528,-0.819,0.224), this.scene);
+        colorConfig.attachAnglePicker('Sun Direction', {initialValue: this.sun.direction}, (value) => {
+            this.sun.direction = value;
+        });
+        this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
+        this.sun.intensity = 1.1;
+        colorConfig.attachColorPicker('Sun Light Color', {initialValue: this.sun.diffuse.toHexString()}, (value) => {
+            this.sun.diffuse = BABYLON.Color3.FromHexString(value);
+        });
+        colorConfig.attachSlider('Sun Intensity', {
+            initialValue: this.sun.intensity,
+            min: 0,
+            max: 3,
+            step: 0.1,
+        }, (value) => {
+        this.sun.intensity = value;
+    });
 
         this.setDay();
 
@@ -81,7 +119,9 @@ class App {
         // wait for all models to be loaded and create shelf afterwards
         this.loadModels().then(() => {
             this.shelf = this.createShelf();
-            this.shelf.showAABB = true;
+            const initialCameraTarget = this.shelf.getBoundingBox().center.add(this.shelf.getPosition());
+            camera.target = initialCameraTarget.clone();
+            shelfCamera.setDesiredTarget(initialCameraTarget);
 
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
@@ -119,6 +159,11 @@ class App {
                     decor_builder.buildDecorForBoard(board);
                     navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
                 }
+            });
+
+            navigation3D.ShelfMoved.on(() => {
+                const shelfCenter = this.shelf.getBoundingBox().center.add(this.shelf.getPosition());
+                shelfCamera.setDesiredTarget(shelfCenter);
             });
 
             navigation2D.DayNightButtonPressed.on((isNight) => {
