@@ -8,7 +8,7 @@
     background-color: var(--background-l-0);
     height: 100%;
 
-    #topBar {
+    #extendTopBar {
         height: 50px;
         display: flex;
         padding: 20px;

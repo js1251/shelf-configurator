@@ -56,8 +56,6 @@ export class Environment {
         this.defaultMaterial.specularColor = BABYLON.Color3.Black();
         this.defaultMaterial.freeze();
 
-
-
         this.scaleHandle = BABYLON.MeshBuilder.CreateBox("scaleHandle", { size: 1 }, this.scene);
         this.scaleHandle.isVisible = false;
         this.scaleHandle.isPickable = false;
@@ -95,23 +93,23 @@ export class Environment {
     setRoomWidth(width: number): void {
         this.scaleHandle.scaling.x = width;
 
-        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+        const material = this.ground.material as BABYLON.StandardMaterial;
         material.unfreeze();
 
         const uScaleFactor = width * Environment.FLOOR_SCALE;
         const uOffsetFactor = (1 - uScaleFactor) / 2;
 
-        const diffuseTexture = (material.baseTexture as BABYLON.Texture);
+        const diffuseTexture = (material.diffuseTexture as BABYLON.Texture);
         diffuseTexture.uScale = uScaleFactor;
         diffuseTexture.uOffset = uOffsetFactor;
 
-        const normalTexture = (material.normalTexture as BABYLON.Texture);
-        normalTexture.uScale = uScaleFactor;
-        normalTexture.uOffset = uOffsetFactor;
+        const bumpTexture = (material.bumpTexture as BABYLON.Texture);
+        bumpTexture.uScale = uScaleFactor;
+        bumpTexture.uOffset = uOffsetFactor;
 
-        const metallicRoughnessTexture = (material.metallicRoughnessTexture as BABYLON.Texture);
-        metallicRoughnessTexture.uScale = uScaleFactor;
-        metallicRoughnessTexture.uOffset = uOffsetFactor;
+        const specularTexture = (material.specularTexture as BABYLON.Texture);
+        specularTexture.uScale = uScaleFactor;
+        specularTexture.uOffset = uOffsetFactor;
 
         this.scene.onAfterRenderObservable.add(() => {material.freeze()});
 
@@ -125,23 +123,23 @@ export class Environment {
     setRoomDepth(depth: number): void {
         this.scaleHandle.scaling.z = depth;
         
-        const material = this.ground.material as BABYLON.PBRMetallicRoughnessMaterial;
+        const material = this.ground.material as BABYLON.StandardMaterial;
         material.unfreeze();
 
         const vScaleFactor = depth * Environment.FLOOR_SCALE;
         const vOffsetFactor = (1 - vScaleFactor) / 2;
 
-        const diffuseTexture = (material.baseTexture as BABYLON.Texture);
+        const diffuseTexture = (material.diffuseTexture as BABYLON.Texture);
         diffuseTexture.vScale = vScaleFactor;
         diffuseTexture.vOffset = vOffsetFactor;
 
-        const normalTexture = (material.normalTexture as BABYLON.Texture);
-        normalTexture.vScale = vScaleFactor;
-        normalTexture.vOffset = vOffsetFactor;
+        const bumpTexture = (material.bumpTexture as BABYLON.Texture);
+        bumpTexture.vScale = vScaleFactor;
+        bumpTexture.vOffset = vOffsetFactor;
 
-        const metallicRoughnessTexture = (material.metallicRoughnessTexture as BABYLON.Texture);
-        metallicRoughnessTexture.vScale = vScaleFactor;
-        metallicRoughnessTexture.vOffset = vOffsetFactor;
+        const specularTexture = (material.specularTexture as BABYLON.Texture);
+        specularTexture.vScale = vScaleFactor;
+        specularTexture.vOffset = vOffsetFactor;
         
         this.scene.onAfterRenderObservable.add(() => {material.freeze()});
 
@@ -192,7 +190,7 @@ export class Environment {
         this.light.position = new BABYLON.Vector3(0, 2.2, 0);
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
-        shadowGenerator.setDarkness(0.1);
+        shadowGenerator.setDarkness(0.5);
         shadowGenerator.bias = 0.000002;
         shadowGenerator.usePoissonSampling = true;
 
@@ -204,32 +202,26 @@ export class Environment {
         this.ground.receiveShadows = true;
         this.ground.isPickable = false;
 
-        const pbr = new BABYLON.PBRMetallicRoughnessMaterial("pbr", this.scene);
-        const diffuseTexture = new BABYLON.Texture(
+        const material = new BABYLON.StandardMaterial("pbr", this.scene);
+
+        material.diffuseTexture = new BABYLON.Texture(
             "textures/WoodFloor051_1K-JPG_Color.jpg",
             this.scene
         ) as BABYLON.Texture;
 
-        pbr.baseTexture = diffuseTexture;
-    
-        const bumpTexture = new BABYLON.Texture(
+        material.bumpTexture = new BABYLON.Texture(
             "textures/WoodFloor051_1K-JPG_NormalDX.jpg",
             this.scene
         ) as BABYLON.Texture;
 
-        pbr.normalTexture = bumpTexture;
-
-        const roughnessTexture = new BABYLON.Texture(
+        material.specularTexture = new BABYLON.Texture(
             "textures/WoodFloor051_1K-JPG_Roughness.jpg",
             this.scene
         ) as BABYLON.Texture;
 
-        pbr.metallicRoughnessTexture = roughnessTexture;
-        pbr.metallic = 0.05;
+        material.freeze();
 
-        pbr.freeze();
-
-        this.ground.material = pbr;
+        this.ground.material = material;
 
         this.ground.position.y = -0.5;
         this.ground.setParent(this.scaleHandle);

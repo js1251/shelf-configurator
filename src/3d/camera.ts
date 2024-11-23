@@ -11,7 +11,7 @@ export class ShelfCamera {
     constructor(scene: BABYLON.Scene, canvas: HTMLCanvasElement, desiredTarget: BABYLON.Vector3 = BABYLON.Vector3.Zero()) {
         this.desiredTarget = desiredTarget;
         
-        const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 4, 10, new BABYLON.Vector3(0, 0, 0), scene);
+        const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 4, 10, new BABYLON.Vector3(0, 0, 0), scene);
         camera.attachControl(canvas, true);
         
         camera.wheelPrecision = 50;

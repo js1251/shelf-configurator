@@ -1,0 +1,46 @@
+#colorConfigContainer  {
+    transition: transform 0.3s ease;
+    background-color: var(--background-l-0);
+    border-top: 1px solid var(--background-l-3);
+    position: absolute;
+    width: 490px;
+    height: 100%;
+    z-index: 20;
+    bottom: 0;
+    right: 0;
+    overflow-y: scroll;
+    padding: 5px;
+
+    #parameterContainer {
+        border-bottom: 1px solid var(--background-l-3);
+
+        #inputContainer {
+            display: flex;
+            justify-content: start;
+            margin: 5px;
+            align-items: center;
+        
+            #vectorComponentContainer {
+                display: flex;
+                align-items: center;
+            }
+
+            input {
+                margin-right: 10px;
+                height: 25px;
+            }
+
+            input[type='range'] {
+               width: 85%;
+            }
+        }
+    }
+}
+
+#colorConfigContainer.hidden {
+    transform: translateX(100%);
+}
+
+#colorConfigContainer.visible {
+    transform: translateX(0);
+}

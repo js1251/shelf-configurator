@@ -75,7 +75,7 @@ export class ControlPanel {
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "sectionButtonContainer";
         buttonContainer.appendChild(this.createSectionButton("Material", () => {
-            this.openExtendPanel(new MaterialExtendPanel());
+            this.openExtendPanel(new MaterialExtendPanel(this.shelf));
         }));
         buttonContainer.appendChild(this.createSectionButton("Anordnung", () => {
             

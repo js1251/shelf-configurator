@@ -1,38 +1,69 @@
-class ShelfMaterial {
-    private _rawMaterial: string;
-    private _finish: string;
-    private _previewImageUrl: string;
-    private _solidColorHex: string;
-    
-    constructor(rawMaterial: string, finish: string, previewImageUrl: string, solidColorHex: string) {
-        this._rawMaterial = rawMaterial;
-        this._finish = finish;
-    }
+import * as BABYLON from "@babylonjs/core";
 
-    get rawMaterial() : string {
-        return this._rawMaterial;
-    }
+export abstract class ShelfMaterial {    
+    abstract get material(): BABYLON.StandardMaterial;
 
-    get finish() : string {
-        return this._finish;
-    }
+    abstract get name(): string;
 
-    get previewImageUrl() : string {
-        return this._previewImageUrl;
-    }
+    abstract get finish(): string;
 
-    get solidColorHex() : string {
-        return this._solidColorHex;
-    }
+    abstract get previewImageUrl(): string;
 
+    abstract get solidColorHex(): string;
 }
 
-export class ShelfMaterials {
-    public static WoodWalnutOiled = new ShelfMaterial("Walnuss", "Geölt", "PLACEHOLDER", "#8B4513");
-    public static WoodWalnutWaxxed = new ShelfMaterial("Walnuss", "Gewachst", "PLACEHOLDER", "#8B4513");
+class TestShelfMaterial extends ShelfMaterial {
+    get material(): BABYLON.StandardMaterial {
+        const material = new BABYLON.StandardMaterial('testWood');
+        
+        material.diffuseTexture = new BABYLON.Texture("textures/WoodFloor051_1K-JPG_Color.jpg");
+        material.bumpTexture = new BABYLON.Texture("textures/WoodFloor051_1K-JPG_NormalDX.jpg");
+        material.specularTexture = new BABYLON.Texture("textures/WoodFloor051_1K-JPG_Roughness.jpg");
 
-    public static MetalAluminiumBlack = new ShelfMaterial("Aluminium", "Schwarz lackiert", "PLACEHOLDER", "#000000");
-    public static MetalBrassCoated = new ShelfMaterial("Messing", "Poliert, Klarlack", "PLACEHOLDER", "#DAA520");
-    public static MetalBrassAged = new ShelfMaterial("Messing", "Gealtert", "PLACEHOLDER", "#DAA520");
-    public static MetalStainless = new ShelfMaterial("Edelstahl", "Gebürstet", "PLACEHOLDER", "#C0C0C0");
+        return material;
+    }
+
+    get name(): string {
+        return 'Test wood';
+    }
+
+    get finish(): string {
+        return 'Test finish';
+    }
+
+    get previewImageUrl(): string {
+        return 'textures/WoodFloor051_1K-JPG_Color.jpg';
+    }
+
+    get solidColorHex(): string {
+        return '#ff4400';
+    }
 }
+
+export const WOOD_MATERIALS : ShelfMaterial[] = [
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+];
+
+export const METAL_MATERIALS : ShelfMaterial[] = [
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+    new TestShelfMaterial(),
+];

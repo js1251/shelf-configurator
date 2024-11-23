@@ -1,0 +1,46 @@
+#swatchContainer {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+
+    img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 100%;
+    }
+
+    label {
+        position: absolute;
+        box-sizing: border-box;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        border: 3px solid transparent;
+        cursor: pointer;
+    }
+
+    input[type="radio"] {
+        opacity: 0;
+        position: absolute;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    input[type="radio"]:checked + label {
+        border-color: var(--primary-l-3);
+        cursor: default;
+    }
+
+    input[type="radio"]:checked + label img {
+        width: 85%;
+        height: 85%;
+    }
+}

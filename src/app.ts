@@ -73,7 +73,7 @@ class App {
         colorConfig.attachColorPicker('Ambient Light Color', {initialValue: this.ambientLight.diffuse.toHexString()}, (value) => {
             this.ambientLight.diffuse = BABYLON.Color3.FromHexString(value);
         });
-        this.ambientLight.intensity = 0.7;
+        this.ambientLight.intensity = 0.8;
         colorConfig.attachSlider('Ambient Intensity', {
                 initialValue: this.ambientLight.intensity,
                 min: 0,
@@ -88,7 +88,7 @@ class App {
             this.sun.direction = value;
         });
         this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
-        this.sun.intensity = 1.1;
+        this.sun.intensity = 1.2;
         colorConfig.attachColorPicker('Sun Light Color', {initialValue: this.sun.diffuse.toHexString()}, (value) => {
             this.sun.diffuse = BABYLON.Color3.FromHexString(value);
         });
@@ -162,7 +162,7 @@ class App {
             });
 
             navigation3D.ShelfMoved.on(() => {
-                const shelfCenter = this.shelf.getBoundingBox().center.add(this.shelf.getPosition());
+                const shelfCenter = this.shelf.getBoundingBox().centerWorld;
                 shelfCamera.setDesiredTarget(shelfCenter);
             });
 

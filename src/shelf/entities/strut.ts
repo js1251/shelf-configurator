@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../../3d/modelloader";
 import { ProductEntity } from "../../entity_engine/product_entity";
+import { ShelfMaterial } from "../materials";
 
 export class Strut extends ProductEntity {
     private height_m: number;
@@ -89,6 +90,10 @@ export class Strut extends ProductEntity {
     get shopUrl(): string {
         return "https://www.google.com";
     };
+
+    setMaterial(material: BABYLON.Material) {
+        this.strut.getChildMeshes()[0].material = material;
+    }
 
     protected constructMeshes(): BABYLON.AbstractMesh {
         this.strut = this.modelloader.createInstance("models/strut.glb");

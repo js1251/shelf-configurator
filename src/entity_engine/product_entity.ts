@@ -1,3 +1,4 @@
+import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { Entity } from "./entity";
 
@@ -15,4 +16,6 @@ export abstract class ProductEntity extends Entity {
     abstract get imageUrls(): string[];
 
     abstract get shopUrl(): string;
+
+    abstract setMaterial(material: BABYLON.Material);
 }

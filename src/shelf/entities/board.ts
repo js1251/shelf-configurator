@@ -4,6 +4,7 @@ import { Strut } from "./strut";
 import { Decor } from "../decor";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
+import { ShelfMaterial } from "../materials";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -141,6 +142,12 @@ export class Board extends ProductEntity {
     get shopUrl(): string {
         return "https://www.google.com";
     };
+
+    setMaterial(material: BABYLON.Material) {
+        this.start.getChildMeshes().forEach(child => {
+            child.material = material;
+        });
+    }
 
     protected constructMeshes(): BABYLON.AbstractMesh {
         const start = this.modelloader.createInstance("models/shelf_end.glb");

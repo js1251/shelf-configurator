@@ -4,6 +4,7 @@ require('./extend_panel.css');
 export class ExtendPanel extends CustomElement {
     private root: HTMLElement;
     private topBar: HTMLElement;
+    private body: HTMLElement;
 
     constructor(startsExtended: boolean = false) {
         super();
@@ -13,8 +14,12 @@ export class ExtendPanel extends CustomElement {
         this.setVisiblity(startsExtended);
 
         this.topBar = document.createElement("div");
-        this.topBar.id = "topBar";
+        this.topBar.id = "extendTopBar";
         this.root.appendChild(this.topBar);
+
+        this.body = document.createElement('div');
+        this.body.id = 'extendBody';
+        this.root.appendChild(this.body);
     }
 
     appendToTopBar(child: HTMLElement) {
@@ -22,7 +27,7 @@ export class ExtendPanel extends CustomElement {
     }
 
     appendToBody(child: HTMLElement) {
-        this.root.appendChild(child);
+        this.body.appendChild(child);
     }
 
     get rootElement() {
