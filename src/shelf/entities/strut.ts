@@ -95,6 +95,10 @@ export class Strut extends ProductEntity {
         this.strut.getChildMeshes()[0].material = material;
     }
 
+    getMaterial(): BABYLON.Material {
+        return this.strut.getChildMeshes()[0].material;
+    }
+
     protected constructMeshes(): BABYLON.AbstractMesh {
         this.strut = this.modelloader.createInstance("models/strut.glb");
         this.strut.getChildMeshes()[0].scaling.y = 2;

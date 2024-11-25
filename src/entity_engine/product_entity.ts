@@ -18,4 +18,6 @@ export abstract class ProductEntity extends Entity {
     abstract get shopUrl(): string;
 
     abstract setMaterial(material: BABYLON.Material);
+
+    abstract getMaterial(): BABYLON.Material;
 }

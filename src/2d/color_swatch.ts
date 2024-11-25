@@ -16,6 +16,7 @@ export class ColorSwatch extends CustomElement {
         const radio = document.createElement('input');
         radio.id = `swatch_radio_${ColorSwatch.index++}`;
         radio.type = 'radio';
+        radio.value = radio.id;
         radio.name = name;
         radio.checked = startsChecked;
         radio.addEventListener('click', onclick);

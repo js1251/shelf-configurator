@@ -4,7 +4,6 @@ import { Strut } from "./strut";
 import { Decor } from "../decor";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
-import { ShelfMaterial } from "../materials";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -147,6 +146,10 @@ export class Board extends ProductEntity {
         this.start.getChildMeshes().forEach(child => {
             child.material = material;
         });
+    }
+
+    getMaterial(): BABYLON.Material {
+        return this.start.getChildMeshes()[0].material;
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {
