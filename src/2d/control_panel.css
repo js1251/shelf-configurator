@@ -1,3 +1,37 @@
+#summaryContainer {
+    position: relative;
+    height: 50px;
+    display: flex;
+    padding: 20px;
+    justify-content: right;
+    align-items: center;
+    box-shadow: 0 4px 4px 0px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+
+    padding-left: 40px;
+
+    #orderButton {
+        color: var(--text-l-0);
+        background-color: var(--primary-l-4);
+        font-family: 'Bodoni Moda SC', serif;
+        font-weight: 700;
+        font-optical-sizing: 30;
+        font-size: 48;
+        letter-spacing: 7.68px;
+        border-radius: 5px;
+
+        padding: 15px 20px 15px 20px;
+
+        margin-left: auto;
+    }
+}
+
+#extendContainer {
+    position: relative;
+    display: flex;
+    height: calc(100% - 50px);
+}
+
 #sectionButtonContainer {
     display: flex;
     flex-direction: column;

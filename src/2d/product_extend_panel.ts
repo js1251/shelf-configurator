@@ -1,5 +1,4 @@
 import { ExtendPanel } from "./extend_panel";
-import * as ICON from "./icons";
 import { ImageCarousel } from "./image_carousel";
 import { PriceDisplay } from "./priceDisplay";
 import { ProductEntity } from "../entity_engine/product_entity";
@@ -7,15 +6,9 @@ require('./product_extend_panel.css');
 
 export class ProductExtendPanel extends ExtendPanel {
     constructor(product: ProductEntity) {
-        super();
-
-        const closeButton = document.createElement("button");
-        closeButton.className = "button button-rounded";
-        closeButton.innerHTML = ICON.close;
-        closeButton.addEventListener('click', () => {
+        super({topBarName: product.name, onBackClick: () => {
             this.closeAndRemove();
-        });
-        this.appendToTopBar(closeButton);
+        }});
 
         const images = new ImageCarousel(product.imageUrls);
         this.appendToBody(images.rootElement);
@@ -23,10 +16,6 @@ export class ProductExtendPanel extends ExtendPanel {
         const contentContainer = document.createElement("div");
         contentContainer.id = "contentContainer";
         this.appendToBody(contentContainer);
-
-        const title = document.createElement("h2");
-        title.innerText = product.name;
-        contentContainer.appendChild(title);
 
         const description = document.createElement("p");
         description.style.opacity = "0.7";

@@ -6,24 +6,35 @@ export class ExtendPanel extends CustomElement {
     private topBar: HTMLElement;
     private body: HTMLElement;
 
-    constructor(startsExtended: boolean = false) {
+    constructor(options?: {startsExtended?: boolean, topBarName?: string, onBackClick?: () => void}) {
         super();
 
         this.root = document.createElement("div");
         this.root.id = "extendPanel";
-        this.setVisiblity(startsExtended);
+        this.setVisiblity(options?.startsExtended ?? false);
 
-        this.topBar = document.createElement("div");
-        this.topBar.id = "extendTopBar";
-        this.root.appendChild(this.topBar);
+        if (options?.topBarName) {
+            this.topBar = document.createElement("div");
+            this.topBar.id = "extendTopBar";
+            this.root.appendChild(this.topBar);
+
+            if (options.onBackClick) {
+                const backButton = document.createElement("button");
+                backButton.id = "backButton";
+                backButton.innerText = '⟵';
+                backButton.addEventListener('click', options.onBackClick);
+                this.topBar.appendChild(backButton);
+            }
+
+            const title = document.createElement("h2");
+            title.id = "extendTitle";
+            title.innerText = options.topBarName;
+            this.topBar.appendChild(title);
+        }
 
         this.body = document.createElement('div');
         this.body.id = 'extendBody';
         this.root.appendChild(this.body);
-    }
-
-    appendToTopBar(child: HTMLElement) {
-        this.topBar.appendChild(child);
     }
 
     appendToBody(child: HTMLElement) {

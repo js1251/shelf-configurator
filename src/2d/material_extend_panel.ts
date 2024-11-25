@@ -3,7 +3,6 @@ import { METAL_MATERIALS, ShelfMaterial, WOOD_MATERIALS } from "../shelf/materia
 import { Shelf } from "../shelf/shelf";
 import { ColorSwatch } from "./color_swatch";
 import { ExtendPanel } from "./extend_panel";
-import * as ICON from "./icons";
 
 require('./material_extend_panel.css');
 
@@ -11,25 +10,19 @@ export class MaterialExtendPanel extends ExtendPanel {
     private shelf: Shelf;
 
     constructor(shelf: Shelf) {
-        super();
+        super({topBarName: 'Material', onBackClick: () => {
+            this.closeAndRemove();
+        }});
 
         this.shelf = shelf;
 
-        const closeButton = document.createElement("button");
-        closeButton.className = "button button-rounded";
-        closeButton.innerHTML = ICON.close;
-        closeButton.addEventListener('click', () => {
-            this.closeAndRemove();
-        });
-        this.appendToTopBar(closeButton);
-
-        this.createMaterialSelectionSection('Wood Selection', WOOD_MATERIALS, this.shelf.getBoards()[0].getMaterial(), (shelfMaterial) => {
+        this.createMaterialSelectionSection('Holzart Böden', WOOD_MATERIALS, this.shelf.getBoards()[0].getMaterial(), (shelfMaterial) => {
             this.shelf.getBoards().forEach(board => {
                 board.setMaterial(shelfMaterial.material);
             });
         });
 
-        this.createMaterialSelectionSection('Metal Selection', METAL_MATERIALS, this.shelf.getStruts()[0].getMaterial(), (shelfMaterial) => {
+        this.createMaterialSelectionSection('Metall Streben', METAL_MATERIALS, this.shelf.getStruts()[0].getMaterial(), (shelfMaterial) => {
             this.shelf.getStruts().forEach(strut => {
                 strut.setMaterial(shelfMaterial.material);
             });
@@ -49,10 +42,6 @@ export class MaterialExtendPanel extends ExtendPanel {
         const materialSelectionContainer = document.createElement('div');
         materialSelectionContainer.id = 'materialSelectionContainer';
         this.appendToBody(materialSelectionContainer);
-        
-        const label = document.createElement('h1');
-        label.innerHTML = name;
-        materialSelectionContainer.appendChild(label);
 
         const previewContainer = document.createElement('div');
         previewContainer.id = 'materialPreviewContainer';
@@ -67,7 +56,11 @@ export class MaterialExtendPanel extends ExtendPanel {
         materialInfoContainer.id = 'materialInfoContainer';
         previewContainer.appendChild(materialInfoContainer);
 
-        const materialName = document.createElement('h3');
+        const materialType = document.createElement('h3');
+        materialType.innerHTML = name;
+        materialInfoContainer.appendChild(materialType);
+
+        const materialName = document.createElement('p');
         materialName.innerHTML = materials[initialMaterialInidex].name;
         materialInfoContainer.appendChild(materialName);
 

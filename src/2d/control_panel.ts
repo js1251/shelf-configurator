@@ -11,6 +11,7 @@ require("./control_panel.css");
 export class ControlPanel {
     private parentGrid: HTMLDivElement;
     private container: HTMLElement;
+    private extendContainer: HTMLElement;
     private currentExtendPanel: ExtendPanel;
 
     private shelf: Shelf;
@@ -47,7 +48,7 @@ export class ControlPanel {
     }
 
     private openExtendPanel(extendPanel: ExtendPanel) {
-        this.container.appendChild(extendPanel.rootElement);
+        this.extendContainer.appendChild(extendPanel.rootElement);
 
         // delay to show animation
         setTimeout(() => {
@@ -56,12 +57,13 @@ export class ControlPanel {
     }
 
     private createControlPanel() {
-        const controlPanel = new ExtendPanel(true);
-        this.container.appendChild(controlPanel.rootElement);
+        const summaryContainer = document.createElement("div");
+        summaryContainer.id = "summaryContainer";
+        this.container.appendChild(summaryContainer);
 
         const totalPrice = new PriceDisplay();
         totalPrice.setAmount(5587.55);
-        controlPanel.appendToTopBar(totalPrice.rootElement);
+        summaryContainer.appendChild(totalPrice.rootElement);
 
         const orderButton = document.createElement("button");
         orderButton.className = "button";
@@ -70,7 +72,7 @@ export class ControlPanel {
         orderButton.addEventListener('click', () => {
             console.log("order button clicked");
         });
-        controlPanel.appendToTopBar(orderButton);
+        summaryContainer.appendChild(orderButton);
 
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "sectionButtonContainer";
@@ -86,7 +88,13 @@ export class ControlPanel {
         buttonContainer.appendChild(this.createSectionButton("Inspiration", () => {
             
         }));
+
+        this.extendContainer = document.createElement("div");
+        this.extendContainer.id = "extendContainer";
+        this.container.appendChild(this.extendContainer);
         
+        const controlPanel = new ExtendPanel({startsExtended: true});
+        this.extendContainer.appendChild(controlPanel.rootElement);        
         controlPanel.appendToBody(buttonContainer);
     }
 

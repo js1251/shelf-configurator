@@ -1,7 +1,6 @@
 import { Environment } from "../3d/environment";
 import { Shelf } from "../shelf/shelf";
 import { ExtendPanel } from "./extend_panel";
-import * as ICON from "./icons";
 require('./roomsize_extend_panel.css');
 
 export class RoomsizeExtendPanel extends ExtendPanel {
@@ -9,23 +8,12 @@ export class RoomsizeExtendPanel extends ExtendPanel {
     private environment: Environment;
 
     constructor(shelf: Shelf, environment: Environment) {
-        super();
+        super({topBarName: 'Raumgröße', onBackClick: () => {
+            this.closeAndRemove();
+        }});
 
         this.shelf = shelf;
         this.environment = environment;
-
-        const title = document.createElement("h2");
-        title.innerText = "Raumgröße";
-        title.style.marginRight = "auto";
-        this.appendToTopBar(title);
-
-        const closeButton = document.createElement("button");
-        closeButton.className = "button button-rounded";
-        closeButton.innerHTML = ICON.close;
-        closeButton.addEventListener('click', () => {
-            this.closeAndRemove();
-        });
-        this.appendToTopBar(closeButton);
 
         this.createRoomSizeInput("Breite", 350, 200, 500, (value) => {
             this.environment.setRoomWidth(value / 100);
