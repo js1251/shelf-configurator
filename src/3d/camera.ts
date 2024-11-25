@@ -15,9 +15,10 @@ export class ShelfCamera {
         camera.attachControl(canvas, true);
         
         camera.wheelPrecision = 50;
-        camera.lowerRadiusLimit = 0.5;
-        camera.upperRadiusLimit = 4;
+        camera.lowerRadiusLimit = 0.75;
+        camera.upperRadiusLimit = 6;
         camera.panningSensibility = 0;
+        camera.radius = 4;
 
         // limit up and down rotation to look straight ahead and only allow 10 degrees up or down
         camera.lowerBetaLimit = 60 * Math.PI / 180;
@@ -26,10 +27,10 @@ export class ShelfCamera {
         // adjust near and far clip planes
         camera.minZ = 0.001;
 
-        // always zoom to mouse position
         camera.attachControl(canvas, true);
-        camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
 
+        // always zoom to mouse position
+        camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
         const mouseWheelInput = new BABYLON.ArcRotateCameraMouseWheelInput();
         mouseWheelInput.wheelPrecision = 50;
         mouseWheelInput.zoomToMouseLocation = true;
@@ -52,7 +53,7 @@ export class ShelfCamera {
             const progress = (camera.radius - camera.lowerRadiusLimit) / (camera.upperRadiusLimit - camera.lowerRadiusLimit);
 
             mouseWheelInput.zoomToMouseLocation = false;
-            camera.setTarget(BABYLON.Vector3.Lerp(camera.target, this.desiredTarget, progress * 0.1));
+            camera.setTarget(BABYLON.Vector3.Lerp(camera.target, this.desiredTarget, progress * 0.2));
         });
 
         this.camera = camera;

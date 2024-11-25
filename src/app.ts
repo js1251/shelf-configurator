@@ -88,7 +88,7 @@ class App {
             this.sun.direction = value;
         });
         this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
-        this.sun.intensity = 1.2;
+        this.sun.intensity = 1.4;
         colorConfig.attachColorPicker('Sun Light Color', {initialValue: this.sun.diffuse.toHexString()}, (value) => {
             this.sun.diffuse = BABYLON.Color3.FromHexString(value);
         });

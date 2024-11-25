@@ -29,8 +29,6 @@ export class ColorSwatch extends CustomElement {
         const image = document.createElement('img');
         image.src = shelfMaterial.previewImageUrl;
         label.appendChild(image);
-
-        // TODO: tint image with color
     }
 
     get rootElement(): HTMLElement {

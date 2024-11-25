@@ -42,9 +42,9 @@ export class Environment {
             this.scene.onAfterRenderObservable.add(() => {this.defaultMaterial.freeze()});
         });
 
-        this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(0);
+        this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(0.45);
         this.scene.metadata.debugOverlay.attachSlider('Wall Glow intensity', {
-            initialValue: 0,
+            initialValue: 0.45,
             min: 0,
             max: 1,
             step: 0.01,
@@ -187,7 +187,7 @@ export class Environment {
         }, (value) => {
         this.light.intensity = value;
     });
-        this.light.position = new BABYLON.Vector3(0, 2.2, 0);
+        this.light.position = new BABYLON.Vector3(0, 2.2, -0.9);
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
         shadowGenerator.setDarkness(0.5);
