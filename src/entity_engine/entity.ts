@@ -141,10 +141,12 @@ export abstract class Entity {
 
         // check if even changed
         const boundingInfo = this.root.getBoundingInfo();
-        if (BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.minimum, hierarchyBounds.min) <= 0.001
-            && BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.maximum, hierarchyBounds.max) <= 0.001) {
+        if (BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.minimum, hierarchyBounds.min) <= 0.00001
+            && BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.maximum, hierarchyBounds.max) <= 0.00001) {
             return;
         }
+
+        console.log("Updating bounding box");
 
         var newBoundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
         this.root.setBoundingInfo(newBoundingInfo);
