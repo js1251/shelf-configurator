@@ -14,6 +14,7 @@ import { Board } from "./shelf/entities/board";
 import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { ColorConfig } from "./color_config";
+import { StyleGuide } from "./2d/style_guide";
 
 class App {
     private scene: BABYLON.Scene;
@@ -209,6 +210,8 @@ class App {
         engine.runRenderLoop(() => {
             this.scene.render();
         });
+
+        new StyleGuide();
     }
 
     // TODO: have a sun only during day and a ceiling light during night

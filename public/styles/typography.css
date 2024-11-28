@@ -1,0 +1,55 @@
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bodoni Moda SC', serif;
+    font-optical-sizing: 30;
+    letter-spacing: 7.68px;
+    color: var(--text-l-2);
+}
+
+h1 {
+    font-weight: 700;
+    font-size: 48px;
+}
+
+h2 {
+    font-weight: 600;
+    font-size: 40px;
+}
+
+h3 {
+    font-weight: 600;
+    font-size: 32px;
+}
+
+h4 {
+    font-weight: 500;
+    font-size: 26px;
+}
+
+h5 {
+    font-weight: 500;
+    font-size: 22px;
+}
+
+h6 {
+    font-weight: 400;
+    font-size: 18px;
+}
+
+p, a, b, u, i, s, small, strong, em, span {
+    font-family: 'Inter', sans-serif;
+    font-size: 1em;
+    color: var(--text-l-2);
+}
+
+s {
+    font-size: 0.9em;
+}
+
+small {
+    font-size: 0.7em;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-l-3);
+}
