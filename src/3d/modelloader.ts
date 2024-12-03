@@ -8,7 +8,6 @@ export class ModelLoader {
     private spawnCount: number = 0;
 
     private root: BABYLON.Node;
-    private GUIManager: BABYLONGUI.GUI3DManager;
 
     constructor(scene: BABYLON.Scene, shadowGenerator: BABYLON.ShadowGenerator) {
         this.scene = scene;
@@ -16,8 +15,6 @@ export class ModelLoader {
         this.preloadedMeshes = new Map<string, BABYLON.Mesh>();
 
         this.root = new BABYLON.Node("model_root", scene);
-        this.GUIManager = new BABYLONGUI.GUI3DManager(scene);
-        this.GUIManager.utilityLayer.utilityLayerScene.removeLight(this.GUIManager.utilityLayer.utilityLayerScene.lights[0]);
     }
 
     public preloadModel(modelUrl: string, material: BABYLON.Material = undefined): Promise<void> {
@@ -29,11 +26,21 @@ export class ModelLoader {
                 this.scene,
                 (meshes) => {
                     if (meshes.length > 0) {
+                        // override materials and remove old materials
+                        meshes.forEach((mesh) => {
+                            if (mesh.material) {
+                                mesh.material.dispose();
+                            }
+                        });
+
                         const root = meshes[0];
                         const mesh = meshes[1];
 
                         if (root instanceof BABYLON.Mesh && mesh instanceof BABYLON.Mesh) {
                             root.setEnabled(false);
+                            this.scene.addMesh(root);
+                            root.scaling.setAll(1);
+                            root.rotation.setAll(0);
 
                             if (material) {
                                 mesh.material = material;
@@ -87,12 +94,5 @@ export class ModelLoader {
     private emitEvent(eventName: string, detail: object): void {
         const event = new CustomEvent(eventName, { detail });
         document.dispatchEvent(event);
-    }
-
-    public createButton(onClick: () => void): BABYLONGUI.Button3D {
-        var button = new BABYLONGUI.Button3D();
-        this.GUIManager.addControl(button);
-
-        return button;
     }
 }

@@ -26,6 +26,9 @@ export class StyleGuide {
         
         this.createSection('Buttons');
         this.createButtons();
+        
+        this.createSection('Scrollbars');
+        this.createScrollbars();
 
         // toggle visibility
         window.addEventListener("keydown", (ev) => {
@@ -373,4 +376,16 @@ export class StyleGuide {
         b6d.innerHTML = ICON.night;
         disabledContainer.appendChild(b6d);
     }
+
+    private createScrollbars() {
+        const container = document.createElement('div');
+        container.id = 'style-guide-scrollbar-container';
+        this.main.appendChild(container);
+
+        const scrollbar = document.createElement('div');
+        scrollbar.id = 'style-guide-scrollbar';
+        container.appendChild(scrollbar);
+    }
+
+
 }

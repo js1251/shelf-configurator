@@ -20,6 +20,7 @@ export class Measurements {
     private heightLineBackRight: BABYLON.LinesMesh;
 
     private lineId: number = 0;
+    private textureMaterialId: number = 0;
     private boardMap: Map<Board, BABYLON.LinesMesh[]> = new Map();
     private precision: number = 0;
 
@@ -179,6 +180,7 @@ export class Measurements {
         line.edgesColor = BABYLON.Color4.FromColor3(color);
         line.renderingGroupId = 1;
         line.isPickable = false;
+        line.material.dispose();
 
         line.setParent(this.root);
 
@@ -196,7 +198,7 @@ export class Measurements {
         billboard.isPickable = false;
 
         if (!Measurements.BILLBOARD_MATERIALS[colorHex]) {
-            const billBoardMaterial = new BABYLON.StandardMaterial(`billBoardMaterial_${colorHex}`, this.scene);
+            const billBoardMaterial = new BABYLON.StandardMaterial(`measurements_${colorHex}`, this.scene);
             billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
             billBoardMaterial.specularColor = BABYLON.Color3.Black();
             billBoardMaterial.emissiveColor = color;
@@ -206,11 +208,13 @@ export class Measurements {
         }
         billboard.material = Measurements.BILLBOARD_MATERIALS[colorHex];
 
-        const dynamicTexture = new BABYLON.DynamicTexture("dynamicTexture", { width: textureWidth, height: textureHeight }, this.scene, true);
-        const textMaterial = new BABYLON.StandardMaterial("textMaterial", this.scene);
+        const materialName = `measurements_text${this.textureMaterialId++}`;
+        const dynamicTexture = new BABYLON.DynamicTexture(materialName, { width: textureWidth, height: textureHeight }, this.scene, true);
+        const textMaterial = new BABYLON.StandardMaterial(materialName, this.scene);
         textMaterial.diffuseTexture = dynamicTexture;
         textMaterial.diffuseTexture.hasAlpha = true;
         textMaterial.emissiveColor = BABYLON.Color3.White();
+        textMaterial.freeze();
 
         const plane = BABYLON.MeshBuilder.CreatePlane("floatingText", { width: 1, height: 0.5 }, this.scene);
         plane.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -266,6 +270,7 @@ export class Measurements {
 
         const endLine = BABYLON.MeshBuilder.CreateLines(`line_${this.lineId++}`, endOptions, this.scene);
         endLine.color = lineColor;
+        endLine.material.dispose();
         endLine.setParent(line);
         endLine.enableEdgesRendering();
         endLine.edgesWidth = Measurements.LINE_THICKNESS;
@@ -280,6 +285,7 @@ export class Measurements {
 
         const startLine = BABYLON.MeshBuilder.CreateLines(`line_${this.lineId++}`, endOptions, this.scene);
         startLine.color = lineColor;
+        startLine.material.dispose();
         startLine.setParent(line);
         startLine.enableEdgesRendering();
         startLine.edgesWidth = Measurements.LINE_THICKNESS;
@@ -418,7 +424,22 @@ export class Measurements {
             return;
         }
 
-        lines.forEach(line => line.dispose());
+        const removeNode = (node: BABYLON.AbstractMesh) => {
+            if (node.material) {
+                node.material.getActiveTextures().forEach(texture => texture.dispose());
+                node.material.dispose();
+            }
+
+            node.getChildMeshes().forEach(mesh => {
+                removeNode(mesh);
+            });
+
+            node.dispose();
+        };
+
+        lines.forEach(line => {
+            removeNode(line);
+        });
     }
 
     setVisibility(isVisible: boolean) {

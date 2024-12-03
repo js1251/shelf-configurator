@@ -66,8 +66,7 @@ export class ControlPanel {
         summaryContainer.appendChild(totalPrice.rootElement);
 
         const orderButton = document.createElement("button");
-        orderButton.className = "button";
-        orderButton.id = "orderButton";
+        orderButton.className = "button button-primary";
         orderButton.innerHTML = "Bestellen";
         orderButton.addEventListener('click', () => {
             console.log("order button clicked");
@@ -101,15 +100,15 @@ export class ControlPanel {
     private createSectionButton(text: string, onClick: () => void) : HTMLButtonElement {
         const button = document.createElement("button");
         button.id = "sectionButton";
-        button.className = "button";
+        button.className = "button button-inverted";
         button.addEventListener('click', onClick);
         
-        const name = document.createElement("h2");
+        const name = document.createElement("h4");
         name.id = "sectionName";
         name.innerText = text;
         button.appendChild(name);
 
-        const icon = document.createElement("h2");
+        const icon = document.createElement("h4");
         icon.innerHTML = "⟶";
         button.appendChild(icon);
 

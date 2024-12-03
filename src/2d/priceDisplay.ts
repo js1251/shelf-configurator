@@ -10,16 +10,16 @@ export class PriceDisplay {
         container.id = "priceDisplay";
         this.root = container;
 
-        const currencySymbol = document.createElement("h3");
+        const currencySymbol = document.createElement("h5");
         currencySymbol.innerHTML = "€";
         currencySymbol.id = "currencySymbol";
         container.appendChild(currencySymbol);
 
-        this.intAmount = document.createElement("h1");
+        this.intAmount = document.createElement("h2");
         this.intAmount.id = "intAmount";
         container.appendChild(this.intAmount);
 
-        this.decimelAmount = document.createElement("h3");
+        this.decimelAmount = document.createElement("h5");
         this.decimelAmount.id = "decimelAmount";
         container.appendChild(this.decimelAmount);
 

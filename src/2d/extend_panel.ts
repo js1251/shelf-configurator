@@ -19,17 +19,21 @@ export class ExtendPanel extends CustomElement {
             this.root.appendChild(this.topBar);
 
             if (options.onBackClick) {
-                const backButton = document.createElement("button");
-                backButton.id = "backButton";
-                backButton.innerText = '⟵';
-                backButton.addEventListener('click', options.onBackClick);
-                this.topBar.appendChild(backButton);
-            }
+                const button = document.createElement("button");
+                button.id = "backButton";
+                button.className = "button button-inverted";
+                button.addEventListener('click', options.onBackClick);
+                this.topBar.appendChild(button);
 
-            const title = document.createElement("h2");
-            title.id = "extendTitle";
-            title.innerText = options.topBarName;
-            this.topBar.appendChild(title);
+                const icon = document.createElement("h4");
+                icon.innerHTML = "⟵";
+                button.appendChild(icon);
+
+                const name = document.createElement("h4");
+                name.id = "backName";
+                name.innerText = options.topBarName;
+                button.appendChild(name);
+            }
         }
 
         this.body = document.createElement('div');

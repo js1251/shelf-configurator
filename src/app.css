@@ -1,0 +1,30 @@
+#mainGrid {
+    display: grid;
+    grid-template-columns: auto 500px;
+    width: 100%;
+    height: 100%;
+
+    #sceneWrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+
+        #sceneCanvas {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            border-radius: 0%;
+        }
+
+        #scene-explorer-host {
+            z-index: 3;
+        }
+
+        #inspector-host {
+            z-index: 3;
+        }
+    }
+}

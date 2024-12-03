@@ -3,11 +3,16 @@ import * as ICON from "./icons";
 import { Board } from "../shelf/entities/board";
 import { Shelf } from "../shelf/shelf";
 
+require('./navigation_2d.css');
+
 export class Navigation2D {
     private grid: HTMLDivElement;
     private shelf: Shelf;
     private selectedBoard: Board;
     private pinnedBoards: Board[] = []; // What if a board is removed?
+
+    private bottomBar: HTMLDivElement;
+    private sideBar: HTMLDivElement;
 
     private readonly onRulerButtonPressed = new LiteEvent<boolean>();
     public get RulerButtonPressed() {
@@ -51,14 +56,14 @@ export class Navigation2D {
         
         if (!board) {
             // hide the bottom bar
-            document.getElementById("bottomBar").classList.remove("visible");
-            document.getElementById("bottomBar").classList.add("hidden");
+            this.bottomBar.classList.remove("visible");
+            this.bottomBar.classList.add("hidden");
             return;
         }
 
         // show the bottom bar
-        document.getElementById("bottomBar").classList.add("visible");
-        document.getElementById("bottomBar").classList.remove("hidden");
+        this.bottomBar.classList.add("visible");
+        this.bottomBar.classList.remove("hidden");
 
         if (this.pinnedBoards.includes(board)) {
             document.getElementById("pinButton").classList.add("active");
@@ -69,15 +74,15 @@ export class Navigation2D {
 
     private createBottomBar() {
         // Create the 2D overlay div
-        const bottomBar = document.createElement("div");
-        bottomBar.id = "bottomBar";
-        bottomBar.classList.add("hidden");
-        this.grid.appendChild(bottomBar);
+        this.bottomBar = document.createElement("div");
+        this.bottomBar.id = "bottomBar";
+        this.bottomBar.classList.add("hidden");
+        this.grid.appendChild(this.bottomBar);
 
         // Add some buttons to the overlay
         const buttonDelete = document.createElement("button");
         buttonDelete.innerHTML = ICON.trashbin;
-        buttonDelete.className = "button button-rounded";
+        buttonDelete.className = "button button-primary button-rounded";
         buttonDelete.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -86,11 +91,11 @@ export class Navigation2D {
             this.shelf.removeBoard(this.selectedBoard);
             this.setSelectedBoard(null);
         });
-        bottomBar.appendChild(buttonDelete);
+        this.bottomBar.appendChild(buttonDelete);
 
         const buttonDuplicate = document.createElement("button");
         buttonDuplicate.innerHTML = ICON.duplicate;
-        buttonDuplicate.className = "button button-rounded";
+        buttonDuplicate.className = "button button-primary button-rounded";
         buttonDuplicate.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -105,11 +110,11 @@ export class Navigation2D {
 
             this.shelf.addBoard(newHeight, this.selectedBoard.getStartStrut().getIndex(), this.selectedBoard.getEndStrut().getIndex());
         });
-        bottomBar.appendChild(buttonDuplicate);
+        this.bottomBar.appendChild(buttonDuplicate);
 
         const buttonPin = document.createElement("button");
         buttonPin.innerHTML = ICON.pin;
-        buttonPin.className = "button button-rounded";
+        buttonPin.className = "button button-primary button-rounded";
         buttonPin.id = "pinButton";
         buttonPin.addEventListener('click', () => {
             if (!this.selectedBoard) {
@@ -134,11 +139,11 @@ export class Navigation2D {
                 }
             }
         });
-        bottomBar.appendChild(buttonPin);
+        this.bottomBar.appendChild(buttonPin);
 
         const buttonShorten = document.createElement("button");
         buttonShorten.innerHTML = ICON.shorten;
-        buttonShorten.className = "button button-rounded";
+        buttonShorten.className = "button button-primary button-rounded";
         buttonShorten.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -156,11 +161,11 @@ export class Navigation2D {
         
             this.onBoardShortened.trigger(this.selectedBoard);
         });
-        bottomBar.appendChild(buttonShorten);
+        this.bottomBar.appendChild(buttonShorten);
 
         const buttonWiden = document.createElement("button");
         buttonWiden.innerHTML = ICON.widen;
-        buttonWiden.className = "button button-rounded";
+        buttonWiden.className = "button button-primary button-rounded";
         buttonWiden.addEventListener('click', () => {
             if (!this.selectedBoard) {
                 return;
@@ -185,43 +190,43 @@ export class Navigation2D {
         
             this.onBoardWidened.trigger(this.selectedBoard);
         });
-        bottomBar.appendChild(buttonWiden);
+        this.bottomBar.appendChild(buttonWiden);
     }
 
     private createSideBar() {
         // Create the 2D overlay div
-        const sideBar = document.createElement("div");
-        sideBar.id = "sideBar";
-        sideBar.style.display = "flex";
-        this.grid.appendChild(sideBar);
+        this.sideBar = document.createElement("div");
+        this.sideBar.id = "sideBar";
+        this.sideBar.style.display = "flex";
+        this.grid.appendChild(this.sideBar);
         
         const buttonDayNight = document.createElement("button");
         buttonDayNight.innerHTML = ICON.night;
-        buttonDayNight.className = "button button-rounded button-rounded-secondary";
+        buttonDayNight.className = "button button-inverted button-rounded";
         buttonDayNight.addEventListener('click', () => {
             buttonDayNight.classList.toggle("active");
             this.onDayNightButtonPressed.trigger(buttonDayNight.classList.contains("active"));
         });
-        sideBar.appendChild(buttonDayNight);
+        this.sideBar.appendChild(buttonDayNight);
 
         const buttonDecor = document.createElement("button");
         buttonDecor.innerHTML = ICON.books;
-        buttonDecor.className = "button button-rounded button-rounded-secondary";
+        buttonDecor.className = "button button-inverted button-rounded";
         buttonDecor.classList.add("active");
         buttonDecor.addEventListener('click', () => {
             buttonDecor.classList.toggle("active");
             this.onDecorButtonPressed.trigger(buttonDecor.classList.contains("active"));
         });
-        sideBar.appendChild(buttonDecor);
+        this.sideBar.appendChild(buttonDecor);
 
         const buttonRuler = document.createElement("button");
         buttonRuler.innerHTML = ICON.ruler;
-        buttonRuler.className = "button button-rounded button-rounded-secondary";
+        buttonRuler.className = "button button-inverted button-rounded";
         buttonRuler.classList.add("active");
         buttonRuler.addEventListener('click', () => {
             buttonRuler.classList.toggle("active");
             this.onRulerButtonPressed.trigger(buttonRuler.classList.contains("active"));
         });
-        sideBar.appendChild(buttonRuler);
+        this.sideBar.appendChild(buttonRuler);
     }
 }

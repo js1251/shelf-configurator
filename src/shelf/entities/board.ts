@@ -4,6 +4,7 @@ import { Strut } from "./strut";
 import { Decor } from "../decor";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
+import { WOOD_MATERIALS } from "../materials";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -35,6 +36,7 @@ export class Board extends ProductEntity {
 
         this.setHeight(height_m);
         this.setSpanStruts(startStrut, endStrut);
+        this.setMaterial(WOOD_MATERIALS[0].material);
     }
 
     setHeight(height_m: number) {
@@ -153,16 +155,16 @@ export class Board extends ProductEntity {
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {
-        const start = this.modelloader.createInstance("models/shelf_end.glb");
+        const start = this.modelloader.createInstance("models/shelf_start.glb");
         const startClamp = this.modelloader.createInstance("models/clamp.glb");
-        startClamp.setParent(start);
-
         start.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
+        startClamp.setParent(start);
 
         this.start = start;
 
         const end = this.modelloader.createInstance("models/shelf_end.glb");
         const endClamp = this.modelloader.createInstance("models/clamp.glb");
+        end.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
         endClamp.setParent(end);
 
         end.setParent(start);
@@ -196,6 +198,8 @@ export class Board extends ProductEntity {
         while (this.middles.length < requiredMiddles) {
             const middle = this.modelloader.createInstance("models/shelf_middle.glb", BABYLON.Vector3.Zero());
             const middleClamp = this.modelloader.createInstance("models/clamp.glb", BABYLON.Vector3.Zero());
+            middle.rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL);
+            
             middleClamp.setParent(middle);
 
             middle.setParent(this.start);

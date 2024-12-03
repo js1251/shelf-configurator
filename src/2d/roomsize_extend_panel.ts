@@ -36,7 +36,7 @@ export class RoomsizeExtendPanel extends ExtendPanel {
         topDiv.id = "roomSizeInputLabelContainer";
         container.appendChild(topDiv);
 
-        const label = document.createElement("h4");
+        const label = document.createElement("h5");
         label.innerText = name;
         topDiv.appendChild(label);
 

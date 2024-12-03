@@ -334,7 +334,7 @@ export class Navigation3D {
         billboard.renderingGroupId = 1;
         billboard.position = billBoardPos;
 
-        const billBoardMaterial = new BABYLON.StandardMaterial("dragHandleMaterial", this.scene);
+        const billBoardMaterial = new BABYLON.StandardMaterial("nav3D_dragHandleMaterial", this.scene);
         billBoardMaterial.diffuseColor = BABYLON.Color3.FromHexString("#090D2A");
         billBoardMaterial.specularColor = BABYLON.Color3.Black();
         billBoardMaterial.emissiveColor = BABYLON.Color3.Black();
@@ -349,6 +349,8 @@ export class Navigation3D {
         var img = new BABYLON_GUI.Image("image", url);
 
         var advancedTexture = BABYLON_GUI.AdvancedDynamicTexture.CreateForMesh(plane, 256, 256);
+        plane.material.name = "nav3D_dragHandleText";
+        plane.material.freeze();
         advancedTexture.addControl(img);
         plane.renderingGroupId = 2;
         plane.isPickable = false;

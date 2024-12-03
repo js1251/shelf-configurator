@@ -146,8 +146,6 @@ export abstract class Entity {
             return;
         }
 
-        console.log("Updating bounding box");
-
         var newBoundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
         this.root.setBoundingInfo(newBoundingInfo);
 

@@ -3,12 +3,11 @@
     justify-content: top;
     color: var(--text-l-2);
 
-    #currencySymbol {
-        padding-top: 8px;
-        padding-right: 5px;
+    #currencySymbol, #decimelAmount {
+        padding-top: 4px;
     }
-    
-    #decimelAmount {
-        padding-top: 8px;
+
+    #currencySymbol {
+        padding-right: 5px;
     }
 }

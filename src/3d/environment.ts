@@ -6,7 +6,7 @@ import { LiteEvent } from "../event_engine/LiteEvent";
 export class Environment {
     private scene: BABYLON.Scene;
     private shadowGenerator: BABYLON.ShadowGenerator;
-    private defaultMaterial: BABYLON.StandardMaterial;
+    private wallMaterial: BABYLON.StandardMaterial;
 
     private scaleHandle: BABYLON.Mesh;
 
@@ -33,28 +33,28 @@ export class Environment {
         this.createShadowGenerator();
         this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
 
-        this.defaultMaterial = new BABYLON.StandardMaterial("defaultMaterial", this.scene);
-        this.defaultMaterial.diffuseColor = BABYLON.Color3.FromHexString('#eae2dc');
-        this.scene.metadata.debugOverlay.attachColorPicker('Wall Color', {initialValue: this.defaultMaterial.diffuseColor.toHexString()}, (value) => {
-            this.defaultMaterial.unfreeze();
-            this.defaultMaterial.diffuseColor = BABYLON.Color3.FromHexString(value);
-            this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor;
-            this.scene.onAfterRenderObservable.add(() => {this.defaultMaterial.freeze()});
+        this.wallMaterial = new BABYLON.StandardMaterial("environment_walls", this.scene);
+        this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString('#eae2dc');
+        this.scene.metadata.debugOverlay.attachColorPicker('Wall Color', {initialValue: this.wallMaterial.diffuseColor.toHexString()}, (value) => {
+            this.wallMaterial.unfreeze();
+            this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString(value);
+            this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor;
+            this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
         });
 
-        this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(0.45);
+        this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(0.45);
         this.scene.metadata.debugOverlay.attachSlider('Wall Glow intensity', {
             initialValue: 0.45,
             min: 0,
             max: 1,
             step: 0.01,
         }, (value) => {
-            this.defaultMaterial.unfreeze();
-            this.defaultMaterial.emissiveColor = this.defaultMaterial.diffuseColor.scale(value);
-            this.scene.onAfterRenderObservable.add(() => {this.defaultMaterial.freeze()});
+            this.wallMaterial.unfreeze();
+            this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(value);
+            this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
         });
-        this.defaultMaterial.specularColor = BABYLON.Color3.Black();
-        this.defaultMaterial.freeze();
+        this.wallMaterial.specularColor = BABYLON.Color3.Black();
+        this.wallMaterial.freeze();
 
         this.scaleHandle = BABYLON.MeshBuilder.CreateBox("scaleHandle", { size: 1 }, this.scene);
         this.scaleHandle.isVisible = false;
@@ -202,20 +202,20 @@ export class Environment {
         this.ground.receiveShadows = true;
         this.ground.isPickable = false;
 
-        const material = new BABYLON.StandardMaterial("pbr", this.scene);
+        const material = new BABYLON.StandardMaterial("environment_ground", this.scene);
 
         material.diffuseTexture = new BABYLON.Texture(
-            "textures/WoodFloor051_1K-JPG_Color.jpg",
+            "textures/ground/WoodFloor051_1K-JPG_Color.jpg",
             this.scene
         ) as BABYLON.Texture;
 
         material.bumpTexture = new BABYLON.Texture(
-            "textures/WoodFloor051_1K-JPG_NormalDX.jpg",
+            "textures/ground/WoodFloor051_1K-JPG_NormalDX.jpg",
             this.scene
         ) as BABYLON.Texture;
 
         material.specularTexture = new BABYLON.Texture(
-            "textures/WoodFloor051_1K-JPG_Roughness.jpg",
+            "textures/ground/WoodFloor051_1K-JPG_Roughness.jpg",
             this.scene
         ) as BABYLON.Texture;
 
@@ -228,9 +228,9 @@ export class Environment {
     }
 
     private createCeiling() {
-        this.ceiling = BABYLON.MeshBuilder.CreateGround("ceiling", { width: 1, height: 1 }, this.scene);
-        this.ceiling.material = this.defaultMaterial;
-        this.ceiling.rotation.x = Math.PI
+        this.ceiling = BABYLON.MeshBuilder.CreatePlane("ceiling", { width: 1, height: 1 }, this.scene);
+        this.ceiling.material = this.wallMaterial;
+        this.ceiling.rotation.x = -Math.PI / 2;
         this.ceiling.receiveShadows = true;
         this.ceiling.isPickable = false;
 
@@ -239,36 +239,32 @@ export class Environment {
     }
 
     private createWalls() {
-        this.leftWall = BABYLON.MeshBuilder.CreateGround("leftWall", { width: 1, height: 1 }, this.scene);
-        this.leftWall.material = this.defaultMaterial;
-        this.leftWall.rotation.z = Math.PI / 2;
-        this.leftWall.rotation.y = Math.PI;
+        this.leftWall = BABYLON.MeshBuilder.CreatePlane("leftWall", { width: 1, height: 1 }, this.scene);
+        this.leftWall.material = this.wallMaterial;
+        this.leftWall.rotation.y = -Math.PI / 2;
         this.leftWall.position.x = -0.5;
         this.leftWall.receiveShadows = true;
         this.leftWall.isPickable = false;
         this.leftWall.setParent(this.scaleHandle);
 
-        this.rightWall = BABYLON.MeshBuilder.CreateGround("rightWall", { width: 1, height: 1 }, this.scene);
-        this.rightWall.material = this.defaultMaterial;
-        this.rightWall.rotation.z = Math.PI / 2;
+        this.rightWall = BABYLON.MeshBuilder.CreatePlane("rightWall", { width: 1, height: 1 }, this.scene);
+        this.rightWall.material = this.wallMaterial;
+        this.rightWall.rotation.y = Math.PI / 2;
         this.rightWall.position.x = 0.5;
         this.rightWall.receiveShadows = true;
         this.rightWall.isPickable = false;
         this.rightWall.setParent(this.scaleHandle);
 
-        this.frontWall = BABYLON.MeshBuilder.CreateGround("frontWall", { width: 1, height: 1 }, this.scene);
-        this.frontWall.material = this.defaultMaterial;
-        this.frontWall.rotation.z = Math.PI / 2;
-        this.frontWall.rotation.y = Math.PI / 2;
+        this.frontWall = BABYLON.MeshBuilder.CreatePlane("frontWall", { width: 1, height: 1 }, this.scene);
+        this.frontWall.material = this.wallMaterial;
+        this.frontWall.rotation.y = Math.PI;
         this.frontWall.position.z = -0.5;
         this.frontWall.receiveShadows = true;
         this.frontWall.isPickable = false;
         this.frontWall.setParent(this.scaleHandle);
 
-        this.backWall = BABYLON.MeshBuilder.CreateGround("backWall", { width: 1, height: 1 }, this.scene);
-        this.backWall.material = this.defaultMaterial;
-        this.backWall.rotation.z = Math.PI / 2;
-        this.backWall.rotation.y = -Math.PI / 2;
+        this.backWall = BABYLON.MeshBuilder.CreatePlane("backWall", { width: 1, height: 1 }, this.scene);
+        this.backWall.material = this.wallMaterial;
         this.backWall.position.z = 0.5;
         this.backWall.receiveShadows = true;
         this.backWall.isPickable = false;

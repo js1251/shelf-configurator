@@ -2,6 +2,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 import * as BABYLON from "@babylonjs/core";
+import { TriPlanarMaterial } from "@babylonjs/materials";
 import * as ENVIRONMENT from "./3d/environment";
 import { ModelLoader } from "./3d/modelloader";
 import { Shelf } from "./shelf/shelf";
@@ -15,6 +16,9 @@ import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { ColorConfig } from "./color_config";
 import { StyleGuide } from "./2d/style_guide";
+import { Resources } from "./shelf/materials";
+
+require("./app.css");
 
 class App {
     private scene: BABYLON.Scene;
@@ -57,6 +61,7 @@ class App {
         const camera = shelfCamera.camera;
         camera.attachControl(canvas, true);
 
+        /*
         const ssao = new BABYLON.SSAO2RenderingPipeline("ssao", this.scene, 1.0, [camera]);
         ssao.radius = 0.5;
         ssao.totalStrength = 0.4;
@@ -65,8 +70,9 @@ class App {
         ssao.maxZ = 10;
         ssao.minZAspect = 0.1;
         ssao.textureSamples = 4;
+        */
         
-        this.ambientLight = new BABYLON.HemisphericLight("ambient", new BABYLON.Vector3(-1, 1, -1), this.scene);
+        this.ambientLight = new BABYLON.HemisphericLight("ambient", new BABYLON.Vector3(0, 1, 0), this.scene);
         colorConfig.attachAnglePicker('Ambient Light Direction', {initialValue: this.ambientLight.direction}, (value) => {
             this.ambientLight.direction = value;
         });
@@ -84,7 +90,7 @@ class App {
             this.ambientLight.intensity = value;
         });
 
-        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.528,-0.819,0.224), this.scene);
+        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(0.35, -0.86, 0.38), this.scene);
         colorConfig.attachAnglePicker('Sun Direction', {initialValue: this.sun.direction}, (value) => {
             this.sun.direction = value;
         });
@@ -126,6 +132,7 @@ class App {
 
             const measurements = new Measurements(this.scene, this.shelf, camera);
             const navigation3D = new Navigation3D(this.scene, this.shelf, environment);
+            
             const decor_builder = new DecorBuilder(this.modelLoader, this.shelf);
             const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
             const controlPanel = new ControlPanel(grid, this.shelf, environment);
@@ -201,7 +208,7 @@ class App {
                 if (this.scene.debugLayer.isVisible()) {
                     this.scene.debugLayer.hide();
                 } else {
-                    this.scene.debugLayer.show();
+                    this.scene.debugLayer.show({overlay: true});
                 }
             }
         });
@@ -212,6 +219,7 @@ class App {
         });
 
         new StyleGuide();
+        new Resources(this.scene);
     }
 
     // TODO: have a sun only during day and a ceiling light during night
@@ -226,80 +234,56 @@ class App {
     }
 
     private loadModels() : Promise<void[]> {
-        const strutMaterial = new BABYLON.StandardMaterial("strut", this.scene);
-        strutMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-        strutMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-        strutMaterial.freeze();
-
-        const woodMaterial = new BABYLON.StandardMaterial("wood", this.scene);
-        woodMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.20, 0.04);
-        woodMaterial.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-        woodMaterial.freeze();
-
-        const defaultMaterial = new BABYLON.StandardMaterial("defaultMaterial", this.scene);
-        defaultMaterial.freeze();
-
         const modelUrls = [
             {
                 url: "models/strut.glb",
-                material: strutMaterial
             },
             {
                 url: "models/foot.glb",
-                material: defaultMaterial
+            },
+            {
+                url: "models/shelf_start.glb",
             },
             {
                 url: "models/shelf_end.glb",
-                material: woodMaterial
             },
             {
                 url: "models/shelf_middle.glb",
-                material: woodMaterial
             },
             {
                 url: "models/shelf_stretch.glb",
-                material: woodMaterial
             },
             {
                 url: "models/clamp.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_potted_plant_01.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_potted_plant_02.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_placeholder.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_books_01.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_books_02.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_books_03.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_books_04.glb",
-                material: defaultMaterial
             },
             {
                 url: "models/decor_trinket_01.glb",
-                material: defaultMaterial
             },
         ];
 
         // return a promise that resolves when all models are loaded
-        return Promise.all(modelUrls.map(entry => this.modelLoader.preloadModel(entry.url, entry.material)));
+        return Promise.all(modelUrls.map(entry => this.modelLoader.preloadModel(entry.url)));
     }
 
     private createShelf() : Shelf {

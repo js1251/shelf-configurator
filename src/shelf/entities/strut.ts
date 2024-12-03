@@ -1,7 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../../3d/modelloader";
 import { ProductEntity } from "../../entity_engine/product_entity";
-import { ShelfMaterial } from "../materials";
+import { METAL_MATERIALS, ShelfMaterial } from "../materials";
 
 export class Strut extends ProductEntity {
     private height_m: number;
@@ -20,6 +20,7 @@ export class Strut extends ProductEntity {
 
         this.setHeight(height_m);
         this.setOffset(offset);
+        this.setMaterial(METAL_MATERIALS[0].material);
     }
 
     setIndex(index: number) {
