@@ -36,6 +36,8 @@ export class Strut extends ProductEntity {
     }
 
     setHeight(height_m: number) {
+        this.unFreeze();
+
         this.height_m = height_m;
 
         this.footTop.setParent(null);
@@ -55,6 +57,8 @@ export class Strut extends ProductEntity {
         this.footBottom.setParent(this.strut);
 
         this.updateBoundingBox();
+
+        this.freeze();
     }
 
     getOffset(): number {

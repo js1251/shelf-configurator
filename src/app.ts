@@ -105,16 +105,12 @@ class App {
             max: 3,
             step: 0.1,
         }, (value) => {
-        this.sun.intensity = value;
-    });
+            this.sun.intensity = value;
+        });
 
         this.setDay();
 
         const environment = new ENVIRONMENT.Environment(this.scene);
-        environment.RoomChanged.on((bbox) => {
-            //camera.position = new BABYLON.Vector3(0, bbox.center.y, bbox.minimum.z);
-            //camera.target = bbox.center;
-        });
         
         this.shadowGenerator = environment.getShadowGenerator();
 

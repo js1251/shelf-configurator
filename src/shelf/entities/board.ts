@@ -40,6 +40,8 @@ export class Board extends ProductEntity {
     }
 
     setHeight(height_m: number) {
+        this.unFreeze();
+
         this.height_m = height_m;
 
         const newPosition = this.getPosition().clone();
@@ -49,6 +51,8 @@ export class Board extends ProductEntity {
         this.updateBoundingBox();
 
         this.onBoardMoved.trigger();
+
+        this.freeze();
     }
 
     getHeight(): number {
@@ -56,6 +60,8 @@ export class Board extends ProductEntity {
     }
 
     setSpanStruts(startStrut: Strut, endStrut: Strut) {
+        this.unFreeze();
+
         this.startStrut = startStrut;
         this.endStrut = endStrut;
 
@@ -79,6 +85,8 @@ export class Board extends ProductEntity {
         this.updateBoundingBox();
 
         this.onBoardSizeChanged.trigger();
+
+        this.freeze();
     }
 
 

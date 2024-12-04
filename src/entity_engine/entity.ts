@@ -22,7 +22,10 @@ export abstract class Entity {
         if (value) {
             this.updateBBMesh();
         }
-        this.bboxMesh.setEnabled(value);
+        
+        if (this.bboxMesh) {
+            this.bboxMesh.setEnabled(value);
+        }
     }
 
     private readonly onBboxChanged = new LiteEvent<BABYLON.BoundingBox>();
@@ -36,6 +39,8 @@ export abstract class Entity {
         this.root = this.constructMeshes();
         this.updateBoundingBox();
 
+        this.freeze();
+
         /*
         this.root.showBoundingBox = true;
         setTimeout(() => {
@@ -44,20 +49,51 @@ export abstract class Entity {
         */
     }
 
+    freeze() {
+        return;
+        this.root.freezeWorldMatrix();
+
+        this.root.getChildMeshes().forEach(mesh => {
+            if (this.shouldBeIgnored(mesh)) {
+                return;
+            }
+
+            mesh.freezeWorldMatrix();
+        });
+    }
+
+    unFreeze() {
+        return;
+
+        this.root.unfreezeWorldMatrix();
+
+        this.root.getChildMeshes().forEach(mesh => {
+            if (this.shouldBeIgnored(mesh)) {
+                return;
+            }
+
+            mesh.unfreezeWorldMatrix();
+        });
+    }
+
     getBoundingBox() {
         return this.root.getBoundingInfo().boundingBox;
     }
 
     setPosition(position) {
+        this.unFreeze();
+
         this.root.setAbsolutePosition(position);
         this.updateBoundingBox();
+
+        this.freeze();
     }
 
     getPosition() {
         return this.root.getAbsolutePosition();
     }
 
-    setParent(parent: BABYLON.Node) {
+    setParent(parent: BABYLON.TransformNode) {
         this.root.setParent(parent);
     }
 
@@ -75,12 +111,14 @@ export abstract class Entity {
     }
 
     remove() {
-        if (this.root) {
-            this.root.dispose();
-        }
-
         if (this.bboxMesh) {
             this.bboxMesh.dispose();
+
+            console.log("disposed bbox mesh");
+        }
+        
+        if (this.root) {
+            this.root.dispose();
         }
     }
 
@@ -111,6 +149,20 @@ export abstract class Entity {
 
         this.ignoreBboxNodes.splice(index, -1);
     }
+
+    private shouldBeIgnored(node: BABYLON.TransformNode): boolean {
+        if (this.ignoreBboxNodes.indexOf(node) > -1) {
+            return true;
+        }
+
+        for (let i = 0; i < this.ignoreBboxNodes.length; i++) {
+            if (node.isDescendantOf(this.ignoreBboxNodes[i])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     
     // TODO: Does this need to be an abstract mesh? -> Performance
     protected abstract constructMeshes(): BABYLON.AbstractMesh;
@@ -118,19 +170,7 @@ export abstract class Entity {
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
     protected updateBoundingBox() {        
-        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => {
-            if (this.ignoreBboxNodes.indexOf(node) > -1) {
-                return false;
-            }
-
-            for (let i = 0; i < this.ignoreBboxNodes.length; i++) {
-                if (node.isDescendantOf(this.ignoreBboxNodes[i])) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
+        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => !this.shouldBeIgnored(node));
 
         hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
         hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());
@@ -169,7 +209,7 @@ export abstract class Entity {
             depth: bbox.extendSizeWorld.z * 2,
         }, this.modelloader.scene);
 
-        this.bboxMesh.position = bbox.center.add(this.getPosition());
+        this.bboxMesh.position = bbox.centerWorld.clone();
 
         if (Entity.boundingBoxMaterial === undefined) {
             var mat = new BABYLON.StandardMaterial("mat");

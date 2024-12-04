@@ -14,9 +14,9 @@ export class PottedPlant01 extends Decor {
     protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] {
         min.y = 0;
         max.y -= 0.02;
-
-        min.z += 0.1;
-        max.z -= 0.05;
+        
+        min.z += 0.05;
+        max.z -= 0.1;
 
         min.x += 0.05;
         max.x -= 0.05;

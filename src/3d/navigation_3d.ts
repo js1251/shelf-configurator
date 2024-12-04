@@ -350,7 +350,7 @@ export class Navigation3D {
 
         var advancedTexture = BABYLON_GUI.AdvancedDynamicTexture.CreateForMesh(plane, 256, 256);
         plane.material.name = "nav3D_dragHandleText";
-        plane.material.freeze();
+        //plane.material.freeze(); // Note: material cant be frozen as its a billboard
         advancedTexture.addControl(img);
         plane.renderingGroupId = 2;
         plane.isPickable = false;

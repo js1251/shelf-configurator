@@ -164,7 +164,6 @@ export class Measurements {
         cache[id] = material;
     }
 
-    // TODO: re-use same material for all lines
     private drawLabeledLine(start: BABYLON.Vector3, end: BABYLON.Vector3, color: BABYLON.Color3, text: string) : BABYLON.LinesMesh {
         const colorHex = color.toHexString();
         
@@ -202,7 +201,7 @@ export class Measurements {
             billBoardMaterial.diffuseColor = BABYLON.Color3.Black();
             billBoardMaterial.specularColor = BABYLON.Color3.Black();
             billBoardMaterial.emissiveColor = color;
-            billBoardMaterial.freeze();
+            // billBoardMaterial.freeze(); // Note: material cant be frozen as its a billboard
 
             this.cacheMaterial(Measurements.BILLBOARD_MATERIALS, colorHex, billBoardMaterial);
         }
