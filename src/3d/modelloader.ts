@@ -14,7 +14,7 @@ export class ModelLoader {
         this.shadowGenerator = shadowGenerator;
         this.preloadedMeshes = new Map<string, BABYLON.Mesh>();
 
-        this.root = new BABYLON.Node("model_root", scene);
+        this.root = new BABYLON.Node("model_cache_root", scene);
     }
 
     public preloadModel(modelUrl: string, material: BABYLON.Material = undefined): Promise<void> {
@@ -41,6 +41,8 @@ export class ModelLoader {
                             this.scene.addMesh(root);
                             root.scaling.setAll(1);
                             root.rotation.setAll(0);
+
+                            root.setParent(this.root);
 
                             if (material) {
                                 mesh.material = material;

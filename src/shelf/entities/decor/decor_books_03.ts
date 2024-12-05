@@ -4,7 +4,7 @@ import { ModelLoader } from "../../../3d/modelloader";
 
 export class Books03 extends Decor {
     constructor(modelloader: ModelLoader) {
-        super(modelloader, 0, -1);
+        super(modelloader);
     }
     
     protected constructMeshes(): BABYLON.AbstractMesh {

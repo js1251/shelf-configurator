@@ -30,6 +30,10 @@ export class Environment {
     constructor(scene: BABYLON.Scene) {
         this.scene = scene;
 
+        const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("https://assets.babylonjs.com/environments/environmentSpecular.env", scene);
+        scene.environmentTexture = hdrTexture;
+        scene.environmentIntensity = 0.3;
+
         this.createShadowGenerator();
         this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
 

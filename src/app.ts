@@ -16,7 +16,9 @@ import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { ColorConfig } from "./color_config";
 import { StyleGuide } from "./2d/style_guide";
-import { Resources } from "./shelf/materials";
+import { METAL_MATERIALS, Resources, WOOD_MATERIALS } from "./shelf/materials";
+import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
+import { Books01 } from "./shelf/entities/decor/decor_books_01";
 
 require("./app.css");
 
@@ -51,6 +53,7 @@ class App {
         window.addEventListener("resize", () => {
             engine.resize();
         });
+
         this.scene = new BABYLON.Scene(engine);
 
         this.scene.metadata = {
@@ -61,7 +64,6 @@ class App {
         const camera = shelfCamera.camera;
         camera.attachControl(canvas, true);
 
-        /*
         const ssao = new BABYLON.SSAO2RenderingPipeline("ssao", this.scene, 1.0, [camera]);
         ssao.radius = 0.5;
         ssao.totalStrength = 0.4;
@@ -70,9 +72,8 @@ class App {
         ssao.maxZ = 10;
         ssao.minZAspect = 0.1;
         ssao.textureSamples = 4;
-        */
         
-        this.ambientLight = new BABYLON.HemisphericLight("ambient", new BABYLON.Vector3(0, 1, 0), this.scene);
+        this.ambientLight = new BABYLON.HemisphericLight("Hemispheric light", new BABYLON.Vector3(0, 1, 0), this.scene);
         colorConfig.attachAnglePicker('Ambient Light Direction', {initialValue: this.ambientLight.direction}, (value) => {
             this.ambientLight.direction = value;
         });
@@ -89,8 +90,20 @@ class App {
             }, (value) => {
             this.ambientLight.intensity = value;
         });
+        
+        /*
+        const dir0 = new BABYLON.DirectionalLight("Directional light #0", new BABYLON.Vector3(0.841626576496605, -0.2193391004130599, -0.49351298337996535), this.scene);
+            dir0.intensity = 0.9;
+            dir0.diffuse = new BABYLON.Color3(0.9294117647058824, 0.9725490196078431, 0.996078431372549);
+            dir0.specular = new BABYLON.Color3(0.9294117647058824, 0.9725490196078431, 0.996078431372549);
 
-        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(0.35, -0.86, 0.38), this.scene);
+        const dir1 = new BABYLON.DirectionalLight("Directional light #1", new BABYLON.Vector3(-0.9519937437504213, -0.24389315636999764, -0.1849974057546125), this.scene);
+            dir1.intensity = 1.2;
+            dir1.specular = new BABYLON.Color3(0.9803921568627451, 0.9529411764705882, 0.7725490196078432);
+            dir1.diffuse = new BABYLON.Color3(0.9803921568627451, 0.9529411764705882, 0.7725490196078432);
+        */
+
+        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.311, -0.554, -0.772), this.scene);
         colorConfig.attachAnglePicker('Sun Direction', {initialValue: this.sun.direction}, (value) => {
             this.sun.direction = value;
         });
@@ -122,6 +135,7 @@ class App {
         // wait for all models to be loaded and create shelf afterwards
         this.loadModels().then(() => {
             this.shelf = this.createShelf();
+
             const initialCameraTarget = this.shelf.getBoundingBox().center.add(this.shelf.getPosition());
             camera.target = initialCameraTarget.clone();
             shelfCamera.setDesiredTarget(initialCameraTarget);
@@ -168,6 +182,10 @@ class App {
             navigation3D.ShelfMoved.on(() => {
                 const shelfCenter = this.shelf.getBoundingBox().centerWorld;
                 shelfCamera.setDesiredTarget(shelfCenter);
+
+                WOOD_MATERIALS.forEach((shelfMaterial) => {
+                    ((shelfMaterial.material as BABYLON.NodeMaterial).getBlockByName("referencePos") as BABYLON.InputBlock).value = this.shelf.root.position;
+                });
             });
 
             navigation2D.DayNightButtonPressed.on((isNight) => {
@@ -276,6 +294,9 @@ class App {
             {
                 url: "models/decor_trinket_01.glb",
             },
+            {
+                url: "https://assets.babylonjs.com/meshes/roundedCube.glb",
+            }
         ];
 
         // return a promise that resolves when all models are loaded

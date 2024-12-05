@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
+import { Decor } from "../shelf/decor";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
@@ -16,15 +17,13 @@ export abstract class Entity {
     
     set showAABB(value) {
         value = value && this.root.isEnabled();
-
         this._showAABB = value;
 
         if (value) {
             this.updateBBMesh();
-        }
-        
-        if (this.bboxMesh) {
-            this.bboxMesh.setEnabled(value);
+            this.bboxMesh.setEnabled(true);
+        } else if (this.bboxMesh) {
+            this.bboxMesh.dispose();
         }
     }
 
@@ -110,10 +109,10 @@ export abstract class Entity {
         return this.root.intersectsMesh(entity.root, true, true);
     }
 
-    remove() {
+    remove() {        
         if (this.bboxMesh) {
             this.bboxMesh.dispose();
-
+            
             console.log("disposed bbox mesh");
         }
         
@@ -188,6 +187,7 @@ export abstract class Entity {
 
         var newBoundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
         this.root.setBoundingInfo(newBoundingInfo);
+        this.root.computeWorldMatrix(true);
 
         if (this.showAABB) {
             this.updateBBMesh();
@@ -199,6 +199,7 @@ export abstract class Entity {
     private updateBBMesh() {
         if (this.bboxMesh !== undefined) {
             this.bboxMesh.dispose();
+            this.bboxMesh = undefined;
         }
 
         const bbox = this.getBoundingBox();

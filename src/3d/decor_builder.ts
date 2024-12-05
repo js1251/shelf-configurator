@@ -14,29 +14,55 @@ import { Trinket01 } from "../shelf/entities/decor/decor_trinket_01";
 
 export class DecorBuilder {
     private shelf: Shelf;
+    private modelloader: ModelLoader;
 
-    private decorOptions: Decor[] = [];
+    private decorOptions = [
+        {
+            clone: (modelloader) => new PottedPlant01(modelloader),
+            minHeight: 0.8,
+            maxHeight: -1
+        },
+        {
+            clone: (modelloader) => new PottedPlant02(modelloader),
+            minHeight: 0.4,
+            maxHeight: 1.6
+        },
+        {
+            clone: (modelloader) => new Books01(modelloader),
+            minHeight: 0,
+            maxHeight: -1
+        },
+        {
+            clone: (modelloader) => new Books02(modelloader),
+            minHeight: 0,
+            maxHeight: -1
+        },
+        {
+            clone: (modelloader) => new Books03(modelloader),
+            minHeight: 0,
+            maxHeight: -1
+        },
+        {
+            clone: (modelloader) => new Books04(modelloader),
+            minHeight: 0.4,
+            maxHeight: 1.6
+        },
+        {
+            clone: (modelloader) => new Trinket01(modelloader),
+            minHeight: 0.4,
+            maxHeight: 1.6
+        }
+    ];
+
     private isVisible: boolean = true;
-
     private root: BABYLON.TransformNode;
 
     constructor(modelloader: ModelLoader, shelf: Shelf) {
+        this.modelloader = modelloader;
         this.shelf = shelf;
 
         this.root = new BABYLON.TransformNode("decor_root", modelloader.scene);
         this.shelf.addFollower(this.root);
-
-        this.decorOptions.push(new PottedPlant01(modelloader));
-        this.decorOptions.push(new PottedPlant02(modelloader));
-        this.decorOptions.push(new Books01(modelloader));
-        this.decorOptions.push(new Books02(modelloader));
-        this.decorOptions.push(new Books03(modelloader));
-        this.decorOptions.push(new Books04(modelloader));
-        this.decorOptions.push(new Trinket01(modelloader));
-
-        this.decorOptions.forEach(option => {
-            option.root.setEnabled(false);
-        });
 
         this.fillDecor();
 
@@ -106,7 +132,7 @@ export class DecorBuilder {
             // keep spawning decor until there is no more space
             while (widthBudget > 0 && tries < 3) {
                 const randomIndex = Math.floor(Math.random() * decorOptions.length);
-                const decor = decorOptions[randomIndex].clone();
+                const decor = decorOptions[randomIndex].clone(this.modelloader);
                 const decorWidth = decor.getBoundingBox().extendSize.x * 2;
                 const randomOffset = getRandomOffset();
 
@@ -216,21 +242,21 @@ export class DecorBuilder {
     }
 
 
-    private getDecorOptions(startHeight: number): Decor[] {
+    private getDecorOptions(startHeight: number): any[] {
         const options = [];
 
         for (let i = 0; i < this.decorOptions.length; i++) {
-            const decor = this.decorOptions[i];
+            const decorOption = this.decorOptions[i];
 
-            if (startHeight < decor.getMinHeight()) {
+            if (startHeight < decorOption.minHeight) {
                 continue;
             }
 
-            if (decor.getMaxHeight() !== -1 && startHeight > decor.getMaxHeight()) {
+            if (decorOption.maxHeight !== -1 && startHeight > decorOption.maxHeight) {
                 continue;
             }
 
-            options.push(decor);
+            options.push(decorOption);
         }
 
         return options;

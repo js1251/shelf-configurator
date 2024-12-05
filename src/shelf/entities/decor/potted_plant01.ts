@@ -4,7 +4,7 @@ import { Decor } from "../../decor";
 
 export class PottedPlant01 extends Decor {
     constructor(modelloader: ModelLoader) {
-        super(modelloader, 0.8, -1);
+        super(modelloader);
     }
     
     protected constructMeshes(): BABYLON.AbstractMesh {

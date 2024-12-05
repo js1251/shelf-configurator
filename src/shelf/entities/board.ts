@@ -154,6 +154,11 @@ export class Board extends ProductEntity {
 
     setMaterial(material: BABYLON.Material) {
         this.start.getChildMeshes().forEach(child => {
+            // if the child is a clamp, don't change the material
+            if (child.name.includes("clamp")) {
+                return;
+            }
+
             child.material = material;
         });
     }

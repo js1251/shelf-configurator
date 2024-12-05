@@ -15,7 +15,8 @@ export class Resources {
     static TEXTURE_BRUSHEDMETAL_COLOR: BABYLON.Texture;
     static TEXTURE_BRUSHEDMETAL_NORMAL: BABYLON.Texture;
 
-    static TEST_MATERIAL: BABYLON.Material;
+    static OAK_OILED_MATERIAL: BABYLON.Material;
+    static OAK_VARNISHED_MATERIAL: BABYLON.Material;
 
     constructor(scene: BABYLON.Scene) {
         Resources.TEXTURE_WOOD_COLOR = new BABYLON.Texture("textures/board_wood/color.jpg", scene);
@@ -34,16 +35,41 @@ export class Resources {
             (nodeMaterial.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_COLOR;
             (nodeMaterial.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
             (nodeMaterial.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
+
             (nodeMaterial.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_NORMAL;
             (nodeMaterial.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
             (nodeMaterial.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
+
             (nodeMaterial.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
             (nodeMaterial.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
             (nodeMaterial.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
-            (nodeMaterial.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.7;
+            
+            (nodeMaterial.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.6;
+            (nodeMaterial.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.5;
+            (nodeMaterial.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac586");
+            
+            Resources.OAK_OILED_MATERIAL = nodeMaterial;
+        });
+
+        BABYLON.NodeMaterial.ParseFromFileAsync("materials_oak_varnisched", "node_materials/boardWood.json", scene).then((nodeMaterial) => {
+            (nodeMaterial.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_COLOR;
+            (nodeMaterial.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
+            (nodeMaterial.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
+
+            (nodeMaterial.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_NORMAL;
+            (nodeMaterial.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
+            (nodeMaterial.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
+
+            (nodeMaterial.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+            (nodeMaterial.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+            (nodeMaterial.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+            
+            (nodeMaterial.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.15;
+            (nodeMaterial.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.38;
+            (nodeMaterial.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.3;
             (nodeMaterial.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac086");
             
-            Resources.TEST_MATERIAL = nodeMaterial;
+            Resources.OAK_VARNISHED_MATERIAL = nodeMaterial;
         });
     }
 }
@@ -72,24 +98,7 @@ export abstract class ShelfMaterial {
 
 class EicheGeoelt extends ShelfMaterial {
     protected createMaterial(): BABYLON.Material {
-        return Resources.TEST_MATERIAL;
-
-        const material = new TriPlanarMaterial("oak_oiled");
-        material.diffuseTextureY = Resources.TEXTURE_WOOD_COLOR;
-        material.diffuseTextureX = Resources.TEXTURE_ENDGRAIN_COLOR;
-        material.diffuseTextureZ = Resources.TEXTURE_WOOD_COLOR;
-        material.normalTextureY = Resources.TEXTURE_WOOD_NORMAL;
-        material.normalTextureX = Resources.TEXTURE_ENDGRAIN_NORMAL;
-        material.normalTextureZ = Resources.TEXTURE_WOOD_NORMAL;
-        material.diffuseColor = BABYLON.Color3.FromHexString("#eac086");
-        material.tileSize = 0.5;
-        material.freeze();
-
-        material.getScene().metadata.debugOverlay.attachColorPicker('Oak Color', {initialValue: material.diffuseColor.toHexString()}, (value) => {
-            material.diffuseColor = BABYLON.Color3.FromHexString(value);
-        });
-        
-        return material;
+        return Resources.OAK_OILED_MATERIAL;
     }
 
     get name(): string {
@@ -98,6 +107,24 @@ class EicheGeoelt extends ShelfMaterial {
 
     get finish(): string {
         return 'Geölt';
+    }
+
+    get previewImageUrl(): string {
+        return 'images/oak_bare.jpg';
+    }
+}
+
+class EicheKlarlack extends ShelfMaterial {
+    protected createMaterial(): BABYLON.Material {
+        return Resources.OAK_VARNISHED_MATERIAL;
+    }
+
+    get name(): string {
+        return 'Eiche';
+    }
+
+    get finish(): string {
+        return 'Klarlack';
     }
 
     get previewImageUrl(): string {
@@ -293,9 +320,9 @@ class MessingGebuerstet extends ShelfMaterial {
 
 export const WOOD_MATERIALS : ShelfMaterial[] = [
     new EicheGeoelt(),
-    new BucheGeoelt(),
-    new EscheGeoelt(),
-    new NussbaumGeoelt(),
+    new EicheKlarlack(),
+    //new EscheGeoelt(),
+    //new NussbaumGeoelt(),
 ];
 
 export const METAL_MATERIALS : ShelfMaterial[] = [
