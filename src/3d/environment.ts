@@ -30,7 +30,7 @@ export class Environment {
     constructor(scene: BABYLON.Scene) {
         this.scene = scene;
 
-        const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("https://assets.babylonjs.com/environments/environmentSpecular.env", scene);
+        const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("https://assets.babylonjs.com/textures/environment.env", scene);
         scene.environmentTexture = hdrTexture;
         scene.environmentIntensity = 0.3;
 
@@ -46,6 +46,7 @@ export class Environment {
             this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
         });
 
+        /*
         this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(0.45);
         this.scene.metadata.debugOverlay.attachSlider('Wall Glow intensity', {
             initialValue: 0.45,
@@ -57,6 +58,7 @@ export class Environment {
             this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(value);
             this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
         });
+        */
         this.wallMaterial.specularColor = BABYLON.Color3.Black();
         this.wallMaterial.freeze();
 
@@ -85,7 +87,7 @@ export class Environment {
         this.scaleHandle.scaling.y = height;
         this.scaleHandle.position.y = height * 0.5;
 
-        this.light.position.y = height - 0.3;
+        this.light.position.y = height - 0.2;
         
         this.onRoomChanged.trigger(this.getBoundingBox());
     }
@@ -168,11 +170,21 @@ export class Environment {
         this.isNight = isNight;
 
         if (isNight) {
+            //this.wallMaterial.unfreeze();
+            //this.wallMaterial.emissiveColor = BABYLON.Color3.Black();
+            //this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
+
             this.setBackgroundColor(BABYLON.Color4.FromHexString("#0D0D0D"));
-            this.light.intensity = 0;
+            this.light.intensity = 0.1;
+            this.scene.environmentIntensity = 0;
         } else {
+            //this.wallMaterial.unfreeze();
+            //this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(0.45);
+            //this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
+
             this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
-            this.light.intensity = 0.5;
+            this.light.intensity = 0.2;
+            this.scene.environmentIntensity = 0.3;
         }
     }
 

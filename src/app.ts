@@ -16,9 +16,7 @@ import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { ColorConfig } from "./color_config";
 import { StyleGuide } from "./2d/style_guide";
-import { METAL_MATERIALS, Resources, WOOD_MATERIALS } from "./shelf/materials";
-import { PottedPlant01 } from "./shelf/entities/decor/potted_plant01";
-import { Books01 } from "./shelf/entities/decor/decor_books_01";
+import { Resources, WOOD_MATERIALS } from "./shelf/materials";
 
 require("./app.css");
 
@@ -108,7 +106,7 @@ class App {
             this.sun.direction = value;
         });
         this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
-        this.sun.intensity = 1.4;
+        this.sun.intensity = 0.2;
         colorConfig.attachColorPicker('Sun Light Color', {initialValue: this.sun.diffuse.toHexString()}, (value) => {
             this.sun.diffuse = BABYLON.Color3.FromHexString(value);
         });
@@ -120,8 +118,6 @@ class App {
         }, (value) => {
             this.sun.intensity = value;
         });
-
-        this.setDay();
 
         const environment = new ENVIRONMENT.Environment(this.scene);
         
@@ -236,15 +232,14 @@ class App {
         new Resources(this.scene);
     }
 
-    // TODO: have a sun only during day and a ceiling light during night
     private setNight() {
-        this.ambientLight.intensity = 0.3;
-        this.sun.intensity = 0.1;
+        this.ambientLight.intensity = 0;
+        this.sun.intensity = 0;
     }
 
     private setDay() {
-        this.ambientLight.intensity = 0.5;
-        this.sun.intensity = 0.5;   
+        this.ambientLight.intensity = 0.8;
+        this.sun.intensity = 0.2;
     }
 
     private loadModels() : Promise<void[]> {
