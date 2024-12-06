@@ -35,6 +35,7 @@ export class Shelf extends Entity {
     }
 
     private height_m: number;
+    private spacing: number;
 
     private struts: Strut[] = [];
     private boards: Board[] = [];
@@ -80,26 +81,46 @@ export class Shelf extends Entity {
     }
 
     addStrutToStart() {
-        const strut = new Strut(this.modelloader, this.getHeight(), 0, 0);
+        const strut = new Strut(this.modelloader, this.getHeight(), 0);
+        const strutPos = this.getPosition().clone();
+        strutPos.y = this.height_m / 2;
+
         strut.setParent(this.root);
         this.struts.unshift(strut);
 
         // update all struts indices
         for (let i = 0; i < this.struts.length; i++) {
             this.struts[i].setIndex(i);
+            this.struts[i].setPosition(strutPos.clone().add(new BABYLON.Vector3(this.spacing * i, 0, 0)));
         }
+
+        this.setPosition(this.getPosition().add(new BABYLON.Vector3(-this.spacing, 0, 0)));
+
+        // supress OnBoardSizeChanged event
+        this.onBoardSizeChanged.supress();
 
         // update all boards start and end struts
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
             board.setSpanStruts(this.struts[board.getStartStrut().getIndex()], this.struts[board.getEndStrut().getIndex()]);
+
+            board.getAllDecor().forEach(decor => {
+                decor.setPosition(decor.getPosition().add(new BABYLON.Vector3(this.spacing, 0, 0)));
+            });
         }
+
+        this.onBoardSizeChanged.unsupress();
 
         this.updateBoundingBox();
     }
 
     addStrutToEnd() {
-        const strut = new Strut(this.modelloader, this.getHeight(), 0, this.struts.length);
+        const strut = new Strut(this.modelloader, this.getHeight(), this.struts.length);
+        const strutPos = this.getPosition().clone();
+        strutPos.y = this.height_m / 2;
+        strutPos.x += this.spacing * this.struts.length;
+
+        strut.setPosition(strutPos);
         strut.setParent(this.root);
         this.struts.push(strut);
         
@@ -119,6 +140,7 @@ export class Shelf extends Entity {
             const board = this.boards[i];
             const startIndex = board.getStartStrut().getIndex() + 1;
             const endIndex = board.getEndStrut().getIndex() + 1;
+            
             if (startIndex === 1) {
                 if (endIndex - startIndex > 0) {
                     // shorten the board
@@ -182,21 +204,19 @@ export class Shelf extends Entity {
         }
 
         // round to two decimal places
-        spacing = Math.round(spacing * 100) / 100;
+        this.spacing = spacing;
 
         for (let i = 0; i < this.struts.length; i++) {
-            this.struts[i].setOffset(i * spacing);
+            const strut = this.struts[i];
+            const strutPosition = strut.getPosition();
+            strutPosition.x = this.spacing * i;
         }
         
         this.updateBoundingBox();
     }
 
     getStrutSpacing(): number {
-        if (this.struts.length < 2) {
-            return 0;
-        }
-
-        return this.struts[1].getOffset() - this.struts[0].getOffset();
+        return this.spacing;
     }
 
     addBoard(height: number, startStrut: number, endStrut: number) {
@@ -212,7 +232,7 @@ export class Shelf extends Entity {
             throw new Error("Start strut must be before end strut");
         }
 
-        const board = new Board(this.modelloader, height, this.struts[startStrut], this.struts[endStrut]);
+        const board = new Board(this.modelloader, height, this.struts[startStrut], this.struts[endStrut], this.spacing);
         this.boards.push(board);
         board.setParent(this.root);
 

@@ -10,6 +10,7 @@ export class Board extends ProductEntity {
     private height_m: number;
     private startStrut: Strut;
     private endStrut: Strut;
+    private spacing: number;
 
     private start: BABYLON.AbstractMesh;
     private middles: BABYLON.AbstractMesh[] = [];
@@ -31,8 +32,10 @@ export class Board extends ProductEntity {
         return this.onBoardSizeChanged.expose();
     }
 
-    constructor(modelloader: ModelLoader, height_m: number, startStrut: Strut, endStrut: Strut) {
+    constructor(modelloader: ModelLoader, height_m: number, startStrut: Strut, endStrut: Strut, spacing: number) {
         super(modelloader);
+
+        this.spacing = spacing;
 
         this.setHeight(height_m);
         this.setSpanStruts(startStrut, endStrut);
@@ -197,7 +200,6 @@ export class Board extends ProductEntity {
         }
 
         const span = this.endStrut.getIndex() - this.startStrut.getIndex();
-        const spacing = (this.endStrut.getOffset() - this.startStrut.getOffset()) / span;
 
         const requiredMiddles = span - 1;
         const requiredStretches = span;
@@ -227,7 +229,7 @@ export class Board extends ProductEntity {
             const middle = this.middles[i];
             
             middle.setParent(null);
-            middle.position = new BABYLON.Vector3(startStrutPosition.x + spacing * (i + 1), this.height_m, startStrutPosition.z);
+            middle.position = new BABYLON.Vector3(startStrutPosition.x + this.spacing * (i + 1), this.height_m, startStrutPosition.z);
             middle.setParent(this.start);
         }
         
@@ -251,8 +253,8 @@ export class Board extends ProductEntity {
             const stretch = this.stretches[i];
             
             stretch.setParent(null);
-            stretch.position = new BABYLON.Vector3(startStrutPosition.x + spacing * i + Board.BOARD_WIDTH / 2, this.height_m, startStrutPosition.z);
-            stretch.scaling.x = (spacing - Board.BOARD_WIDTH)/ 0.1;
+            stretch.position = new BABYLON.Vector3(startStrutPosition.x + this.spacing * i + Board.BOARD_WIDTH / 2, this.height_m, startStrutPosition.z);
+            stretch.scaling.x = (this.spacing - Board.BOARD_WIDTH)/ 0.1;
             stretch.setParent(this.start);
         }
     }

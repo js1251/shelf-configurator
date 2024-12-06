@@ -2,6 +2,8 @@ import { LiteEvent } from "../event_engine/LiteEvent";
 import * as ICON from "./icons";
 import { Board } from "../shelf/entities/board";
 import { Shelf } from "../shelf/shelf";
+import { ProductEntity } from "../entity_engine/product_entity";
+import { Strut } from "../shelf/entities/strut";
 
 require('./navigation_2d.css');
 
@@ -9,9 +11,11 @@ export class Navigation2D {
     private grid: HTMLDivElement;
     private shelf: Shelf;
     private selectedBoard: Board;
+    private selectedStrut: Strut;
     private pinnedBoards: Board[] = []; // What if a board is removed?
 
-    private bottomBar: HTMLDivElement;
+    private boardBottomBar: HTMLDivElement;
+    private strutBottomBar: HTMLDivElement;
     private sideBar: HTMLDivElement;
 
     private readonly onRulerButtonPressed = new LiteEvent<boolean>();
@@ -44,40 +48,107 @@ export class Navigation2D {
         this.shelf = shelf;
 
         this.createSideBar();
-        this.createBottomBar();
+        this.createBoardBottomBar();
+        this.createStrutBottomBar();
 
         this.shelf.BoardRemoved.on((board) => {
-            this.setSelectedBoard(null);
+            this.setSelectedProduct(null);
         });
     }
 
-    setSelectedBoard(board: Board) {
-        this.selectedBoard = board;
-        
-        if (!board) {
+    setSelectedProduct(product: ProductEntity) {        
+        if (!product) {
             // hide the bottom bar
-            this.bottomBar.classList.remove("visible");
-            this.bottomBar.classList.add("hidden");
+            this.boardBottomBar.classList.remove("visible");
+            this.boardBottomBar.classList.add("hidden");
+
+            this.strutBottomBar.classList.remove("visible");
+            this.strutBottomBar.classList.add("hidden");
             return;
         }
 
-        // show the bottom bar
-        this.bottomBar.classList.add("visible");
-        this.bottomBar.classList.remove("hidden");
+        if (product instanceof Board) {
+            this.selectedBoard = product;
+            this.selectedStrut = null;
 
-        if (this.pinnedBoards.includes(board)) {
-            document.getElementById("pinButton").classList.add("active");
-        } else {
-            document.getElementById("pinButton").classList.remove("active");
+            this.strutBottomBar.classList.remove("visible");
+            this.strutBottomBar.classList.add("hidden");
+
+            this.boardBottomBar.classList.add("visible");
+            this.boardBottomBar.classList.remove("hidden");
+
+            if (this.pinnedBoards.includes(product)) {
+                document.getElementById("pinButton").classList.add("active");
+            } else {
+                document.getElementById("pinButton").classList.remove("active");
+            }
+
+            return;
+        }
+
+        if (product instanceof Strut) {
+            this.selectedStrut = product;
+            this.selectedBoard = null;
+
+            this.boardBottomBar.classList.remove("visible");
+            this.boardBottomBar.classList.add("hidden");
+
+            if (product.getIndex() === 0 || product.getIndex() === this.shelf.getStruts().length - 1) {
+                this.strutBottomBar.classList.add("visible");
+                this.strutBottomBar.classList.remove("hidden");
+            }
+            return;
         }
     }
 
-    private createBottomBar() {
+    private createStrutBottomBar() {
         // Create the 2D overlay div
-        this.bottomBar = document.createElement("div");
-        this.bottomBar.id = "bottomBar";
-        this.bottomBar.classList.add("hidden");
-        this.grid.appendChild(this.bottomBar);
+        this.strutBottomBar = document.createElement("div");
+        this.strutBottomBar.id = "bottomBar";
+        this.strutBottomBar.classList.add("hidden");
+        this.grid.appendChild(this.strutBottomBar);
+
+        // Add some buttons to the overlay
+        const buttonDelete = document.createElement("button");
+        buttonDelete.innerHTML = ICON.trashbin;
+        buttonDelete.className = "button button-primary button-rounded";
+        buttonDelete.addEventListener('click', () => {
+            if (!this.selectedStrut) {
+                return;
+            }
+
+            if (this.selectedStrut.getIndex() === 0) {
+                this.shelf.removeStrutAtStart();
+            } else {
+                this.shelf.removeStrutAtEnd();
+            }
+            
+            this.shelf.removeStrutAtStart();
+            this.setSelectedProduct(null);
+        });
+        this.strutBottomBar.appendChild(buttonDelete);
+
+        const addButton = document.createElement("button");
+        addButton.innerHTML = ICON.plus;
+        addButton.className = "button button-primary button-rounded";
+        addButton.addEventListener('click', () => {
+            if (this.selectedStrut.getIndex() === 0) {
+                this.shelf.addStrutToStart();
+            } else {
+                this.shelf.addStrutToEnd();
+            }
+
+            this.setSelectedProduct(null);
+        });
+        this.strutBottomBar.appendChild(addButton);
+    }
+
+    private createBoardBottomBar() {
+        // Create the 2D overlay div
+        this.boardBottomBar = document.createElement("div");
+        this.boardBottomBar.id = "bottomBar";
+        this.boardBottomBar.classList.add("hidden");
+        this.grid.appendChild(this.boardBottomBar);
 
         // Add some buttons to the overlay
         const buttonDelete = document.createElement("button");
@@ -89,9 +160,9 @@ export class Navigation2D {
             }
             
             this.shelf.removeBoard(this.selectedBoard);
-            this.setSelectedBoard(null);
+            this.setSelectedProduct(null);
         });
-        this.bottomBar.appendChild(buttonDelete);
+        this.boardBottomBar.appendChild(buttonDelete);
 
         const buttonDuplicate = document.createElement("button");
         buttonDuplicate.innerHTML = ICON.duplicate;
@@ -110,7 +181,7 @@ export class Navigation2D {
 
             this.shelf.addBoard(newHeight, this.selectedBoard.getStartStrut().getIndex(), this.selectedBoard.getEndStrut().getIndex());
         });
-        this.bottomBar.appendChild(buttonDuplicate);
+        this.boardBottomBar.appendChild(buttonDuplicate);
 
         const buttonPin = document.createElement("button");
         buttonPin.innerHTML = ICON.pin;
@@ -139,7 +210,7 @@ export class Navigation2D {
                 }
             }
         });
-        this.bottomBar.appendChild(buttonPin);
+        this.boardBottomBar.appendChild(buttonPin);
 
         const buttonShorten = document.createElement("button");
         buttonShorten.innerHTML = ICON.shorten;
@@ -161,7 +232,7 @@ export class Navigation2D {
         
             this.onBoardShortened.trigger(this.selectedBoard);
         });
-        this.bottomBar.appendChild(buttonShorten);
+        this.boardBottomBar.appendChild(buttonShorten);
 
         const buttonWiden = document.createElement("button");
         buttonWiden.innerHTML = ICON.widen;
@@ -190,7 +261,7 @@ export class Navigation2D {
         
             this.onBoardWidened.trigger(this.selectedBoard);
         });
-        this.bottomBar.appendChild(buttonWiden);
+        this.boardBottomBar.appendChild(buttonWiden);
     }
 
     private createSideBar() {

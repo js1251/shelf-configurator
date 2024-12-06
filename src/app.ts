@@ -149,9 +149,12 @@ class App {
             });
 
             navigation3D.EntitySelected.on((entity) => {
+                if (entity instanceof ProductEntity) {
+                    navigation2D.setSelectedProduct(entity);
+                }
+
                 if (entity instanceof Board) {
                     measurements.createForBoard(entity);
-                    navigation2D.setSelectedBoard(entity);
                 }
 
                 if (entity instanceof ProductEntity) {
@@ -164,7 +167,7 @@ class App {
                     measurements.removeForBoard(entity);
                 }
                 
-                navigation2D.setSelectedBoard(null);
+                navigation2D.setSelectedProduct(null);
                 controlPanel.setSelectedProduct(null);
             });
 
@@ -302,13 +305,12 @@ class App {
         const shelf = new Shelf(this.modelLoader);
             
         shelf.setHeight(2.4);
+        shelf.setStrutSpacing(0.5);
 
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
-            
-        shelf.setStrutSpacing(0.5);
         
         shelf.addBoard(0.35, 1, 3);
         shelf.addBoard(0.77, 0, 2);

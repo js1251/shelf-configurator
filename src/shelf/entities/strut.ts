@@ -14,12 +14,11 @@ export class Strut extends ProductEntity {
 
     static STRUT_DIAMETER = 0.028;
 
-    constructor(modelloader: ModelLoader, height_m: number, offset: number, index: number) {
+    constructor(modelloader: ModelLoader, height_m: number, index: number) {
         super(modelloader);
         this.index = index;
 
         this.setHeight(height_m);
-        this.setOffset(offset);
         this.setMaterial(METAL_MATERIALS[0].material);
     }
 
@@ -59,17 +58,6 @@ export class Strut extends ProductEntity {
         this.updateBoundingBox();
 
         this.freeze();
-    }
-
-    getOffset(): number {
-        return this.offset;
-    }
-
-    setOffset(offset: number) {
-        this.offset = offset;
-        const newPosition = this.getPosition().clone();
-        newPosition.x = this.offset;
-        this.setPosition(newPosition);
     }
 
     get price(): number {

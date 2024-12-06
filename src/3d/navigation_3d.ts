@@ -357,6 +357,11 @@ export class Navigation3D {
 
         this.shelf.addFollower(billboard);
 
+        this.shelf.BboxChanged.on(() => {
+            billboard.position = this.shelf.getBoundingBox().center;
+            billboard.position.y = 0;
+        });
+
         const pointerDragBehavior = new BABYLON.PointerDragBehavior({
             dragPlaneNormal: BABYLON.Vector3.Up(),
         });
