@@ -12,7 +12,6 @@ export class Navigation2D {
     private shelf: Shelf;
     private selectedBoard: Board;
     private selectedStrut: Strut;
-    // private pinnedBoards: Board[] = []; // What if a board is removed?
 
     private boardBottomBar: HTMLDivElement;
     private strutBottomBar: HTMLDivElement;
@@ -64,10 +63,7 @@ export class Navigation2D {
 
             this.strutBottomBar.classList.remove("visible");
             this.strutBottomBar.classList.add("hidden");
-            return;
-        }
-
-        if (product instanceof Board) {
+        } else if (product instanceof Board) {
             this.selectedBoard = product;
             this.selectedStrut = null;
 
@@ -76,30 +72,16 @@ export class Navigation2D {
 
             this.boardBottomBar.classList.add("visible");
             this.boardBottomBar.classList.remove("hidden");
-
-            /*
-            if (this.pinnedBoards.includes(product)) {
-                document.getElementById("pinButton").classList.add("active");
-            } else {
-                document.getElementById("pinButton").classList.remove("active");
-            }
-            */
-
             return;
-        }
-
-        if (product instanceof Strut) {
+        } else if (product instanceof Strut) {
             this.selectedStrut = product;
             this.selectedBoard = null;
 
             this.boardBottomBar.classList.remove("visible");
             this.boardBottomBar.classList.add("hidden");
 
-            if (product.getIndex() === 0 || product.getIndex() === this.shelf.getStruts().length - 1) {
-                this.strutBottomBar.classList.add("visible");
-                this.strutBottomBar.classList.remove("hidden");
-            }
-            return;
+            this.strutBottomBar.classList.add("visible");
+            this.strutBottomBar.classList.remove("hidden");
         }
     }
 
@@ -115,11 +97,9 @@ export class Navigation2D {
         buttonDelete.innerHTML = ICON.trashbin;
         buttonDelete.className = "button button-primary button-rounded";
         buttonDelete.addEventListener('click', () => {
-            if (!this.selectedStrut) {
-                return;
-            }
+            const numStruts = this.shelf.getStruts().length;
 
-            if (this.selectedStrut.getIndex() === 0) {
+            if (this.selectedStrut.getIndex() < numStruts / 2) {
                 this.shelf.removeStrutAtStart();
             } else {
                 this.shelf.removeStrutAtEnd();
@@ -133,7 +113,9 @@ export class Navigation2D {
         addButton.innerHTML = ICON.plus;
         addButton.className = "button button-primary button-rounded";
         addButton.addEventListener('click', () => {
-            if (this.selectedStrut.getIndex() === 0) {
+            const numStruts = this.shelf.getStruts().length;
+
+            if (this.selectedStrut.getIndex() < numStruts / 2) {
                 this.shelf.addStrutToStart();
             } else {
                 this.shelf.addStrutToEnd();

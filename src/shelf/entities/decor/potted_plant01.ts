@@ -15,8 +15,8 @@ export class PottedPlant01 extends Decor {
         min.y = 0;
         max.y -= 0.02;
         
-        min.z += 0.05;
-        max.z -= 0.1;
+        min.z += 0.1;
+        max.z -= 0.05;
 
         min.x += 0.05;
         max.x -= 0.05;

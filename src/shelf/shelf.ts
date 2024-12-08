@@ -108,18 +108,12 @@ export class Shelf extends Entity {
             this.struts[i].setPosition(strutPos.clone().add(new BABYLON.Vector3(this.spacing * i, 0, 0)));
         }
 
-        this.setPosition(this.getPosition().add(new BABYLON.Vector3(-this.spacing, 0, 0)));
-
-        // supress OnBoardSizeChanged event
-        this.onBoardSizeChanged.supress();
-
         // update all boards start and end struts
-        for (let i = 0; i < this.boards.length; i++) {
-            const board = this.boards[i];
+        this.boards.forEach((board) => {
             board.setSpanStruts(this.struts[board.getStartStrut().getIndex()], this.struts[board.getEndStrut().getIndex()]);
-        }
+        });
 
-        this.onBoardSizeChanged.unsupress();
+        this.setPosition(this.getPosition().add(new BABYLON.Vector3(-this.spacing, 0, 0)));
 
         this.updateBoundingBox();
 
@@ -146,47 +140,56 @@ export class Shelf extends Entity {
     }
 
     removeStrutAtStart() {
-        //this.onBoardSizeChanged.supress();
-        
+        if (this.struts.length <= 2) {
+            console.warn("Cannot remove strut. Shelf must have at least 2 struts.");
+            return;
+        }
+
+        // First push all boards toward the start of the shelf
         for (let i = this.boards.length - 1; i >= 0; i--) {
             const board = this.boards[i];
             const currentStartIndex = board.getStartStrut().getIndex();
-
-            if (currentStartIndex !== 0) {
-                continue;
-            }
-
             const currentEndIndex = board.getEndStrut().getIndex();
-            if (currentEndIndex - currentStartIndex > 1) {
-                // shorten the board
-                board.setSpanStruts(this.struts[1], this.struts[currentEndIndex]);
-            } else {
-                // the board needs to be removed
-                const index = this.boards.indexOf(board);
-                if (index > -1) {
-                    board.remove();
-                    this.boards.splice(index, 1);
+
+            // check if the board is at the start of the shelf
+            if (currentStartIndex === 0) {
+                // if it is, check if its at least 2 struts long
+                if (currentEndIndex - currentStartIndex > 1) {
+                    // shorten the board and shift it to the start
+                    board.setSpanStruts(this.struts[0], this.struts[currentEndIndex - 1]);
+                } else {
+                    // the board needs to be removed
+                    const index = this.boards.indexOf(board);
+                    if (index > -1) {
+                        board.remove();
+                        this.boards.splice(index, 1);
+                    }
                 }
+            } else {
+                // shift the board one strut towards the start
+                board.setSpanStruts(this.struts[currentStartIndex - 1], this.struts[currentEndIndex - 1]);
             }
         }
         
-        const removedStrut = this.struts.shift();
+        // remove the strut at the end
+        const removedStrut = this.struts.pop();
         removedStrut.remove();
 
-        this.struts.forEach((strut) => {
-            strut.setIndex(strut.getIndex() - 1);
-        });
-
-        //this.onBoardSizeChanged.unsupress();
+        // move the entire shelf toward the end by one strut
+        this.setPosition(this.getPosition().add(new BABYLON.Vector3(this.spacing, 0, 0)));
+        
         this.updateBoundingBox();
         this.onStrutRemoved.trigger(removedStrut);
     }
 
     removeStrutAtEnd() {
+        if (this.struts.length <= 2) {
+            console.warn("Cannot remove strut. Shelf must have at least 2 struts.");
+            return;
+        }
+
         const removedStrut = this.struts.pop();
         removedStrut.remove();
-
-        //this.onBoardSizeChanged.supress();
 
         // iterate backwards to avoid index out of bounds
         for (let i = this.boards.length - 1; i >= 0; i--) {
@@ -211,7 +214,6 @@ export class Shelf extends Entity {
             board.setSpanStruts(this.struts[startIndex], this.struts[endIndex - 1]);
         }
 
-        //this.onBoardSizeChanged.unsupress();
         this.updateBoundingBox();
         this.onStrutRemoved.trigger(removedStrut);
     }

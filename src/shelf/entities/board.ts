@@ -136,7 +136,7 @@ export class Board extends ProductEntity {
                 return;
             }
 
-            if (this.shouldBeIgnored(child)) {
+            if (this.isFollower(child)) {
                 return;
             }
 

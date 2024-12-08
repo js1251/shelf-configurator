@@ -6,28 +6,23 @@ export class PriceDisplay {
     private decimelAmount: HTMLSpanElement;
     
     constructor() {
-        const container = document.createElement("div");
-        container.id = "priceDisplay";
-        this.root = container;
+        this.root = document.createElement("div");
+        this.root.id = "priceDisplay";
 
         const currencySymbol = document.createElement("h5");
         currencySymbol.innerHTML = "€";
         currencySymbol.id = "currencySymbol";
-        container.appendChild(currencySymbol);
+        this.root.appendChild(currencySymbol);
 
         this.intAmount = document.createElement("h2");
         this.intAmount.id = "intAmount";
-        container.appendChild(this.intAmount);
+        this.root.appendChild(this.intAmount);
 
         this.decimelAmount = document.createElement("h5");
         this.decimelAmount.id = "decimelAmount";
-        container.appendChild(this.decimelAmount);
+        this.root.appendChild(this.decimelAmount);
 
         this.setAmount(0);
-    }
-
-    setFontSize(size: number) {
-        // set the font size of the amount
     }
 
     setAmount(amount: number) {
@@ -37,6 +32,10 @@ export class PriceDisplay {
 
         this.intAmount.innerHTML = intString;
         this.decimelAmount.innerHTML = "." + ((amount - Math.floor(amount))* 100).toFixed(0).padStart(2, "0");
+    }
+
+    setDiscount(discount: number) {
+        // set the discount
     }
     
     get rootElement() {

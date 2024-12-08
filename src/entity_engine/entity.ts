@@ -1,7 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
-import { Decor } from "../shelf/decor";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
@@ -40,12 +39,10 @@ export abstract class Entity {
 
         this.freeze();
 
-        /*
         this.root.showBoundingBox = true;
         setTimeout(() => {
             this.showAABB = true;
         }, 10);
-        */
     }
 
     freeze() {
@@ -53,7 +50,7 @@ export abstract class Entity {
         this.root.freezeWorldMatrix();
 
         this.root.getChildMeshes().forEach(mesh => {
-            if (this.shouldBeIgnored(mesh)) {
+            if (this.isFollower(mesh)) {
                 return;
             }
 
@@ -67,7 +64,7 @@ export abstract class Entity {
         this.root.unfreezeWorldMatrix();
 
         this.root.getChildMeshes().forEach(mesh => {
-            if (this.shouldBeIgnored(mesh)) {
+            if (this.isFollower(mesh)) {
                 return;
             }
 
@@ -149,7 +146,7 @@ export abstract class Entity {
         this.ignoreBboxNodes.splice(index, -1);
     }
 
-    protected shouldBeIgnored(node: BABYLON.TransformNode): boolean {
+    isFollower(node: BABYLON.TransformNode): boolean {
         if (this.ignoreBboxNodes.indexOf(node) > -1) {
             return true;
         }
@@ -168,8 +165,16 @@ export abstract class Entity {
 
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
-    protected updateBoundingBox() {        
-        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => !this.shouldBeIgnored(node));
+    protected updateBoundingBox() {
+        console.log("updateBoundingBox");
+        console.log(this.ignoreBboxNodes);
+        this.root.getChildMeshes().forEach(mesh => {
+            if (this.isFollower(mesh)) {
+                console.log(`${mesh.name} is a follower`);
+            }
+        });
+
+        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => !this.isFollower(node));
 
         hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
         hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());

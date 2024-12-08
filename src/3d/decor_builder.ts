@@ -57,14 +57,10 @@ export class DecorBuilder {
     ];
 
     private isVisible: boolean = true;
-    private root: BABYLON.TransformNode;
 
     constructor(modelloader: ModelLoader, shelf: Shelf) {
         this.modelloader = modelloader;
         this.shelf = shelf;
-
-        this.root = new BABYLON.TransformNode("decor_root", modelloader.scene);
-        this.shelf.addFollower(this.root);
 
         const boards = this.shelf.getBoards();
         for (let i = 0; i < boards.length; i++) {
