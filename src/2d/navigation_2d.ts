@@ -12,7 +12,7 @@ export class Navigation2D {
     private shelf: Shelf;
     private selectedBoard: Board;
     private selectedStrut: Strut;
-    private pinnedBoards: Board[] = []; // What if a board is removed?
+    // private pinnedBoards: Board[] = []; // What if a board is removed?
 
     private boardBottomBar: HTMLDivElement;
     private strutBottomBar: HTMLDivElement;
@@ -77,11 +77,13 @@ export class Navigation2D {
             this.boardBottomBar.classList.add("visible");
             this.boardBottomBar.classList.remove("hidden");
 
+            /*
             if (this.pinnedBoards.includes(product)) {
                 document.getElementById("pinButton").classList.add("active");
             } else {
                 document.getElementById("pinButton").classList.remove("active");
             }
+            */
 
             return;
         }
@@ -123,7 +125,6 @@ export class Navigation2D {
                 this.shelf.removeStrutAtEnd();
             }
             
-            this.shelf.removeStrutAtStart();
             this.setSelectedProduct(null);
         });
         this.strutBottomBar.appendChild(buttonDelete);
@@ -183,6 +184,7 @@ export class Navigation2D {
         });
         this.boardBottomBar.appendChild(buttonDuplicate);
 
+        /*
         const buttonPin = document.createElement("button");
         buttonPin.innerHTML = ICON.pin;
         buttonPin.className = "button button-primary button-rounded";
@@ -211,6 +213,7 @@ export class Navigation2D {
             }
         });
         this.boardBottomBar.appendChild(buttonPin);
+        */
 
         const buttonShorten = document.createElement("button");
         buttonShorten.innerHTML = ICON.shorten;

@@ -25,6 +25,16 @@ export class Shelf extends Entity {
     public get BoardRemoved() {
         return this.onBoardRemoved.expose();
     }
+
+    private readonly onStrutAdded = new LiteEvent<Strut>();
+    public get StrutAdded() {
+        return this.onStrutAdded.expose();
+    }
+
+    private readonly onStrutRemoved = new LiteEvent<Strut>();
+    public get StrutRemoved() {
+        return this.onStrutRemoved.expose();
+    }
     
     protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] { 
         return [min, max];
@@ -82,6 +92,10 @@ export class Shelf extends Entity {
 
     addStrutToStart() {
         const strut = new Strut(this.modelloader, this.getHeight(), 0);
+        if (this.struts.length > 0) {
+            strut.setMaterial(this.getStruts()[0].getMaterial());
+        }
+
         const strutPos = this.getPosition().clone();
         strutPos.y = this.height_m / 2;
 
@@ -103,19 +117,21 @@ export class Shelf extends Entity {
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
             board.setSpanStruts(this.struts[board.getStartStrut().getIndex()], this.struts[board.getEndStrut().getIndex()]);
-
-            board.getAllDecor().forEach(decor => {
-                decor.setPosition(decor.getPosition().add(new BABYLON.Vector3(this.spacing, 0, 0)));
-            });
         }
 
         this.onBoardSizeChanged.unsupress();
 
         this.updateBoundingBox();
+
+        this.onStrutAdded.trigger(strut);
     }
 
     addStrutToEnd() {
         const strut = new Strut(this.modelloader, this.getHeight(), this.struts.length);
+        if (this.struts.length > 0) {
+            strut.setMaterial(this.getStruts()[0].getMaterial());
+        }
+
         const strutPos = this.getPosition().clone();
         strutPos.y = this.height_m / 2;
         strutPos.x += this.spacing * this.struts.length;
@@ -125,73 +141,79 @@ export class Shelf extends Entity {
         this.struts.push(strut);
         
         this.updateBoundingBox();
+
+        this.onStrutAdded.trigger(strut);
     }
 
     removeStrutAtStart() {
-        this.struts.shift().remove();
-
-        for (let i = 0; i < this.struts.length; i++) {
-            const strut = this.struts[i];
-            strut.setIndex(strut.getIndex() - 1);
-        }
-
-        // update all boards start and end struts
+        //this.onBoardSizeChanged.supress();
+        
         for (let i = this.boards.length - 1; i >= 0; i--) {
             const board = this.boards[i];
-            const startIndex = board.getStartStrut().getIndex() + 1;
-            const endIndex = board.getEndStrut().getIndex() + 1;
-            
-            if (startIndex === 1) {
-                if (endIndex - startIndex > 0) {
-                    // shorten the board
-                    board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex]);
-                } else {
-                    // the board needs to be removed
-                    const index = this.boards.indexOf(board);
-                    if (index > -1) {
-                        board.remove()
-                        this.boards.splice(index, 1);
-                    }
+            const currentStartIndex = board.getStartStrut().getIndex();
 
-                    continue;
-                }
+            if (currentStartIndex !== 0) {
+                continue;
             }
 
-            board.setSpanStruts(this.struts[startIndex - 1], this.struts[endIndex - 1]);
+            const currentEndIndex = board.getEndStrut().getIndex();
+            if (currentEndIndex - currentStartIndex > 1) {
+                // shorten the board
+                board.setSpanStruts(this.struts[1], this.struts[currentEndIndex]);
+            } else {
+                // the board needs to be removed
+                const index = this.boards.indexOf(board);
+                if (index > -1) {
+                    board.remove();
+                    this.boards.splice(index, 1);
+                }
+            }
         }
+        
+        const removedStrut = this.struts.shift();
+        removedStrut.remove();
 
+        this.struts.forEach((strut) => {
+            strut.setIndex(strut.getIndex() - 1);
+        });
+
+        //this.onBoardSizeChanged.unsupress();
         this.updateBoundingBox();
+        this.onStrutRemoved.trigger(removedStrut);
     }
 
     removeStrutAtEnd() {
-        if (this.struts.length < 2) {
-            throw new Error("Cannot remove last strut");
-        }
+        const removedStrut = this.struts.pop();
+        removedStrut.remove();
 
-        this.struts.pop().remove();
+        //this.onBoardSizeChanged.supress();
 
         // iterate backwards to avoid index out of bounds
         for (let i = this.boards.length - 1; i >= 0; i--) {
             const board = this.boards[i];
-            const startIndex = board.getStartStrut().getIndex();
             const endIndex = board.getEndStrut().getIndex();
 
-            if (endIndex >= this.struts.length) {
-                if (endIndex - startIndex === 1) {
-                    const index = this.boards.indexOf(board);
-                    if (index > -1) {
-                        board.remove()
-                        this.boards.splice(index, 1);
-                    }
+            if (endIndex < this.struts.length) {
+                continue;
+            }
 
-                    continue;
+            const startIndex = board.getStartStrut().getIndex();
+            if (endIndex - startIndex === 1) {
+                const index = this.boards.indexOf(board);
+                if (index > -1) {
+                    board.remove()
+                    this.boards.splice(index, 1);
                 }
 
-                board.setSpanStruts(this.struts[startIndex], this.struts[endIndex - 1]);
+                continue;
             }
+
+            board.setSpanStruts(this.struts[startIndex], this.struts[endIndex - 1]);
         }
 
+        //this.onBoardSizeChanged.unsupress();
         this.updateBoundingBox();
+        this.onStrutRemoved.trigger(removedStrut);
     }
 
     setStrutSpacing(spacing: number) {

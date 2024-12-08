@@ -25,6 +25,7 @@ export class Resources {
     static WALLNUT_OILED_MATERIAL: BABYLON.Material;
     static WALLNUT_VARNISHED_MATERIAL: BABYLON.Material;
 
+    static COATED_BLACK_MATERIAL: BABYLON.Material;
     static STAINLESS_BRUSHED_MATERIAL: BABYLON.Material;
     static BRASS_BRUSHED_MATERIAL: BABYLON.Material;
 
@@ -131,19 +132,28 @@ export class Resources {
             (wallnutVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#774e21");
             Resources.WALLNUT_VARNISHED_MATERIAL = wallnutVarnished;
 
-            const stainlessBrushed = nodeMaterial.clone("materials_stainless_brushed");
+            const coatedBlack = nodeMaterial.clone("materials_coated_black");
+            setMetalTexture(coatedBlack);
+            (coatedBlack.getBlockByName("tileSize") as BABYLON.InputBlock).value = BABYLON.Vector3.One().scale(0.5);
+            (coatedBlack.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#222222");
+            (coatedBlack.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
+            (coatedBlack.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.39;
+            (coatedBlack.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 0.6;
+            Resources.COATED_BLACK_MATERIAL = coatedBlack;
+
+            const stainlessBrushed = coatedBlack.clone("materials_stainless_brushed");
             setMetalTexture(stainlessBrushed);
-            (stainlessBrushed.getBlockByName("tileSize") as BABYLON.InputBlock).value = BABYLON.Vector3.One().scale(0.5);
             (stainlessBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#b4b9c2");
             (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
             (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
+            (stainlessBrushed.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 1;
             Resources.STAINLESS_BRUSHED_MATERIAL = stainlessBrushed;
 
             const brassBrushed = stainlessBrushed.clone("materials_brass_brushed");
             setMetalTexture(brassBrushed);
             (brassBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#e4b95d");
             (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.8;
-            (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.7;
+            (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
             Resources.BRASS_BRUSHED_MATERIAL = brassBrushed;
 
             nodeMaterial.dispose();
@@ -327,14 +337,7 @@ class NussbaumKlarlack extends ShelfMaterial {
 
 class PulverbeschichtetSchwarz extends ShelfMaterial {
     protected createMaterial(): BABYLON.Material {
-        const material = new TriPlanarMaterial("materials_coated_black");
-        material.diffuseTextureX = Resources.TEXTURE_COATEDMETAL_COLOR;
-        material.diffuseTextureZ = material.diffuseTextureX;
-        material.normalTextureX = Resources.TEXTURE_COATEDMETAL_NORMAL;
-        material.normalTextureZ = material.normalTextureX;
-        material.freeze();
-        
-        return material;
+        return Resources.COATED_BLACK_MATERIAL;
     }
 
     get name(): string {

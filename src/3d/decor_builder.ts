@@ -16,6 +16,8 @@ export class DecorBuilder {
     private shelf: Shelf;
     private modelloader: ModelLoader;
 
+    private decorLookup: { [id: number]: Decor[] } = {};
+
     private decorOptions = [
         {
             clone: (modelloader) => new PottedPlant01(modelloader),
@@ -64,7 +66,10 @@ export class DecorBuilder {
         this.root = new BABYLON.TransformNode("decor_root", modelloader.scene);
         this.shelf.addFollower(this.root);
 
-        this.fillDecor();
+        const boards = this.shelf.getBoards();
+        for (let i = 0; i < boards.length; i++) {
+            this.buildDecorForBoard(boards[i]);
+        }
 
         this.shelf.BoardMoved.on((board) => {
             this.removeDecorForBoard(board);
@@ -72,6 +77,7 @@ export class DecorBuilder {
         });
 
         this.shelf.BoardSizeChanged.on((board) => {
+            console.log("board size changed");
             this.removeDecorForBoard(board);
             this.buildDecorForBoard(board);
             this.validateNeighborDecorForBoard(board);
@@ -87,16 +93,10 @@ export class DecorBuilder {
         });
     }
 
-    private fillDecor() {
-        const boards = this.shelf.getBoards();
-        for (let i = 0; i < boards.length; i++) {
-            this.buildDecorForBoard(boards[i]);
-        }
-    }
-
     buildDecorForBoard(board: Board) {
-        // remove any existing decor
-        board.removeAllDecor();
+        if (this.getDecorForBoard(board) && this.getDecorForBoard(board).length > 0) {
+            return;
+        }
 
         const height = board.getHeight();
         const allBoards = this.shelf.getBoards();
@@ -159,9 +159,10 @@ export class DecorBuilder {
                     continue;
                 }
 
-                board.addDecor(decor);
+                this.addDecorToLookup(board, decor);
                 spawnedDecor.push(decor);
-                decor.root.setParent(this.root);
+
+                board.addFollower(decor.root);
 
                 decor.root.setEnabled(this.isVisible);
 
@@ -171,8 +172,23 @@ export class DecorBuilder {
         }
     }
 
+    getDecorForBoard(board: Board): Decor[] {
+        return this.decorLookup[this.getBoardId(board)];
+    }
+
     removeDecorForBoard(board: Board) {
-        board.removeAllDecor();
+        const id = this.getBoardId(board);
+        const decors = this.decorLookup[id];
+
+        if (!decors) {
+            return;
+        }
+
+        decors.forEach(decor => {
+            decor.remove();
+        });
+
+        delete this.decorLookup[id];
     }
 
     validateNeighborDecorForBoard(board: Board) {
@@ -187,7 +203,7 @@ export class DecorBuilder {
             const board = this.shelf.getBoards()[i];
 
             // check if the decor intersects with any other board (above)
-            const decors = board.getAllDecor();
+            const decors = this.decorLookup[this.getBoardId(board)];
             let collisionOccured = false;
             decors.forEach(decor => {
                 if (this.collides(decor, i)) {
@@ -199,7 +215,7 @@ export class DecorBuilder {
             if (collisionOccured) {
                 // remove all decor
                 decors.forEach(decor => {
-                    board.removeDecor(decor);
+                    this.removeDecorFromLookup(board, decor, { removeFromBoard: true });
                 });
 
                 // rebuild the decor
@@ -212,7 +228,7 @@ export class DecorBuilder {
         this.isVisible = visible;
 
         this.shelf.getBoards().forEach(board => {
-            const decors = board.getAllDecor();
+            const decors = this.decorLookup[this.getBoardId(board)];
             decors.forEach(decor => {
                 decor.root.setEnabled(visible);
             });
@@ -241,6 +257,36 @@ export class DecorBuilder {
         });
     }
 
+    private getBoardId(board: Board): number {
+        return board.root.uniqueId;
+    }
+
+    private addDecorToLookup(board: Board, decor: Decor) {
+        const id = this.getBoardId(board);
+        if (!this.decorLookup[id]) {
+            this.decorLookup[id] = [];
+        }
+
+        this.decorLookup[id].push(decor);
+    }
+
+    private removeDecorFromLookup(board: Board, decor: Decor, options?: { removeFromBoard?: boolean }) {
+        const id = this.getBoardId(board);
+        const decors = this.decorLookup[id];
+
+        if (!decors) {
+            return;
+        }
+
+        const index = decors.indexOf(decor);
+        if (index > -1) {
+            decors.splice(index, 1);
+        }
+
+        if (options && options.removeFromBoard) {
+            decor.remove();
+        }
+    }
 
     private getDecorOptions(startHeight: number): any[] {
         const options = [];

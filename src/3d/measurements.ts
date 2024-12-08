@@ -8,6 +8,8 @@ export class Measurements {
     private camera: BABYLON.ArcRotateCamera;
     private root: BABYLON.TransformNode;
 
+    private selectedBoard: Board;
+
     private widthLineFront: BABYLON.LinesMesh;
     private widthLineBack: BABYLON.LinesMesh;
 
@@ -50,11 +52,19 @@ export class Measurements {
         });
 
         this.shelf.BoardMoved.on((board) => {
+            if (board !== this.selectedBoard) {
+                return;
+            }
+            
             this.removeForBoard(board);
             this.createForBoard(board);
         });
 
         this.shelf.BoardSizeChanged.on((board) => {
+            if (board !== this.selectedBoard) {
+                return;
+            }
+
             // update measurements to use new board size
             this.removeForBoard(board);
             this.createForBoard(board);
@@ -63,6 +73,15 @@ export class Measurements {
         this.shelf.BoardRemoved.on((board) => {
             this.removeForBoard(board);
         });
+
+        this.shelf.BboxChanged.on((bbox) => {
+            this.remove();
+            this.createMeasurements();
+        });
+    }
+
+    setSelectedBoard(board: Board) {
+        this.selectedBoard = board;
     }
 
     remove() {

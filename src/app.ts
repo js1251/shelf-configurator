@@ -2,7 +2,6 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 import * as BABYLON from "@babylonjs/core";
-import { TriPlanarMaterial } from "@babylonjs/materials";
 import * as ENVIRONMENT from "./3d/environment";
 import { ModelLoader } from "./3d/modelloader";
 import { Shelf } from "./shelf/shelf";
@@ -30,7 +29,7 @@ class App {
     private sun: BABYLON.DirectionalLight;
 
     // TODO: Clean up, encapsulate into methods
-    // NOTE: If things change at runtime, measurements, decor and navigation3D might not yet be updated
+    // NOTE: If things change at runtime, and navigation3D might not yet be updated
     constructor() {
         const grid = document.createElement("div");
         grid.id = "mainGrid";
@@ -143,18 +142,19 @@ class App {
             const navigation2D = new Navigation2D(sceneWrapper, this.shelf);
             const controlPanel = new ControlPanel(grid, this.shelf, environment);
 
-            this.shelf.BboxChanged.on((bbox) => {
-                measurements.remove();
-                measurements.createMeasurements();
-            });
-
             navigation3D.EntitySelected.on((entity) => {
                 if (entity instanceof ProductEntity) {
                     navigation2D.setSelectedProduct(entity);
                 }
 
                 if (entity instanceof Board) {
+                    measurements.setSelectedBoard(entity);
                     measurements.createForBoard(entity);
+
+                    const decors = decor_builder.getDecorForBoard(entity);
+                    decors.forEach((decor) => {
+                        navigation3D.highlightEntity(decor, Measurements.BOARD_MEASURE_COLOR);
+                    });
                 }
 
                 if (entity instanceof ProductEntity) {
@@ -165,17 +165,21 @@ class App {
             navigation3D.EntityDeselected.on((entity) => {
                 if (entity instanceof Board) {
                     measurements.removeForBoard(entity);
+
+                    const decors = decor_builder.getDecorForBoard(entity);
+                    decors.forEach((decor) => {
+                        navigation3D.removeHighlightEntity(decor);
+                    });
                 }
                 
                 navigation2D.setSelectedProduct(null);
                 controlPanel.setSelectedProduct(null);
+                measurements.setSelectedBoard(null);
             });
 
             navigation3D.BoardStoppedDragged.on((board) => {
-                if (board.getAllDecor().length === 0) {
-                    decor_builder.buildDecorForBoard(board);
-                    navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
-                }
+                decor_builder.buildDecorForBoard(board);
+                navigation3D.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
             });
 
             navigation3D.ShelfMoved.on(() => {

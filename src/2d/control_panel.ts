@@ -30,15 +30,8 @@ export class ControlPanel {
     }
 
     setSelectedProduct(product: ProductEntity) {
-        if (product === null) {
-
-            if (!this.currentExtendPanel) {
-                console.warn("Detail panel not found");
-                return;
-            }
-
+        if (this.currentExtendPanel) {
             this.currentExtendPanel.closeAndRemove();
-            return;
         }
 
         if (product) {

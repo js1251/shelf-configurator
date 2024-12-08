@@ -1,7 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../../3d/modelloader";
 import { Strut } from "./strut";
-import { Decor } from "../decor";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
 import { WOOD_MATERIALS } from "../materials";
@@ -16,8 +15,6 @@ export class Board extends ProductEntity {
     private middles: BABYLON.AbstractMesh[] = [];
     private stretches: BABYLON.AbstractMesh[] = [];
     private end: BABYLON.AbstractMesh;
-
-    private decor: Decor[] = [];
     
     static BOARD_WIDTH = 0.2;
     static BOARD_THICKNESS = 0.02; // technically its 0.018 but it makes the numbers easier using 0.02
@@ -87,6 +84,9 @@ export class Board extends ProductEntity {
         this.handleMiddle();
         this.updateBoundingBox();
 
+        // refresh material to apply it to potential new meshes
+        this.setMaterial(this.getMaterial());
+
         this.onBoardSizeChanged.trigger();
 
         this.freeze();
@@ -101,33 +101,7 @@ export class Board extends ProductEntity {
         return this.endStrut;
     }
 
-    addDecor(decor: Decor) {
-        this.decor.push(decor);
-    }
-
-    getAllDecor(): Decor[] {
-        return this.decor;
-    }
-
-    removeDecor(decor: Decor) {
-        const index = this.decor.indexOf(decor);
-        if (index > -1) {
-            this.decor.splice(index, 1);
-            decor.remove();
-        }
-    }
-
-    removeAllDecor() {
-        this.decor.forEach((decor) => {
-            decor.remove();
-        });
-        this.decor = [];
-    }
-
     override remove() {
-        this.decor.forEach((decor) => {
-            decor.remove();
-        });
         super.remove();
     }
 
@@ -159,6 +133,10 @@ export class Board extends ProductEntity {
         this.start.getChildMeshes().forEach(child => {
             // if the child is a clamp, don't change the material
             if (child.name.includes("clamp")) {
+                return;
+            }
+
+            if (this.shouldBeIgnored(child)) {
                 return;
             }
 

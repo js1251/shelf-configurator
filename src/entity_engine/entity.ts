@@ -149,7 +149,7 @@ export abstract class Entity {
         this.ignoreBboxNodes.splice(index, -1);
     }
 
-    private shouldBeIgnored(node: BABYLON.TransformNode): boolean {
+    protected shouldBeIgnored(node: BABYLON.TransformNode): boolean {
         if (this.ignoreBboxNodes.indexOf(node) > -1) {
             return true;
         }

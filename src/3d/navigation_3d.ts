@@ -7,6 +7,7 @@ import { LiteEvent } from "../event_engine/LiteEvent";
 import { Environment } from "./environment";
 import * as ICON from "../2d/icons";
 import { Entity } from "../entity_engine/entity";
+import { ProductEntity } from "../entity_engine/product_entity";
 
 class DeselectDetector {
     private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
@@ -113,7 +114,6 @@ export class Navigation3D {
             renderingGroupId: 0,
         });
 
-        // TODO: add controls to new boards when they are created!
         this.shelf.getBoards().forEach((board) => {
             this.attachEntitySelectionControls(board);
             this.attachBoardDragControls(board);
@@ -125,65 +125,55 @@ export class Navigation3D {
 
         this.attachShelfDragControls();
 
-        this.shelf.BoardSizeChanged.on((board) => {
-            // reselect to refresh highlight
-            this.setSelectedBoard(board);
-        });
-
         this.shelf.BoardRemoved.on((board) => {
-            this.setSelectedBoard(null);
+            this.setSelectedEntity(null);
         });
 
         this.shelf.BoardAdded.on((board) => {
+            this.attachEntitySelectionControls(board);
             this.attachBoardDragControls(board);
+        });
+
+        this.shelf.StrutAdded.on((strut) => {
+            this.setSelectedEntity(strut);
+            this.attachEntitySelectionControls(strut);
+        });
+
+        this.shelf.StrutRemoved.on((strut) => {
+            this.setSelectedEntity(null);
         });
     }
 
-    setSelectedBoard(board: Board) {
-        if (this.selectedEntity === board) {
+    private setSelectedEntity(entity: Entity) {
+        if (this.selectedEntity === entity) {
             return;
         }
 
-        this.selectedEntity = board;
-        this.deselectDetector.setSelectedEntity(this.selectedEntity);
+        this.removeHighlightEntity(this.selectedEntity);
+        this.deselectDetector.setSelectedEntity(entity);
+        this.selectedEntity = entity;
 
-        if (!board) {
-            return;
+        if (entity) {
+            this.highlightEntity(entity, Measurements.BOARD_MEASURE_COLOR);
         }
-
-        this.highlightEntity(board, Measurements.BOARD_MEASURE_COLOR);
         
-        this.onEntitySelected.trigger(board);
+        this.onEntitySelected.trigger(entity);
     }
 
     highlightEntity(entity: Entity, color: BABYLON.Color3) {
         entity.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
         });
-
-        if (entity instanceof Board) {
-            entity.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.addMesh(mesh as BABYLON.Mesh, color);
-                });
-            });
-        }
     }
 
     removeHighlightEntity(entity: Entity) {
+        if (!entity) {
+            return;
+        }
+
         entity.root.getChildMeshes().forEach((mesh) => {
             this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
         });
-
-        if (entity instanceof Board) {
-            entity.getAllDecor().forEach((decor) => {
-                const decorNode = decor.root;
-                decorNode.getChildMeshes().forEach((mesh) => {
-                    this.highlightLayer.removeMesh(mesh as BABYLON.Mesh);
-                });
-            });
-        }
     }
 
     private deselectEntity() {
@@ -212,7 +202,7 @@ export class Navigation3D {
                 this.deselectEntity();
             }
 
-            this.setSelectedBoard(entity as Board);
+            this.setSelectedEntity(entity);
         }));
     }
 
