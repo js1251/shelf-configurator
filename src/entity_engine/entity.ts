@@ -136,8 +136,17 @@ export abstract class Entity {
             this.bboxMesh.dispose();
         }
         
+        // this will include all followers
         if (this.root) {
             this.root.dispose();
+        }
+
+        this.children.forEach(child => {
+            child.remove();
+        });
+
+        if (this.parentEntity) {
+            this.parentEntity.removeChild(this);
         }
     }
 

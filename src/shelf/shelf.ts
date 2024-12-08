@@ -263,8 +263,6 @@ export class Shelf extends Entity {
         board.BoardStrutChanged.on(() => {
             this.onBoardStrutChanged.trigger(board);
 
-            console.log("Board strut changed");
-
             // the board could have been moved to a strut that didnt have a board before
             // therefore increasing the bounding box of the entire shelf
             this.updateBoundingBox();
