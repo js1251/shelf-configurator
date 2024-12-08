@@ -1,7 +1,6 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
-import { Strut } from "../shelf/entities/strut";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
@@ -22,7 +21,7 @@ export abstract class Entity {
         this._showAABB = value;
 
         if (value) {
-            this.updateBBMesh();
+            this.updateBBMesh(this.getBoundingBox());
             this.bboxMesh.setEnabled(true);
         } else if (this.bboxMesh) {
             this.bboxMesh.dispose();
@@ -83,7 +82,7 @@ export abstract class Entity {
         this.unFreeze();
 
         this.root.setAbsolutePosition(position);
-        this.updateBoundingBox();
+        this.recursiveComputeWorldMatrix(this.root);
 
         this.freeze();
     }
@@ -189,17 +188,18 @@ export abstract class Entity {
 
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
-    protected updateBoundingBox() {
-        const recursiveComputeWorldMatrix = (node: BABYLON.Node) => {
-            node.computeWorldMatrix(true);
+    protected recursiveComputeWorldMatrix(node: BABYLON.Node) {
+        node.computeWorldMatrix(true);
 
-            if (node instanceof BABYLON.TransformNode) {
-                node.getChildMeshes().forEach(mesh => {
-                    recursiveComputeWorldMatrix(mesh);
-                });
-            }
-        };
-        recursiveComputeWorldMatrix(this.root);
+        if (node instanceof BABYLON.TransformNode) {
+            node.getChildMeshes().forEach(mesh => {
+                this.recursiveComputeWorldMatrix(mesh);
+            });
+        }
+    };
+
+    protected updateBoundingBox() {
+        this.recursiveComputeWorldMatrix(this.root);
 
         // only get direct child nodes, but ignore followers and nodes that are the root of other entities
         const recursiveGetDirectChildren = (node: BABYLON.Node, children?: BABYLON.AbstractMesh[]): BABYLON.AbstractMesh[] => {
@@ -270,19 +270,17 @@ export abstract class Entity {
         this.root.computeWorldMatrix(true);
 
         if (this.showAABB) {
-            this.updateBBMesh();
+            this.updateBBMesh(newBoundingInfo.boundingBox);
         }
 
         this.onBboxChanged.trigger(newBoundingInfo.boundingBox);
     }
     
-    private updateBBMesh() {
+    private updateBBMesh(bbox: BABYLON.BoundingBox) {
         if (this.bboxMesh !== undefined) {
             this.bboxMesh.dispose();
             this.bboxMesh = undefined;
         }
-
-        const bbox = this.getBoundingBox();
         
         this.bboxMesh = BABYLON.MeshBuilder.CreateBox("bbMesh", {
             width: bbox.extendSizeWorld.x * 2,

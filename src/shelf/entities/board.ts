@@ -48,7 +48,7 @@ export class Board extends ProductEntity {
         newPosition.y = this.height_m;
         this.setPosition(newPosition);
 
-        this.updateBoundingBox();
+        this.recursiveComputeWorldMatrix(this.root);
 
         this.onBoardMoved.trigger();
 
