@@ -51,7 +51,7 @@ export class Measurements {
             this.respondeMeasurementsToCamera();
         });
 
-        this.shelf.BoardMoved.on((board) => {
+        this.shelf.BoardHeightChanged.on((board) => {
             if (board !== this.selectedBoard) {
                 return;
             }

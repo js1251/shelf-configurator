@@ -19,14 +19,14 @@ export class Board extends ProductEntity {
     static BOARD_WIDTH = 0.2;
     static BOARD_THICKNESS = 0.02; // technically its 0.018 but it makes the numbers easier using 0.02
 
-    private readonly onBoardMoved = new LiteEvent<void>();
-    public get BoardMoved() {
-        return this.onBoardMoved.expose();
+    private readonly onBoardHeightChanged = new LiteEvent<void>();
+    public get BoardHeightChanged() {
+        return this.onBoardHeightChanged.expose();
     }
 
-    private readonly onBoardSizeChanged = new LiteEvent<void>();
-    public get BoardSizeChanged() {
-        return this.onBoardSizeChanged.expose();
+    private readonly onBoardStrutsChanged = new LiteEvent<void>();
+    public get BoardStrutChanged() {
+        return this.onBoardStrutsChanged.expose();
     }
 
     constructor(modelloader: ModelLoader, height_m: number, startStrut: Strut, endStrut: Strut, spacing: number) {
@@ -50,7 +50,7 @@ export class Board extends ProductEntity {
 
         this.recursiveComputeWorldMatrix(this.root);
 
-        this.onBoardMoved.trigger();
+        this.onBoardHeightChanged.trigger();
 
         this.freeze();
     }
@@ -82,13 +82,12 @@ export class Board extends ProductEntity {
         this.start.setParent(startParent);
 
         this.handleMiddle();
-        this.updateBoundingBox();
 
         // refresh material to apply it to potential new meshes
         this.setMaterial(this.getMaterial());
-
-        this.onBoardSizeChanged.trigger();
-
+        
+        this.updateBoundingBox();
+        this.onBoardStrutsChanged.trigger();
         this.freeze();
     }
 

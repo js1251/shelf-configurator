@@ -67,7 +67,7 @@ export class DecorBuilder {
             this.buildDecorForBoard(boards[i]);
         }
 
-        this.shelf.BoardMoved.on((board) => {
+        this.shelf.BoardHeightChanged.on((board) => {
             this.removeDecorForBoard(board);
             this.validateNeighborDecorForBoard(board);
         });

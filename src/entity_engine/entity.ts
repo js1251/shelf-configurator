@@ -42,9 +42,11 @@ export abstract class Entity {
         this.freeze();
 
         this.root.showBoundingBox = true;
+        /*
         setTimeout(() => {
             this.showAABB = true;
         }, 10);
+        */
     }
 
     freeze() {
@@ -132,8 +134,6 @@ export abstract class Entity {
     remove() {        
         if (this.bboxMesh) {
             this.bboxMesh.dispose();
-            
-            console.log("disposed bbox mesh");
         }
         
         if (this.root) {
@@ -144,10 +144,6 @@ export abstract class Entity {
     addFollower(follower: BABYLON.TransformNode) {
         follower.setParent(this.root);
         this.followers.push(follower);
-
-        console.log(`Adding follower ${follower.name}`);
-        console.log(`Followers: ${this.followers.map(f => f.name).join(", ")}`);
-        console.log(`isFollower test: ${this.isFollower(follower)}`);
     }
 
     removeFollower(follower: BABYLON.TransformNode) {
@@ -223,15 +219,10 @@ export abstract class Entity {
             return children;
         };
 
-        const rootBbox = this.root.getBoundingInfo().boundingBox;
-        let min = rootBbox.minimumWorld.clone();
-        let max = rootBbox.maximumWorld.clone();
-
-        // check if root has any vertices
-        if (min.equals(max)) {
-            min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-            max = new BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
-        }
+        // Note: assuming that the root has no mesh! Since the root bbox is updated here, it would return its previous bbox here
+        // therefore never allowing its bbox to shrink, only grow
+        let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+        let max = new BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
 
         // First, get bbox from all meshes in this entity
         recursiveGetDirectChildren(this.root).forEach(mesh => {

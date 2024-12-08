@@ -6,14 +6,14 @@ import { Board } from "./entities/board";
 import { Entity } from "../entity_engine/entity";
 
 export class Shelf extends Entity {
-    private readonly onBoardSizeChanged = new LiteEvent<Board>();
+    private readonly onBoardStrutChanged = new LiteEvent<Board>();
     public get BoardSizeChanged() {
-        return this.onBoardSizeChanged.expose();
+        return this.onBoardStrutChanged.expose();
     }
 
-    private readonly onBoardMoved = new LiteEvent<Board>();
-    public get BoardMoved() {
-        return this.onBoardMoved.expose();
+    private readonly onBoardHeightChanged = new LiteEvent<Board>();
+    public get BoardHeightChanged() {
+        return this.onBoardHeightChanged.expose();
     }
 
     private readonly onBoardAdded = new LiteEvent<Board>();
@@ -260,12 +260,18 @@ export class Shelf extends Entity {
         this.boards.push(board);
         board.setParent(this);
 
-        board.BoardSizeChanged.on(() => {
-            this.onBoardSizeChanged.trigger(board);
+        board.BoardStrutChanged.on(() => {
+            this.onBoardStrutChanged.trigger(board);
+
+            console.log("Board strut changed");
+
+            // the board could have been moved to a strut that didnt have a board before
+            // therefore increasing the bounding box of the entire shelf
+            this.updateBoundingBox();
         });
 
-        board.BoardMoved.on(() => {
-            this.onBoardMoved.trigger(board);
+        board.BoardHeightChanged.on(() => {
+            this.onBoardHeightChanged.trigger(board);
         });
 
         // sort boards by height
