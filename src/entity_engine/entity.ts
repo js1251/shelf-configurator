@@ -1,13 +1,16 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { LiteEvent } from "../event_engine/LiteEvent";
+import { Strut } from "../shelf/entities/strut";
 
 export abstract class Entity {
     protected modelloader: ModelLoader;
     root: BABYLON.AbstractMesh;
     private bboxMesh: BABYLON.AbstractMesh;
-    private ignoreBboxNodes: BABYLON.TransformNode[] = [];
+    private followers: BABYLON.TransformNode[] = [];
     static boundingBoxMaterial: BABYLON.StandardMaterial;
+    private parentEntity: Entity;
+    private children: Entity[] = [];
 
     private _showAABB = false;
     get showAABB() {
@@ -89,8 +92,29 @@ export abstract class Entity {
         return this.root.getAbsolutePosition();
     }
 
-    setParent(parent: BABYLON.TransformNode) {
-        this.root.setParent(parent);
+    setParent(entity: Entity) {
+        this.parentEntity = entity;
+        this.root.setParent(entity.root);
+
+        if (entity) {
+            entity.addChild(this);
+        } else {
+            this.parentEntity.removeChild(this);
+        }
+    }
+
+    private addChild(entity: Entity) {
+        this.children.push(entity);
+    }
+
+    private removeChild(entity: Entity) {
+        const index = this.children.indexOf(entity);
+
+        if (index === -1) {
+            return;
+        }
+
+        this.children.splice(index, 1);
     }
 
     getParent() {
@@ -120,7 +144,11 @@ export abstract class Entity {
 
     addFollower(follower: BABYLON.TransformNode) {
         follower.setParent(this.root);
-        this.addToBboxFilter(follower);
+        this.followers.push(follower);
+
+        console.log(`Adding follower ${follower.name}`);
+        console.log(`Followers: ${this.followers.map(f => f.name).join(", ")}`);
+        console.log(`isFollower test: ${this.isFollower(follower)}`);
     }
 
     removeFollower(follower: BABYLON.TransformNode) {
@@ -132,27 +160,23 @@ export abstract class Entity {
         this.root.addBehavior(behaviour);
     }
 
-    addToBboxFilter(node: BABYLON.TransformNode) {
-        this.ignoreBboxNodes.push(node);
-    }
-
     removeFromBboxFilter(node: BABYLON.TransformNode) {
-        const index = this.ignoreBboxNodes.indexOf(node);
+        const index = this.followers.indexOf(node);
 
         if (index === -1) {
             return;
         }
 
-        this.ignoreBboxNodes.splice(index, -1);
+        this.followers.splice(index, -1);
     }
 
     isFollower(node: BABYLON.TransformNode): boolean {
-        if (this.ignoreBboxNodes.indexOf(node) > -1) {
+        if (this.followers.indexOf(node) > -1) {
             return true;
         }
 
-        for (let i = 0; i < this.ignoreBboxNodes.length; i++) {
-            if (node.isDescendantOf(this.ignoreBboxNodes[i])) {
+        for (let i = 0; i < this.followers.length; i++) {
+            if (node.isDescendantOf(this.followers[i])) {
                 return true;
             }
         }
@@ -166,31 +190,82 @@ export abstract class Entity {
     protected abstract modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3];
 
     protected updateBoundingBox() {
-        console.log("updateBoundingBox");
-        console.log(this.ignoreBboxNodes);
-        this.root.getChildMeshes().forEach(mesh => {
-            if (this.isFollower(mesh)) {
-                console.log(`${mesh.name} is a follower`);
+        const recursiveComputeWorldMatrix = (node: BABYLON.Node) => {
+            node.computeWorldMatrix(true);
+
+            if (node instanceof BABYLON.TransformNode) {
+                node.getChildMeshes().forEach(mesh => {
+                    recursiveComputeWorldMatrix(mesh);
+                });
             }
+        };
+        recursiveComputeWorldMatrix(this.root);
+
+        // only get direct child nodes, but ignore followers and nodes that are the root of other entities
+        const recursiveGetDirectChildren = (node: BABYLON.Node, children?: BABYLON.AbstractMesh[]): BABYLON.AbstractMesh[] => {
+            if (children === undefined) {
+                children = [];
+            }
+
+            node.getChildMeshes(true).forEach(mesh => {
+                if (this.isFollower(mesh)) {
+                    return;
+                }
+
+                if (this.children.some(child => child.root === mesh)) {
+                    return;
+                }
+
+                children.push(mesh);
+                recursiveGetDirectChildren(mesh, children);
+            });
+
+            return children;
+        };
+
+        const rootBbox = this.root.getBoundingInfo().boundingBox;
+        let min = rootBbox.minimumWorld.clone();
+        let max = rootBbox.maximumWorld.clone();
+
+        // check if root has any vertices
+        if (min.equals(max)) {
+            min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
+            max = new BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        }
+
+        // First, get bbox from all meshes in this entity
+        recursiveGetDirectChildren(this.root).forEach(mesh => {
+            const bbox = mesh.getBoundingInfo().boundingBox;
+
+            min = BABYLON.Vector3.Minimize(min, bbox.minimumWorld);
+            max = BABYLON.Vector3.Maximize(max, bbox.maximumWorld);
         });
 
-        const hierarchyBounds = this.root.getHierarchyBoundingVectors(true, (node) => !this.isFollower(node));
+        // Second, merge with bbox from children entities
+        this.children.forEach(child => {
+            const childBbox = child.getBoundingBox();
 
-        hierarchyBounds.min = hierarchyBounds.min.subtract(this.root.getAbsolutePosition());
-        hierarchyBounds.max = hierarchyBounds.max.subtract(this.root.getAbsolutePosition());
+            min = BABYLON.Vector3.Minimize(min, childBbox.minimumWorld);
+            max = BABYLON.Vector3.Maximize(max, childBbox.maximumWorld);
+        });
 
-        const updatedMinMax = this.modifyBoundixInfo(hierarchyBounds.min, hierarchyBounds.max);
-        hierarchyBounds.min = updatedMinMax[0];
-        hierarchyBounds.max = updatedMinMax[1];
+        // return to local
+        min = min.subtract(this.root.getAbsolutePosition());
+        max = max.subtract(this.root.getAbsolutePosition());
+        
+        // apply optional modifications
+        const updatedMinMax = this.modifyBoundixInfo(min, max);
+        min = updatedMinMax[0];
+        max = updatedMinMax[1];
 
         // check if even changed
         const boundingInfo = this.root.getBoundingInfo();
-        if (BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.minimum, hierarchyBounds.min) <= 0.00001
-            && BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.maximum, hierarchyBounds.max) <= 0.00001) {
+        if (BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.minimum, min) <= 0.00001
+            && BABYLON.Vector3.DistanceSquared(boundingInfo.boundingBox.maximum, max) <= 0.00001) {
             return;
         }
-
-        var newBoundingInfo = new BABYLON.BoundingInfo(hierarchyBounds.min, hierarchyBounds.max);
+        
+        var newBoundingInfo = new BABYLON.BoundingInfo(min, max);
         this.root.setBoundingInfo(newBoundingInfo);
         this.root.computeWorldMatrix(true);
 

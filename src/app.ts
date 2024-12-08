@@ -311,11 +311,12 @@ class App {
         shelf.setHeight(2.4);
         shelf.setStrutSpacing(0.5);
 
+        console.log("adding strut")
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
         shelf.addStrutToEnd();
-        
+
         shelf.addBoard(0.35, 1, 3);
         shelf.addBoard(0.77, 0, 2);
         shelf.addBoard(0.99, 2, 3);

@@ -73,7 +73,6 @@ export class DecorBuilder {
         });
 
         this.shelf.BoardSizeChanged.on((board) => {
-            console.log("board size changed");
             this.removeDecorForBoard(board);
             this.buildDecorForBoard(board);
             this.validateNeighborDecorForBoard(board);

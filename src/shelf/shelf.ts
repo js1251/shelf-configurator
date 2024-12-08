@@ -99,7 +99,7 @@ export class Shelf extends Entity {
         const strutPos = this.getPosition().clone();
         strutPos.y = this.height_m / 2;
 
-        strut.setParent(this.root);
+        strut.setParent(this);
         this.struts.unshift(strut);
 
         // update all struts indices
@@ -131,7 +131,7 @@ export class Shelf extends Entity {
         strutPos.x += this.spacing * this.struts.length;
 
         strut.setPosition(strutPos);
-        strut.setParent(this.root);
+        strut.setParent(this);
         this.struts.push(strut);
         
         this.updateBoundingBox();
@@ -258,7 +258,7 @@ export class Shelf extends Entity {
 
         const board = new Board(this.modelloader, height, this.struts[startStrut], this.struts[endStrut], this.spacing);
         this.boards.push(board);
-        board.setParent(this.root);
+        board.setParent(this);
 
         board.BoardSizeChanged.on(() => {
             this.onBoardSizeChanged.trigger(board);
