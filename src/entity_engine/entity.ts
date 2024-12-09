@@ -41,8 +41,8 @@ export abstract class Entity {
 
         this.freeze();
 
-        this.root.showBoundingBox = true;
         /*
+        this.root.showBoundingBox = true;
         setTimeout(() => {
             this.showAABB = true;
         }, 10);
