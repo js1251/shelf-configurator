@@ -1,12 +1,13 @@
 const path = require("path");
 const fs = require("fs");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 const appDirectory = fs.realpathSync(process.cwd());
 
 module.exports = {
     entry: path.resolve(appDirectory, "src/app.ts"), //path to the main .ts file
     output: {
-        filename: "js/bundleName.js", //name for the js file that is created/compiled in memory
+        filename: "js/serene-configurator.js", //name for the js file that is created/compiled in memory
         clean: true,
     },
     resolve: {
@@ -39,7 +40,18 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: true,
             template: path.resolve(appDirectory, "public/index.html"),
-        })
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(appDirectory, "public"), // Source folder to copy
+                    to: path.resolve(appDirectory, "dist"), // Destination in the build
+                    globOptions: {
+                        ignore: ["**/index.html"], // Avoid copying the HTML file since it's handled by HtmlWebpackPlugin
+                    },
+                },
+            ],
+        }),
     ],
     mode: "development",
 };
