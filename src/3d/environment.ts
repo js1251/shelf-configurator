@@ -39,26 +39,6 @@ export class Environment {
 
         this.wallMaterial = new BABYLON.StandardMaterial("environment_walls", this.scene);
         this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString('#eae2dc');
-        this.scene.metadata.debugOverlay.attachColorPicker('Wall Color', {initialValue: this.wallMaterial.diffuseColor.toHexString()}, (value) => {
-            this.wallMaterial.unfreeze();
-            this.wallMaterial.diffuseColor = BABYLON.Color3.FromHexString(value);
-            this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor;
-            this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
-        });
-
-        /*
-        this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(0.45);
-        this.scene.metadata.debugOverlay.attachSlider('Wall Glow intensity', {
-            initialValue: 0.45,
-            min: 0,
-            max: 1,
-            step: 0.01,
-        }, (value) => {
-            this.wallMaterial.unfreeze();
-            this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(value);
-            this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
-        });
-        */
         this.wallMaterial.specularColor = BABYLON.Color3.Black();
         this.wallMaterial.freeze();
 
@@ -191,18 +171,7 @@ export class Environment {
     private createShadowGenerator() {
         this.light = new BABYLON.PointLight("roomLight", new BABYLON.Vector3(0, 0, 0), this.scene);
         this.light.diffuse = BABYLON.Color3.FromHexString("#FFFFFF");
-        this.scene.metadata.debugOverlay.attachColorPicker('Light Color', {initialValue: this.light.diffuse.toHexString()}, (value) => {
-            this.light.diffuse = BABYLON.Color3.FromHexString(value);
-        });
         this.light.intensity = 0.2;
-        this.scene.metadata.debugOverlay.attachSlider('Light Intensity', {
-            initialValue: this.light.intensity,
-            min: 0,
-            max: 3,
-            step: 0.1,
-        }, (value) => {
-        this.light.intensity = value;
-    });
         this.light.position = new BABYLON.Vector3(0, 2.2, -0.9);
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
