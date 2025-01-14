@@ -3,7 +3,6 @@ import { ModelLoader } from "../../3d/modelloader";
 import { Strut } from "./strut";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
-import { WOOD_MATERIALS } from "../materials";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -36,7 +35,6 @@ export class Board extends ProductEntity {
 
         this.setHeight(height_m);
         this.setSpanStruts(startStrut, endStrut);
-        this.setMaterial(WOOD_MATERIALS[0].material);
     }
 
     setHeight(height_m: number) {

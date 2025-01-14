@@ -323,4 +323,16 @@ export class Shelf extends Entity {
 
         return this.boards[index + 1];
     }
+
+    setStrutMaterial(material: BABYLON.Material) {
+        this.struts.forEach((strut) => {
+            strut.setMaterial(material);
+        });
+    }
+
+    setBoardMaterial(material: BABYLON.Material) {
+        this.boards.forEach((board) => {
+            board.setMaterial(material);
+        });
+    }
 }
