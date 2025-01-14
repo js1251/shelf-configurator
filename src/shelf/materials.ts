@@ -1,7 +1,8 @@
 import * as BABYLON from "@babylonjs/core";
-import { TriPlanarMaterial } from "@babylonjs/materials";
 
 export class Resources {
+    private scene: BABYLON.Scene;
+
     static TEXTURE_WOOD_COLOR: BABYLON.Texture;
     static TEXTURE_WOOD_NORMAL: BABYLON.Texture;
     static TEXTURE_WOOD_AOROUGHMETAL: BABYLON.Texture;
@@ -30,142 +31,147 @@ export class Resources {
     static BRASS_BRUSHED_MATERIAL: BABYLON.Material;
 
     constructor(scene: BABYLON.Scene) {
-        Resources.TEXTURE_WOOD_COLOR = new BABYLON.Texture("textures/board_wood/color.jpg", scene);
-        Resources.TEXTURE_WOOD_NORMAL = new BABYLON.Texture("textures/board_wood/normal.jpg", scene);
-        Resources.TEXTURE_WOOD_AOROUGHMETAL = new BABYLON.Texture("textures/board_wood/ao_rough_metal.jpg", scene);
+        this.scene = scene;
+    }
 
-        Resources.TEXTURE_ENDGRAIN_COLOR = new BABYLON.Texture("textures/board_wood/endgrain_color.jpg", scene);
-        Resources.TEXTURE_ENDGRAIN_NORMAL = new BABYLON.Texture("textures/board_wood/endgrain_normal.jpg", scene);
+    public async preloadMaterials() {
+        Resources.TEXTURE_WOOD_COLOR = new BABYLON.Texture("textures/board_wood/color.jpg", this.scene);
+        Resources.TEXTURE_WOOD_NORMAL = new BABYLON.Texture("textures/board_wood/normal.jpg", this.scene);
+        Resources.TEXTURE_WOOD_AOROUGHMETAL = new BABYLON.Texture("textures/board_wood/ao_rough_metal.jpg", this.scene);
 
-        Resources.TEXTURE_COATEDMETAL_COLOR = new BABYLON.Texture("textures/strut_coated/color.jpg", scene);
-        Resources.TEXTURE_COATEDMETAL_NORMAL = new BABYLON.Texture("textures/strut_coated/normal.jpg", scene);
+        Resources.TEXTURE_ENDGRAIN_COLOR = new BABYLON.Texture("textures/board_wood/endgrain_color.jpg", this.scene);
+        Resources.TEXTURE_ENDGRAIN_NORMAL = new BABYLON.Texture("textures/board_wood/endgrain_normal.jpg", this.scene);
 
-        Resources.TEXTURE_BRUSHEDMETAL_COLOR = new BABYLON.Texture("textures/strut_brushed/color.jpg", scene);
-        Resources.TEXTURE_BRUSHEDMETAL_NORMAL = new BABYLON.Texture("textures/strut_brushed/normal.jpg", scene);
-        Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL = new BABYLON.Texture("textures/strut_brushed/ao_rough_metal.jpg", scene);
+        Resources.TEXTURE_COATEDMETAL_COLOR = new BABYLON.Texture("textures/strut_coated/color.jpg", this.scene);
+        Resources.TEXTURE_COATEDMETAL_NORMAL = new BABYLON.Texture("textures/strut_coated/normal.jpg", this.scene);
 
-        BABYLON.NodeMaterial.ParseFromFileAsync("materials_wood_base", "node_materials/boardWood.json", scene).then((nodeMaterial) => {
-            const setWoodTexture = (material: BABYLON.NodeMaterial) => {
-                material.getAllTextureBlocks().forEach((block) => {
-                    if (block.texture) {
-                        block.texture.dispose();
-                    }
-                });
+        Resources.TEXTURE_BRUSHEDMETAL_COLOR = new BABYLON.Texture("textures/strut_brushed/color.jpg", this.scene);
+        Resources.TEXTURE_BRUSHEDMETAL_NORMAL = new BABYLON.Texture("textures/strut_brushed/normal.jpg", this.scene);
+        Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL = new BABYLON.Texture("textures/strut_brushed/ao_rough_metal.jpg", this.scene);
 
-                (material.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_COLOR;
-                (material.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
-                (material.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
+        const setWoodTexture = (material: BABYLON.NodeMaterial) => {
+            material.getAllTextureBlocks().forEach((block) => {
+                if (block.texture) {
+                    block.texture.dispose();
+                }
+            });
 
-                (material.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_NORMAL;
-                (material.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
-                (material.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
+            (material.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_COLOR;
+            (material.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
+            (material.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_COLOR;
 
-                (material.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
-                (material.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
-                (material.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
-            };
+            (material.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_ENDGRAIN_NORMAL;
+            (material.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
+            (material.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_NORMAL;
 
-            const setMetalTexture = (material: BABYLON.NodeMaterial) => {
-                material.getAllTextureBlocks().forEach((block) => {
-                    if (block.texture) {
-                        block.texture.dispose();
-                    }
-                });
+            (material.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+            (material.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+            (material.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_WOOD_AOROUGHMETAL;
+        };
 
-                (material.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
-                (material.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
-                (material.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
+        const setMetalTexture = (material: BABYLON.NodeMaterial) => {
+            material.getAllTextureBlocks().forEach((block) => {
+                if (block.texture) {
+                    block.texture.dispose();
+                }
+            });
 
-                (material.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
-                (material.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
-                (material.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
+            (material.getBlockByName("diffuseTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
+            (material.getBlockByName("diffuseTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
+            (material.getBlockByName("diffuseTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_COLOR;
 
-                (material.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
-                (material.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
-                (material.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
-            };
+            (material.getBlockByName("normalTextureX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
+            (material.getBlockByName("normalTextureY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
+            (material.getBlockByName("normalTextureZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_NORMAL;
 
-            setWoodTexture(nodeMaterial);
+            (material.getBlockByName("ambientRoughnessMetalX") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
+            (material.getBlockByName("ambientRoughnessMetalY") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
+            (material.getBlockByName("ambientRoughnessMetalZ") as BABYLON.ImageSourceBlock).texture = Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL;
+        };
 
-            const oakOiled = nodeMaterial.clone("materials_oak_oiled");
-            setWoodTexture(oakOiled);
-            (oakOiled.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.6;
-            (oakOiled.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.5;
-            (oakOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac586");
-            Resources.OAK_OILED_MATERIAL = oakOiled;
             
-            const oakVarnished = nodeMaterial.clone("materials_oak_varnisched");
-            setWoodTexture(oakVarnished);
-            (oakVarnished.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.15;
-            (oakVarnished.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.38;
-            (oakVarnished.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.3;
-            (oakVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac086");
-            Resources.OAK_VARNISHED_MATERIAL = oakVarnished;
+        const nodeMaterial = await BABYLON.NodeMaterial.ParseFromFileAsync("materials_wood_base", "node_materials/boardWood.json", this.scene);
 
-            const beechOiled = oakOiled.clone("materials_beech_oiled");
-            setWoodTexture(beechOiled);
-            (beechOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffb777");
-            Resources.BEECH_OILED_MATERIAL = beechOiled;
+        setWoodTexture(nodeMaterial);
 
-            const beechVarnished = oakVarnished.clone("materials_beech_varnished");
-            setWoodTexture(beechVarnished);
-            (beechVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#f0b077");
-            Resources.BEECH_VARNISHED_MATERIAL = beechVarnished;
+        const oakOiled = nodeMaterial.clone("materials_oak_oiled");
+        setWoodTexture(oakOiled);
+        (oakOiled.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.6;
+        (oakOiled.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.5;
+        (oakOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac586");
+        Resources.OAK_OILED_MATERIAL = oakOiled;
 
-            const ashOiled = oakOiled.clone("materials_ash_oiled");
-            setWoodTexture(ashOiled);
-            (ashOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffe4a8");
-            Resources.ASH_OILED_MATERIAL = ashOiled;
+        const oakVarnished = nodeMaterial.clone("materials_oak_varnisched");
+        setWoodTexture(oakVarnished);
+        (oakVarnished.getBlockByName("normalFactor") as BABYLON.InputBlock).value = 0.15;
+        (oakVarnished.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.38;
+        (oakVarnished.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.3;
+        (oakVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#eac086");
+        Resources.OAK_VARNISHED_MATERIAL = oakVarnished;
 
-            const ashVarnished = oakVarnished.clone("materials_ash_varnished");
-            setWoodTexture(ashVarnished);
-            (ashVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffdda8");
-            Resources.ASH_VARNISHED_MATERIAL = ashVarnished;
+        const beechOiled = oakOiled.clone("materials_beech_oiled");
+        setWoodTexture(beechOiled);
+        (beechOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffb777");
+        Resources.BEECH_OILED_MATERIAL = beechOiled;
 
-            const wallnutOiled = oakOiled.clone("materials_wallnut_oiled");
-            setWoodTexture(wallnutOiled);
-            (wallnutOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#885925");
-            Resources.WALLNUT_OILED_MATERIAL = wallnutOiled;
+        const beechVarnished = oakVarnished.clone("materials_beech_varnished");
+        setWoodTexture(beechVarnished);
+        (beechVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#f0b077");
+        Resources.BEECH_VARNISHED_MATERIAL = beechVarnished;
 
-            const wallnutVarnished = oakVarnished.clone("materials_wallnut_varnished");
-            setWoodTexture(wallnutVarnished);
-            (wallnutVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#774e21");
-            Resources.WALLNUT_VARNISHED_MATERIAL = wallnutVarnished;
+        const ashOiled = oakOiled.clone("materials_ash_oiled");
+        setWoodTexture(ashOiled);
+        (ashOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffe4a8");
+        Resources.ASH_OILED_MATERIAL = ashOiled;
 
-            const coatedBlack = nodeMaterial.clone("materials_coated_black");
-            setMetalTexture(coatedBlack);
-            (coatedBlack.getBlockByName("tileSize") as BABYLON.InputBlock).value = BABYLON.Vector3.One().scale(0.5);
-            (coatedBlack.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#222222");
-            (coatedBlack.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
-            (coatedBlack.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.39;
-            (coatedBlack.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 0.6;
-            Resources.COATED_BLACK_MATERIAL = coatedBlack;
+        const ashVarnished = oakVarnished.clone("materials_ash_varnished");
+        setWoodTexture(ashVarnished);
+        (ashVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#ffdda8");
+        Resources.ASH_VARNISHED_MATERIAL = ashVarnished;
 
-            const stainlessBrushed = coatedBlack.clone("materials_stainless_brushed");
-            setMetalTexture(stainlessBrushed);
-            (stainlessBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#b4b9c2");
-            (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
-            (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
-            (stainlessBrushed.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 1;
-            Resources.STAINLESS_BRUSHED_MATERIAL = stainlessBrushed;
+        const wallnutOiled = oakOiled.clone("materials_wallnut_oiled");
+        setWoodTexture(wallnutOiled);
+        (wallnutOiled.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#885925");
+        Resources.WALLNUT_OILED_MATERIAL = wallnutOiled;
 
-            const brassBrushed = stainlessBrushed.clone("materials_brass_brushed");
-            setMetalTexture(brassBrushed);
-            (brassBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#e4b95d");
-            (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.8;
-            (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
-            Resources.BRASS_BRUSHED_MATERIAL = brassBrushed;
+        const wallnutVarnished = oakVarnished.clone("materials_wallnut_varnished");
+        setWoodTexture(wallnutVarnished);
+        (wallnutVarnished.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#774e21");
+        Resources.WALLNUT_VARNISHED_MATERIAL = wallnutVarnished;
 
-            nodeMaterial.dispose();
-            Resources.OAK_OILED_MATERIAL.freeze();
-            Resources.OAK_VARNISHED_MATERIAL.freeze();
-            Resources.BEECH_OILED_MATERIAL.freeze();
-            Resources.BEECH_VARNISHED_MATERIAL.freeze();
-            Resources.ASH_OILED_MATERIAL.freeze();
-            Resources.ASH_VARNISHED_MATERIAL.freeze();
-            Resources.WALLNUT_OILED_MATERIAL.freeze();
-            Resources.WALLNUT_VARNISHED_MATERIAL.freeze();
-        });
+        const coatedBlack = nodeMaterial.clone("materials_coated_black");
+        setMetalTexture(coatedBlack);
+        (coatedBlack.getBlockByName("tileSize") as BABYLON.InputBlock).value = BABYLON.Vector3.One().scale(0.5);
+        (coatedBlack.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#222222");
+        (coatedBlack.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
+        (coatedBlack.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 0.39;
+        (coatedBlack.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 0.6;
+        Resources.COATED_BLACK_MATERIAL = coatedBlack;
+
+        const stainlessBrushed = coatedBlack.clone("materials_stainless_brushed");
+        setMetalTexture(stainlessBrushed);
+        (stainlessBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#b4b9c2");
+        (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 1;
+        (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
+        (stainlessBrushed.getBlockByName("aoFactor") as BABYLON.InputBlock).value = 1;
+        Resources.STAINLESS_BRUSHED_MATERIAL = stainlessBrushed;
+
+        const brassBrushed = stainlessBrushed.clone("materials_brass_brushed");
+        setMetalTexture(brassBrushed);
+        (brassBrushed.getBlockByName("diffuseColor") as BABYLON.InputBlock).value = BABYLON.Color3.FromHexString("#e4b95d");
+        (stainlessBrushed.getBlockByName("roughnessFactor") as BABYLON.InputBlock).value = 0.8;
+        (stainlessBrushed.getBlockByName("metallicFactor") as BABYLON.InputBlock).value = 1;
+        Resources.BRASS_BRUSHED_MATERIAL = brassBrushed;
+
+        nodeMaterial.dispose();
+        Resources.OAK_OILED_MATERIAL.freeze();
+        Resources.OAK_VARNISHED_MATERIAL.freeze();
+        Resources.BEECH_OILED_MATERIAL.freeze();
+        Resources.BEECH_VARNISHED_MATERIAL.freeze();
+        Resources.ASH_OILED_MATERIAL.freeze();
+        Resources.ASH_VARNISHED_MATERIAL.freeze();
+        Resources.WALLNUT_OILED_MATERIAL.freeze();
+        Resources.WALLNUT_VARNISHED_MATERIAL.freeze();
     }
 }
 

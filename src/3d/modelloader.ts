@@ -3,6 +3,28 @@ import * as BABYLONGUI from "@babylonjs/gui";
 
 export class ModelLoader {
     scene: BABYLON.Scene;
+
+    private static readonly MODEL_URLS = [
+        "models/strut.glb",
+        "models/foot.glb",
+        "models/shelf_start.glb",
+        "models/shelf_end.glb",
+        "models/shelf_middle.glb",
+        "models/shelf_stretch.glb",
+        "models/clamp.glb",
+
+        "models/decor_potted_plant_01.glb",
+        "models/decor_potted_plant_02.glb",
+        "models/decor_placeholder.glb",
+        "models/decor_books_01.glb",
+        "models/decor_books_02.glb",
+        "models/decor_books_03.glb",
+        "models/decor_books_04.glb",
+        "models/decor_trinket_01.glb",
+        "models/decor_lamp_01.glb",
+        "models/decor_lamp_02.glb",
+    ]
+
     private shadowGenerator: BABYLON.ShadowGenerator;
     private preloadedMeshes: Map<string, BABYLON.Mesh>;
     private spawnCount: number = 0;
@@ -17,7 +39,13 @@ export class ModelLoader {
         this.root = new BABYLON.Node("model_cache_root", scene);
     }
 
-    public preloadModel(modelUrl: string, material: BABYLON.Material = undefined): Promise<void> {
+    public async preloadModels(): Promise<void> {
+        await Promise.all(ModelLoader.MODEL_URLS.map((modelUrl, _) => {
+            return this.preloadModel(modelUrl);
+        }));
+    }
+
+    private preloadModel(modelUrl: string, material: BABYLON.Material = undefined): Promise<void> {
         return new Promise((resolve, reject) => {
             BABYLON.SceneLoader.ImportMesh(
                 "",
