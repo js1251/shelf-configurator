@@ -5,6 +5,7 @@
 
     #sceneWrapper {
         display: flex;
+        justify-content: center;
 
         #sceneCanvas {
             width: 100%;
