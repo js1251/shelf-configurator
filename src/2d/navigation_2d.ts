@@ -8,14 +8,14 @@ import { Strut } from "../shelf/entities/strut";
 require('./navigation_2d.css');
 
 export class Navigation2D {
-    private grid: HTMLDivElement;
+    private grid: HTMLElement;
     private shelf: Shelf;
     private selectedBoard: Board;
     private selectedStrut: Strut;
 
-    private boardBottomBar: HTMLDivElement;
-    private strutBottomBar: HTMLDivElement;
-    private sideBar: HTMLDivElement;
+    private boardBottomBar: HTMLElement;
+    private strutBottomBar: HTMLElement;
+    private sideBar: HTMLElement;
 
     private readonly onRulerButtonPressed = new LiteEvent<boolean>();
     public get RulerButtonPressed() {
@@ -42,7 +42,7 @@ export class Navigation2D {
         return this.onBoardWidened.expose();
     }
     
-    constructor(grid: HTMLDivElement, shelf: Shelf) {
+    constructor(grid: HTMLElement, shelf: Shelf) {
         this.grid = grid;
         this.shelf = shelf;
 

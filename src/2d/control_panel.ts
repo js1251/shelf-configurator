@@ -9,7 +9,7 @@ import { Environment } from "../3d/environment";
 require("./control_panel.css");
 
 export class ControlPanel {
-    private parentGrid: HTMLDivElement;
+    private parentGrid: HTMLElement;
     private container: HTMLElement;
     private extendContainer: HTMLElement;
     private currentExtendPanel: ExtendPanel;
@@ -17,7 +17,7 @@ export class ControlPanel {
     private shelf: Shelf;
     private environment: Environment;
 
-    constructor(parentGrid: HTMLDivElement, shelf: Shelf, environment: Environment) {
+    constructor(parentGrid: HTMLElement, shelf: Shelf, environment: Environment) {
         this.parentGrid = parentGrid;
         this.shelf = shelf;
         this.environment = environment;
