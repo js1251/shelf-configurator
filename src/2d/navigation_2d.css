@@ -2,7 +2,7 @@
     display: block;
     position: fixed;
     bottom: 20px;
-    z-index: 10;
+    z-index: 4;
     background-color: var(--primary-l-4);
     border-radius: 40px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
