@@ -8,7 +8,7 @@ export class Trinket01 extends Decor {
     }
     
     protected constructMeshes(): BABYLON.AbstractMesh {
-        return this.modelloader.createInstance("models/decor_trinket_01.glb", new BABYLON.Vector3(0, 0, 0));
+        return this.modelloader.createInstance("models/decor_trinket_01.glb");
     }
     
     protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] {
