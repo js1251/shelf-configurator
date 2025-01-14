@@ -1,4 +1,3 @@
-import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "./modelloader";
 import { Decor } from "../shelf/decor";
 import { Shelf } from "../shelf/shelf";
@@ -11,6 +10,8 @@ import { PottedPlant02 } from "../shelf/entities/decor/potted_plant02";
 import { Books03 } from "../shelf/entities/decor/decor_books_03";
 import { Books04 } from "../shelf/entities/decor/decor_books_04";
 import { Trinket01 } from "../shelf/entities/decor/decor_trinket_01";
+import { Lamp01 } from "../shelf/entities/decor/decor_lamp_01";
+import { Lamp02 } from "../shelf/entities/decor/decor_lamp_02";
 
 export class DecorBuilder {
     private shelf: Shelf;
@@ -53,6 +54,16 @@ export class DecorBuilder {
             clone: (modelloader) => new Trinket01(modelloader),
             minHeight: 0.4,
             maxHeight: 1.6
+        },
+        {
+            clone: (modelloader) => new Lamp01(modelloader),
+            minHeight: 0.4,
+            maxHeight: 1.6
+        },
+        {
+            clone: (modelloader) => new Lamp02(modelloader),
+            minHeight: 0.4,
+            maxHeight: -1
         }
     ];
 
