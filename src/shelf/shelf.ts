@@ -335,4 +335,20 @@ export class Shelf extends Entity {
             board.setMaterial(material);
         });
     }
+
+    async getTotalPrice(): Promise<number | null> {
+        let price = 0;
+
+        for (let i = 0; i < this.boards.length; i++) {
+            const board = this.boards[i];
+            const boardPrice = await board.getPrice();
+            if (boardPrice === null) {
+                return null;
+            }
+
+            price += boardPrice;
+        }
+
+        return price;
+    }
 }

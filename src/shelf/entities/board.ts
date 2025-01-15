@@ -102,8 +102,16 @@ export class Board extends ProductEntity {
         super.remove();
     }
 
-    get price(): number {
-        return 150;
+    get SKU(): string {
+        // TODO: these ranges should be retrieved from the woocommerce product
+        const ranges = [200, 250, 300];
+
+        const width = this.getBoundingBox().extendSize.x * 2;
+
+        // find the range the height is in
+        let lengthRange = this.getRangeOption(width, ranges);
+
+        return `BOARD-OAK-OILED-${lengthRange}`;
     }
 
     get name(): string {

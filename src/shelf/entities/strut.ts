@@ -58,8 +58,15 @@ export class Strut extends ProductEntity {
         this.freeze();
     }
 
-    get price(): number {
-        return 250;
+    get SKU(): string {
+        // TODO: these ranges should be retrieved from the woocommerce product
+        const ranges = [200, 250, 300];
+
+        // find the range the height is in
+        let heightRange = this.getRangeOption(this.height_m, ranges);
+
+        // TODO: the color should be dynamic
+        return `STRUT-${heightRange}-BLACK`;
     }
 
     get name(): string {
@@ -82,6 +89,7 @@ export class Strut extends ProductEntity {
         return "https://www.google.com";
     };
 
+    // TODO: the color options should be retrieved from the woocommerce product, placeholder colors should be used if no material is defined for a color option
     setMaterial(material: BABYLON.Material) {
         this.strut.getChildMeshes()[0].material = material;
     }

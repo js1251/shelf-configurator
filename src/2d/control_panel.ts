@@ -49,13 +49,15 @@ export class ControlPanel {
         });
     }
 
-    private createControlPanel() {
+    private async createControlPanel() {
         const summaryContainer = document.createElement("div");
         summaryContainer.id = "summaryContainer";
         this.container.appendChild(summaryContainer);
 
         const totalPrice = new PriceDisplay();
-        totalPrice.setAmount(5587.55);
+        this.shelf.getTotalPrice().then((price) => {
+            totalPrice.setAmount(price);
+        });
         summaryContainer.appendChild(totalPrice.rootElement);
 
         const orderButton = document.createElement("button");

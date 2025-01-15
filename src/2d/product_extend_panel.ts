@@ -30,9 +30,11 @@ export class ProductExtendPanel extends ExtendPanel {
         readMore.innerText = "Mehr info";
         contentContainer.appendChild(readMore);
 
-        const price = new PriceDisplay();
-        price.setAmount(product.price);
-        contentContainer.appendChild(price.rootElement);
+        const priceDisplay = new PriceDisplay();
+        product.getPrice().then((price) => {
+            priceDisplay.setAmount(price);
+        });
+        contentContainer.appendChild(priceDisplay.rootElement);
 
         const propertiesContainer = document.createElement("div");
         propertiesContainer.id = "propertiesContainer";
