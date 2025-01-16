@@ -34,6 +34,13 @@ export class ProductExtendPanel extends ExtendPanel {
         product.getPrice().then((price) => {
             priceDisplay.setAmount(price);
         });
+
+        product.BboxChanged.on(() => {
+            product.getPrice().then((price) => {
+                priceDisplay.setAmount(price);
+            });
+        });
+
         contentContainer.appendChild(priceDisplay.rootElement);
 
         const propertiesContainer = document.createElement("div");

@@ -17,7 +17,7 @@ export abstract class ProductEntity extends Entity {
     abstract get imageUrls(): string[];
 
     private _price: number | null = null;
-    public async getPrice(): Promise<number | null> {
+    public async getPrice(): Promise<number | null> {        
         if (this._price !== null && this.SKU === this._oldSKU) {
             return this._price;
         }
@@ -39,7 +39,7 @@ export abstract class ProductEntity extends Entity {
             const data = await response.json();
     
             if (data.success) {
-                this._price = data.data.price;
+                this._price = Number(data.data.price); 
                 return this._price;
             } else {
                 console.error('Error fetching price:', data);
@@ -86,6 +86,7 @@ export abstract class ProductEntity extends Entity {
                 closest = options[i];
             }
         }
+
         return closest;
     }
 

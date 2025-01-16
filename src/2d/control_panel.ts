@@ -58,6 +58,16 @@ export class ControlPanel {
         this.shelf.getTotalPrice().then((price) => {
             totalPrice.setAmount(price);
         });
+        this.shelf.BboxChanged.on(() => {
+            this.shelf.getTotalPrice().then((price) => {
+                totalPrice.setAmount(price);
+            });
+        });
+        this.shelf.BoardSizeChanged.on(() => {
+            this.shelf.getTotalPrice().then((price) => {
+                totalPrice.setAmount(price);
+            });
+        });
         summaryContainer.appendChild(totalPrice.rootElement);
 
         const orderButton = document.createElement("button");
