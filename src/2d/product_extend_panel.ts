@@ -12,6 +12,7 @@ export class ProductExtendPanel extends ExtendPanel {
 
         const images = new ImageCarousel();
         product.getImageUrls().then((imageUrls) => {
+            console.log(imageUrls);
             images.setImages(imageUrls);
         });
         this.appendToBody(images.rootElement);

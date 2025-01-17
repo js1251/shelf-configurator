@@ -51,7 +51,6 @@ export class ImageCarousel extends CustomElement {
         leftButton.addEventListener('click', () => {
             this.setActiveImage((this.currentIndex - 1 + this.imageUrls.length) % this.imageUrls.length);
         });
-        leftButton.disabled = true;
         this.div.appendChild(leftButton);
 
         const rightButton = document.createElement("button");
@@ -60,7 +59,6 @@ export class ImageCarousel extends CustomElement {
         rightButton.addEventListener('click', () => {
             this.setActiveImage((this.currentIndex + 1) % this.imageUrls.length);
         });
-        rightButton.disabled = true;
         this.div.appendChild(rightButton);
 
         this.indexIndicatorContainer = document.createElement("div");
@@ -73,6 +71,8 @@ export class ImageCarousel extends CustomElement {
         this.indexButtons.forEach((button) => {
             button.remove();
         });
+
+        this.indexButtons = [];
 
         // add a button per image
         for (let i = 0; i < this.imageUrls.length; i++) {
@@ -90,6 +90,8 @@ export class ImageCarousel extends CustomElement {
             this.indexIndicatorContainer.appendChild(indexIndicator);
             this.indexButtons.push(indexIndicator);
         }
+        
+        this.setActiveImage(0);
     }
 
     get rootElement() {

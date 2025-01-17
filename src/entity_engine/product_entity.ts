@@ -74,10 +74,8 @@ export abstract class ProductEntity extends Entity {
             const data = await response.json();
     
             if (data.success) {
+                console.log(data);
                 this._imageUrls = data.data.image_urls;
-
-                console.log('Image URLs:', this._imageUrls);
-
                 return this._imageUrls;
             } else {
                 console.error('Error fetching image URLs:', data);

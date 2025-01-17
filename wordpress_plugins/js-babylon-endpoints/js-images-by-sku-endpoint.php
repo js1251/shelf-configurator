@@ -31,16 +31,19 @@ function get_image_urls_by_sku() {
         return;
     }
 
-    echo_log($product);
-
     $image_urls = [];
+	if ( $product->get_image_id() ) {
+		$image_ids = $product->get_image_id();
+        $image_urls = wp_get_attachment_image_src($image_ids, 'full');
+	}
 
-    // Get the image URLs
-    $attachment_ids = $product->get_gallery_image_ids();
+    // Add gallery images from custom meta key "blocksy_post_meta_options"
+    $blocksy_meta = get_post_meta($product_id, 'blocksy_post_meta_options', true);
+    if (!empty($blocksy_meta['images'])) {
+        $images = $blocksy_meta['images'];
 
-    if (!empty($attachment_ids)) {
-        foreach ($attachment_ids as $attachment_id) {
-            $image_urls[] = wp_get_attachment_url($attachment_id);
+        foreach ($images as $image) {
+            $image_urls[] = $image['url'];
         }
     }
 

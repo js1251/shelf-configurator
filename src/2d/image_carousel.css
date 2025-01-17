@@ -1,34 +1,34 @@
 #carousel {
     position: relative;
     display: flex;
-    padding: 20px;
-    padding-bottom: 0;
-    aspect-ratio: 1;
-    min-width: 100%;
+    aspect-ratio: 4/3;
+    margin-right: 20px;
+    margin-left: 20px;
+    align-items: center;
+    justify-content: center;
     box-sizing: border-box;
-    
+
     img {
         width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    #leftButton, #rightButton {
+        position: absolute;
+        bottom: 50%;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--primary-l-3);
     }
 
     #leftButton {
-        position: absolute;
         left: 5%;
-        bottom: 50%;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--primary-l-3);
     }
 
     #rightButton {
-        position: absolute;
         right: 5%;
-        bottom: 50%;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--primary-l-3);
     }
 
     #indexIndicatorContainer {
