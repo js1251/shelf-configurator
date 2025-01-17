@@ -10,7 +10,10 @@ export class ProductExtendPanel extends ExtendPanel {
             this.closeAndRemove();
         }});
 
-        const images = new ImageCarousel(product.imageUrls);
+        const images = new ImageCarousel();
+        product.getImageUrls().then((imageUrls) => {
+            images.setImages(imageUrls);
+        });
         this.appendToBody(images.rootElement);
 
         const contentContainer = document.createElement("div");

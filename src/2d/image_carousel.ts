@@ -4,22 +4,22 @@ require('./image_carousel.css');
 
 export class ImageCarousel extends CustomElement {
     private div: HTMLElement;
+    private indexIndicatorContainer: HTMLElement;
     private image: HTMLImageElement;
 
-    private imageUrls: string[];
-    private currentIndex: number;
+    private imageUrls: string[] = ["https://serenepieces.com/wp-content/uploads/woocommerce-placeholder.png"];
+    private currentIndex: number = 0;
 
     private indexButtons: HTMLButtonElement[] = [];
 
-    constructor(imageUrls: string[]) {
+    constructor() {
         super();
+        this.initializeCarousel();
+    }
 
-        this.div = document.createElement("div");
-        
+    setImages(imageUrls: string[]) {
         this.imageUrls = imageUrls;
-        this.currentIndex = 0;
-
-        this.createCarousel();
+        this.rebuildCarousel();
     }
 
     private setActiveImage(index: number) {
@@ -36,13 +36,13 @@ export class ImageCarousel extends CustomElement {
         }
     }
 
-    private createCarousel() {
-        const carousel = document.createElement("div");
-        carousel.id = "carousel";
+    private initializeCarousel() {
+        this.div = document.createElement("div");
+        this.div.id = "carousel";
 
         this.image = document.createElement("img");
         this.image.src = this.imageUrls[this.currentIndex];
-        carousel.appendChild(this.image);
+        this.div.appendChild(this.image);
 
         const leftButton = document.createElement("button");
         // create a left arrow from line drawing
@@ -51,7 +51,8 @@ export class ImageCarousel extends CustomElement {
         leftButton.addEventListener('click', () => {
             this.setActiveImage((this.currentIndex - 1 + this.imageUrls.length) % this.imageUrls.length);
         });
-        carousel.appendChild(leftButton);
+        leftButton.disabled = true;
+        this.div.appendChild(leftButton);
 
         const rightButton = document.createElement("button");
         rightButton.innerHTML = ICON.carouselArrowRight;
@@ -59,11 +60,19 @@ export class ImageCarousel extends CustomElement {
         rightButton.addEventListener('click', () => {
             this.setActiveImage((this.currentIndex + 1) % this.imageUrls.length);
         });
-        carousel.appendChild(rightButton);
+        rightButton.disabled = true;
+        this.div.appendChild(rightButton);
 
-        const indexIndicatorContainer = document.createElement("div");
-        indexIndicatorContainer.id = "indexIndicatorContainer";
-        carousel.appendChild(indexIndicatorContainer);
+        this.indexIndicatorContainer = document.createElement("div");
+        this.indexIndicatorContainer.id = "indexIndicatorContainer";
+        this.div.appendChild(this.indexIndicatorContainer);
+    }
+
+    private rebuildCarousel() {
+        // remove all index buttons
+        this.indexButtons.forEach((button) => {
+            button.remove();
+        });
 
         // add a button per image
         for (let i = 0; i < this.imageUrls.length; i++) {
@@ -78,11 +87,9 @@ export class ImageCarousel extends CustomElement {
                 this.setActiveImage(i);
             });
 
-            indexIndicatorContainer.appendChild(indexIndicator);
+            this.indexIndicatorContainer.appendChild(indexIndicator);
             this.indexButtons.push(indexIndicator);
         }
-
-        this.div.appendChild(carousel);
     }
 
     get rootElement() {

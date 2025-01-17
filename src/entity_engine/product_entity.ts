@@ -51,6 +51,44 @@ export abstract class ProductEntity extends Entity {
         }
     }
 
+    private _imageUrls: string[] | null = null;
+    public async getImageUrls(): Promise<string[]> {
+        if (this._imageUrls !== null && this.SKU === this._oldSKU) {
+            return this._imageUrls;
+        }
+
+        const sku = this.SKU;
+
+        try {
+            const response = await fetch('https://www.serenepieces.com/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'get_image_urls_by_sku',
+                    sku: sku,
+                }),
+            });
+    
+            const data = await response.json();
+    
+            if (data.success) {
+                this._imageUrls = data.data.image_urls;
+
+                console.log('Image URLs:', this._imageUrls);
+
+                return this._imageUrls;
+            } else {
+                console.error('Error fetching image URLs:', data);
+                return [];
+            }
+        } catch (err) {
+            console.error('AJAX error:', err);
+            return [];
+        }
+    }
+
     public async addToCart(): Promise<void> {
         const sku = this.SKU;
 
