@@ -73,6 +73,9 @@ export class ControlPanel {
         const orderButton = document.createElement("button");
         orderButton.className = "button button-primary";
         orderButton.innerHTML = "Bestellen";
+
+        orderButton.disabled = true;
+
         orderButton.addEventListener('click', () => {
             console.log("order button clicked");
         });

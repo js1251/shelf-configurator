@@ -54,6 +54,9 @@ class App {
         this.setupCamera();
         this.setupLighting();
         this.setupEnvironment();
+        
+        this.setupBackButton();
+        this.setupWiPOverlay();
 
         await this.loadResources();
         
@@ -221,6 +224,50 @@ class App {
         this.environment.setRoomHeight(2.4);
         this.environment.setRoomWidth(3.5);
         this.environment.setRoomDepth(4.5);
+    }
+
+    private setupWiPOverlay() {
+        const wipOverlay = document.createElement("div");
+        wipOverlay.id = "wipOverlay";
+
+        const title = document.createElement("h5");
+        title.innerHTML = "Der Konfigurator ist noch in Arbeit und repräsentiert nicht das finale Produkt. Preise sind arbiträr.";
+        wipOverlay.appendChild(title);
+
+        this.sceneWrapper.appendChild(wipOverlay);
+    }
+
+    private setupBackButton() {
+        const container = document.createElement("div");
+        container.id = "backButtonContainer";
+        this.sceneWrapper.appendChild(container);
+
+        const button = document.createElement("button");
+        button.id = "backButton";
+        button.innerHTML = "⟵";
+        button.className = "button button-inverted button-rounded";
+
+        button.onclick = () => {
+            window.history.back();
+        };
+
+        container.appendChild(button);
+
+        const info = document.createElement("p");
+        info.classList.add("hidden");
+        info.id = "backButtonInfo";
+        info.innerHTML = "Konfigurator verlassen";
+        container.appendChild(info);
+
+        container.addEventListener('mouseenter', () => {
+            info.classList.add("visible");
+            info.classList.remove("hidden");
+        });
+
+        container.addEventListener('mouseleave', () => {
+            info.classList.add("hidden");
+            info.classList.remove("visible");
+        });
     }
 
     private async loadResources() {

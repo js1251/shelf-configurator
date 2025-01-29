@@ -34,7 +34,11 @@ function get_image_urls_by_sku() {
     $image_urls = [];
 	if ( $product->get_image_id() ) {
 		$image_ids = $product->get_image_id();
-        $image_urls = wp_get_attachment_image_src($image_ids, 'full');
+        $image_array = wp_get_attachment_image_src($image_ids, 'full');
+
+        if (!empty($image_array)) {
+            $image_urls[] = $image_array[0];
+        }
 	}
 
     // Add gallery images from custom meta key "blocksy_post_meta_options"

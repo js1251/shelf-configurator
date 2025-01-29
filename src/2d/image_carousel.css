@@ -17,18 +17,31 @@
     #leftButton, #rightButton {
         position: absolute;
         bottom: 50%;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        color: var(--primary-l-3);
+
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #leftButton.visible, #rightButton.visible {
+        transform: translateX(0);
+        opacity: 0.8;
     }
 
     #leftButton {
         left: 5%;
     }
 
+    #leftButton.hidden {
+        transform: translateX(-80%);
+        opacity: 0;
+    }
+
     #rightButton {
         right: 5%;
+    }
+
+    #rightButton.hidden {
+        transform: translateX(80%);
+        opacity: 0;
     }
 
     #indexIndicatorContainer {

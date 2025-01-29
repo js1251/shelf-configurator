@@ -6,6 +6,7 @@
     #sceneWrapper {
         display: flex;
         justify-content: center;
+        position: relative;
 
         #sceneCanvas {
             width: 100%;
@@ -21,6 +22,56 @@
 
         #inspector-host {
             z-index: 3;
+        }
+
+        #wipOverlay {
+            position: absolute;
+            background-color: rgba(var(--text-l-1-rgb), 0.3);
+            width: 100%;
+            text-align: center;
+            z-index: 3;
+            line-height: 18px;
+
+            h5 {
+                font-size: 14px;
+                color: var(--background-l-0);
+            }
+        }
+
+        #backButtonContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            padding: 50px;
+
+            #backButtonInfo {
+                margin-left: 10px;
+                transition: transform 0.5s ease, opacity 0.5s ease;
+
+                p {
+                    color: var(--text-l-0);
+                }
+            }
+
+            .button {
+                z-index: 4;
+                width: 55px;
+                height: 55px;
+                font-size: 1.5em;
+            }
+        }
+
+        #backButtonInfo.hidden {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        #backButtonInfo.visible {
+            transform: translateX(0);
+            opacity: 1;
         }
     }
 }

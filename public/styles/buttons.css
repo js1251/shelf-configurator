@@ -6,12 +6,18 @@
     font-optical-sizing: 30;
     font-size: 48;
     letter-spacing: 7.68px;
+    line-height: 100%;
 
     border: none;
     cursor: pointer;
+    transition: background-color 0.5s, border-color 0.5s;
+    box-sizing: border-box;
+    display: flex;
+
     justify-content: center;
     align-items: center;
-    transition: background-color 0.5s, border-color 0.5s;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .button-primary, .button-secondary, .button-inverted {
@@ -58,6 +64,7 @@
 .button-secondary.active {
     color: var(--text-l-0);
     background-color: var(--primary-l-2);
+    border: none;
 }
 
 .button-secondary.active:not(:disabled):hover {
@@ -78,7 +85,7 @@
 }
 
 .button-inverted:not(:disabled):hover {
-    background-color: var(--background-l-1);
+    background-color: var(--text-l-1);
 }
 
 .button-inverted.active {
@@ -104,6 +111,8 @@
     height: 40px;
     padding: 0;
     margin: 0;
+    
+    letter-spacing: 0;
 
     svg {
         width: 60%;
