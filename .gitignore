@@ -33,3 +33,4 @@ playwright/.cache/
 .nx
 .DS_Store
 .vscode
+.blend1
