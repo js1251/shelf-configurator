@@ -35,6 +35,8 @@
             h5 {
                 font-size: 14px;
                 color: var(--background-l-0);
+                padding-left: 10px;
+                padding-right: 10px;
             }
         }
 
@@ -46,6 +48,8 @@
             display: flex;
             align-items: center;
             padding: 50px;
+
+            padding-top: 100px; /* TEMPORARY until WiP overlay is removed */
 
             #backButtonInfo {
                 margin-left: 10px;
