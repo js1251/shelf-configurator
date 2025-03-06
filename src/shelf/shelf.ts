@@ -349,6 +349,16 @@ export class Shelf extends Entity {
             price += boardPrice;
         }
 
+        for (let i = 0; i < this.struts.length; i++) {
+            const strut = this.struts[i];
+            const strutPrice = await strut.getPrice();
+            if (strutPrice === null) {
+                return null;
+            }
+
+            price += strutPrice;
+        }
+
         return price;
     }
 }
