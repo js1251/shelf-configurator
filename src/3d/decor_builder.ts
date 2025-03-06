@@ -12,6 +12,7 @@ import { Books04 } from "../shelf/entities/decor/decor_books_04";
 import { Trinket01 } from "../shelf/entities/decor/decor_trinket_01";
 import { Lamp01 } from "../shelf/entities/decor/decor_lamp_01";
 import { Lamp02 } from "../shelf/entities/decor/decor_lamp_02";
+import { LightEmittingDecor } from "../shelf/light_emitting_decor";
 
 export class DecorBuilder {
     private shelf: Shelf;
@@ -237,6 +238,28 @@ export class DecorBuilder {
             const decors = this.decorLookup[this.getBoardId(board)];
             decors.forEach(decor => {
                 decor.root.setEnabled(visible);
+            });
+        });
+    }
+
+    setNight() {
+        this.shelf.getBoards().forEach(board => {
+            const decors = this.decorLookup[this.getBoardId(board)];
+            decors.forEach(decor => {
+                if (decor instanceof LightEmittingDecor) {
+                    decor.turnOn();
+                }
+            });
+        });
+    }
+
+    setDay() {
+        this.shelf.getBoards().forEach(board => {
+            const decors = this.decorLookup[this.getBoardId(board)];
+            decors.forEach(decor => {
+                if (decor instanceof LightEmittingDecor) {
+                    decor.turnOff();
+                }
             });
         });
     }
