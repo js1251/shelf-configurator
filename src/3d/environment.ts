@@ -17,8 +17,8 @@ export class Environment {
     private frontWall: BABYLON.Mesh;
     private backWall: BABYLON.Mesh;
 
-    private light: BABYLON.PointLight;
-    private isNight: boolean = true;
+    private ambientLight: BABYLON.HemisphericLight;
+    private sun: BABYLON.DirectionalLight;
 
     private static FLOOR_SCALE = 0.4;
 
@@ -66,8 +66,6 @@ export class Environment {
     setRoomHeight(height: number): void {
         this.scaleHandle.scaling.y = height;
         this.scaleHandle.position.y = height * 0.5;
-
-        this.light.position.y = height - 0.2;
         
         this.onRoomChanged.trigger(this.getBoundingBox());
     }
@@ -146,35 +144,34 @@ export class Environment {
         return new BABYLON.BoundingBox(min, max);
     }
 
-    setNight(isNight: boolean) {
-        this.isNight = isNight;
+    
+    
+    setNight() {
+        this.ambientLight.intensity = 0;
+        this.sun.intensity = 0;
 
-        if (isNight) {
-            //this.wallMaterial.unfreeze();
-            //this.wallMaterial.emissiveColor = BABYLON.Color3.Black();
-            //this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
+        this.setBackgroundColor(BABYLON.Color4.FromHexString("#0D0D0D"));
+        this.scene.environmentIntensity = 0;
+    }
+    
+    setDay() {
+        this.ambientLight.intensity = 0.8;
+        this.sun.intensity = 0.2;
 
-            this.setBackgroundColor(BABYLON.Color4.FromHexString("#0D0D0D"));
-            this.light.intensity = 0.1;
-            this.scene.environmentIntensity = 0;
-        } else {
-            //this.wallMaterial.unfreeze();
-            //this.wallMaterial.emissiveColor = this.wallMaterial.diffuseColor.scale(0.45);
-            //this.scene.onAfterRenderObservable.add(() => {this.wallMaterial.freeze()});
-
-            this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
-            this.light.intensity = 0.2;
-            this.scene.environmentIntensity = 0.3;
-        }
+        this.setBackgroundColor(BABYLON.Color4.FromHexString("#E0D9CC"));
+        this.scene.environmentIntensity = 0.3;
     }
 
     private createShadowGenerator() {
-        this.light = new BABYLON.PointLight("roomLight", new BABYLON.Vector3(0, 0, 0), this.scene);
-        this.light.diffuse = BABYLON.Color3.FromHexString("#FFFFFF");
-        this.light.intensity = 0.2;
-        this.light.position = new BABYLON.Vector3(0, 2.2, -0.9);
+        this.ambientLight = new BABYLON.HemisphericLight("Hemispheric light", new BABYLON.Vector3(0, 1, 0), this.scene);
+        this.ambientLight.diffuse = BABYLON.Color3.FromHexString("#ffe5cc");
+        this.ambientLight.intensity = 0.8;
+        
+        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.311, -0.554, -0.772), this.scene);
+        this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
+        this.sun.intensity = 0.2;
 
-        const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.light);
+        const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.sun);
         shadowGenerator.setDarkness(0.5);
         shadowGenerator.bias = 0.000002;
         shadowGenerator.usePoissonSampling = true;

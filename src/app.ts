@@ -28,13 +28,11 @@ class App {
     private scene: BABYLON.Scene;
     private shelfCamera: ShelfCamera;
     private environment: Environment;
-    private shadowGenerator: BABYLON.ShadowGenerator;
+    //private shadowGenerator: BABYLON.ShadowGenerator;
 
     private modelLoader: ModelLoader;
 
     private shelf: Shelf;
-    private ambientLight: BABYLON.HemisphericLight;
-    private sun: BABYLON.DirectionalLight;
 
     // TODO: Clean up, encapsulate into methods
     // NOTE: If things change at runtime, and navigation3D might not yet be updated
@@ -52,7 +50,7 @@ class App {
         });
 
         this.setupCamera();
-        this.setupLighting();
+        this.setupSSAO();
         this.setupEnvironment();
         
         this.setupBackButton();
@@ -127,12 +125,10 @@ class App {
         });
 
         navigation2D.DayNightButtonPressed.on((isNight) => {
-            this.environment.setNight(isNight);
-
             if (isNight) {
-                this.setNight();
+                this.environment.setNight();
             } else {
-                this.setDay();
+                this.environment.setDay();
             }
         });
 
@@ -199,7 +195,7 @@ class App {
         this.shelfCamera.camera.attachControl(this.canvas, true);
     }
     
-    private setupLighting() {
+    private setupSSAO() {
         const ssao = new BABYLON.SSAO2RenderingPipeline("ssao", this.scene, 1.0, [this.shelfCamera.camera]);
         ssao.radius = 0.5;
         ssao.totalStrength = 0.4;
@@ -208,19 +204,10 @@ class App {
         ssao.maxZ = 10;
         ssao.minZAspect = 0.1;
         ssao.textureSamples = 4;
-        
-        this.ambientLight = new BABYLON.HemisphericLight("Hemispheric light", new BABYLON.Vector3(0, 1, 0), this.scene);
-        this.ambientLight.diffuse = BABYLON.Color3.FromHexString("#ffe5cc");
-        this.ambientLight.intensity = 0.8;
-
-        this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-0.311, -0.554, -0.772), this.scene);
-        this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
-        this.sun.intensity = 0.2;
     }
 
     private setupEnvironment() {
         this.environment = new Environment(this.scene);
-        this.shadowGenerator = this.environment.getShadowGenerator();
         this.environment.setRoomHeight(2.4);
         this.environment.setRoomWidth(3.5);
         this.environment.setRoomDepth(4.5);
@@ -231,7 +218,7 @@ class App {
         wipOverlay.id = "wipOverlay";
 
         const title = document.createElement("h5");
-        title.innerHTML = "Der Konfigurator ist noch in Arbeit und repräsentiert nicht das finale Produkt. Preise sind arbiträr.";
+        title.innerHTML = "Der Konfigurator ist noch in Arbeit und repräsentiert nicht das finale Produkt.";
         wipOverlay.appendChild(title);
 
         this.sceneWrapper.appendChild(wipOverlay);
@@ -248,7 +235,12 @@ class App {
         button.className = "button button-inverted button-rounded";
 
         button.onclick = () => {
-            window.history.back();
+            // check if back will return user to a serenepieces.com page
+            if (document.referrer.includes("serenepieces.com")) {
+                window.history.back();
+            } else {
+                window.location.href = "https://serenepieces.com";
+            }
         };
 
         container.appendChild(button);
@@ -274,18 +266,8 @@ class App {
         const resources = new Resources(this.scene)
         await resources.preloadMaterials();
 
-        this.modelLoader = new ModelLoader(this.scene, this.shadowGenerator);
+        this.modelLoader = new ModelLoader(this.scene, this.environment.getShadowGenerator());
         await this.modelLoader.preloadModels();
-    }
-
-    private setNight() {
-        this.ambientLight.intensity = 0;
-        this.sun.intensity = 0;
-    }
-
-    private setDay() {
-        this.ambientLight.intensity = 0.8;
-        this.sun.intensity = 0.2;
     }
 
     private createShelf() : Shelf {
