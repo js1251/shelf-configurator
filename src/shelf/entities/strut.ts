@@ -66,7 +66,7 @@ export class Strut extends ProductEntity {
         let heightRange = this.getRangeOption(this.height_m * 100, ranges);
 
         // TODO: the color should be dynamic
-        return `STRUT-${heightRange}-BLACK`;
+        return `STRUT-BLACK-${heightRange}`;
     }
 
     get name(): string {
