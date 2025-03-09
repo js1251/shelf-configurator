@@ -2,6 +2,7 @@ import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../../3d/modelloader";
 import { ProductEntity } from "../../entity_engine/product_entity";
 import { ProductOptions } from "../product_options";
+import * as Resources from "../../shelf/materials";
 
 export class Strut extends ProductEntity {
     private height_m: number;
@@ -55,25 +56,21 @@ export class Strut extends ProductEntity {
         this.footBottom.setParent(this.strut);
 
         this.updateBoundingBox();
+        
+        this.onPriceChanged.trigger(this.getPrice());
 
         this.freeze();
     }
 
     get SKU(): string {
-        // find the range the height is in
         let heightRange = this.getRangeOption(this.height_m * 100, ProductOptions.availableStrutHeights);
-
-        // TODO: the color should be dynamic
-        return `STRUT-BLACK-${heightRange}`;
+        return `STRUT-${this.material}-${heightRange}`;
     }
 
     // TODO: the color options should be retrieved from the woocommerce product, placeholder colors should be used if no material is defined for a color option
-    setMaterial(material: BABYLON.Material) {
-        this.strut.getChildMeshes()[0].material = material;
-    }
-
-    getMaterial(): BABYLON.Material {
-        return this.strut.getChildMeshes()[0].material;
+    protected applyMaterial(material: string) {
+        const shelfMaterial = Resources.getShelfMaterialForStringMaterial(material);
+        this.strut.getChildMeshes()[0].material = shelfMaterial.material;
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {

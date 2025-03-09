@@ -39,6 +39,11 @@ export class ProductExtendPanel extends ExtendPanel {
             images.setImages(product.getImageUrls());
         });
 
+        product.MaterialChanged.on(() => {
+            priceDisplay.setAmount(product.getPrice());
+            images.setImages(product.getImageUrls());
+        });
+
         contentContainer.appendChild(priceDisplay.rootElement);
 
         const propertiesContainer = document.createElement("div");

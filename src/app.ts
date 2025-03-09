@@ -14,7 +14,7 @@ import { Board } from "./shelf/entities/board";
 import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { StyleGuide } from "./2d/style_guide";
-import { METAL_MATERIALS, Resources, WOOD_MATERIALS } from "./shelf/materials";
+import { Resources } from "./shelf/materials";
 import { Environment } from "./3d/environment";
 import { ProductOptions } from "./shelf/product_options";
 
@@ -121,9 +121,12 @@ class App {
             const shelfCenter = this.shelf.getBoundingBox().centerWorld;
             this.shelfCamera.setDesiredTarget(shelfCenter);
 
+            // TODO: adjust triplanar reference position
+            /*
             WOOD_MATERIALS.forEach((shelfMaterial) => {
                 ((shelfMaterial.material as BABYLON.NodeMaterial).getBlockByName("referencePos") as BABYLON.InputBlock).value = this.shelf.root.position;
             });
+            */
         });
 
         navigation2D.DayNightButtonPressed.on((isNight) => {
@@ -296,8 +299,8 @@ class App {
         shelf.addBoard(1.65, 0, 2);
         shelf.addBoard(2.07, 1, 3);
 
-        shelf.setStrutMaterial(METAL_MATERIALS[0].material);
-        shelf.setBoardMaterial(WOOD_MATERIALS[0].material);
+        shelf.setStrutMaterial("BLACK");
+        shelf.setBoardMaterial("OAK");
 
         return shelf;
     }

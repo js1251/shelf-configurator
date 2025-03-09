@@ -55,18 +55,9 @@ export class ControlPanel {
         this.container.appendChild(summaryContainer);
 
         const totalPrice = new PriceDisplay();
-        this.shelf.getTotalPrice().then((price) => {
-            totalPrice.setAmount(price);
-        });
-        this.shelf.BboxChanged.on(() => {
-            this.shelf.getTotalPrice().then((price) => {
-                totalPrice.setAmount(price);
-            });
-        });
-        this.shelf.BoardSizeChanged.on(() => {
-            this.shelf.getTotalPrice().then((price) => {
-                totalPrice.setAmount(price);
-            });
+        totalPrice.setAmount(this.shelf.getTotalPrice());
+        this.shelf.PriceChanged.on(() => {
+            totalPrice.setAmount(this.shelf.getTotalPrice());
         });
         summaryContainer.appendChild(totalPrice.rootElement);
 

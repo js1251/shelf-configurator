@@ -4,6 +4,7 @@ import { Strut } from "./strut";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
 import { ProductOptions } from "../product_options";
+import * as Resources from "../../shelf/materials";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -83,10 +84,12 @@ export class Board extends ProductEntity {
         this.handleMiddle();
 
         // refresh material to apply it to potential new meshes
-        this.setMaterial(this.getMaterial());
+        this.applyMaterial(this.material);
         
         this.updateBoundingBox();
         this.onBoardStrutsChanged.trigger();
+        this.onPriceChanged.trigger(this.getPrice());
+
         this.freeze();
     }
 
@@ -105,14 +108,13 @@ export class Board extends ProductEntity {
 
     get SKU(): string {
         const width = this.getBoundingBox().extendSize.x * 2;
-
-        // find the range the height is in
         let lengthRange = this.getRangeOption(width * 100, ProductOptions.availableBoardLengths);
-
-        return `BOARD-OAK-OILED-${lengthRange}`;
+        return `BOARD-${this.material}-OILED-${lengthRange}`;
     }
 
-    setMaterial(material: BABYLON.Material) {
+    protected applyMaterial(material: string) {
+        const shelfMaterial = Resources.getShelfMaterialForStringMaterial(material);
+        
         this.start.getChildMeshes().forEach(child => {
             // if the child is a clamp, don't change the material
             if (child.name.includes("clamp")) {
@@ -123,12 +125,8 @@ export class Board extends ProductEntity {
                 return;
             }
 
-            child.material = material;
+            child.material = shelfMaterial.material;
         });
-    }
-
-    getMaterial(): BABYLON.Material {
-        return this.start.getChildMeshes()[0].material;
     }
 
     protected constructMeshes(): BABYLON.AbstractMesh {

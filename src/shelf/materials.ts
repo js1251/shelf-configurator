@@ -17,6 +17,8 @@ export class Resources {
     static TEXTURE_BRUSHEDMETAL_NORMAL: BABYLON.Texture;
     static TEXTURE_BRUSHEDMETAL_AOROUGHMETAL: BABYLON.Texture;
 
+    static PLACEHOLDER_MATERIAL: BABYLON.Material;
+
     static OAK_OILED_MATERIAL: BABYLON.Material;
     static OAK_VARNISHED_MATERIAL: BABYLON.Material;
     static BEECH_OILED_MATERIAL: BABYLON.Material;
@@ -49,6 +51,9 @@ export class Resources {
         Resources.TEXTURE_BRUSHEDMETAL_NORMAL = new BABYLON.Texture("textures/strut_brushed/normal.jpg", this.scene);
         Resources.TEXTURE_BRUSHEDMETAL_AOROUGHMETAL = new BABYLON.Texture("textures/strut_brushed/ao_rough_metal.jpg", this.scene);
 
+        Resources.PLACEHOLDER_MATERIAL = new BABYLON.StandardMaterial("placeholder_material", this.scene);
+        Resources.PLACEHOLDER_MATERIAL.freeze();
+        
         const setWoodTexture = (material: BABYLON.NodeMaterial) => {
             material.getAllTextureBlocks().forEach((block) => {
                 if (block.texture) {
@@ -193,8 +198,6 @@ export abstract class ShelfMaterial {
     abstract get name(): string;
 
     abstract get finish(): string;
-
-    abstract get previewImageUrl(): string;
 }
 
 class EicheGeoelt extends ShelfMaterial {
@@ -208,10 +211,6 @@ class EicheGeoelt extends ShelfMaterial {
 
     get finish(): string {
         return 'Geölt';
-    }
-
-    get previewImageUrl(): string {
-        return 'images/oak_bare.jpg';
     }
 }
 
@@ -227,10 +226,6 @@ class EicheKlarlack extends ShelfMaterial {
     get finish(): string {
         return 'Klarlack';
     }
-
-    get previewImageUrl(): string {
-        return 'images/oak_bare.jpg';
-    }
 }
 
 class BucheGeoelt extends ShelfMaterial {
@@ -244,10 +239,6 @@ class BucheGeoelt extends ShelfMaterial {
 
     get finish(): string {
         return 'Geölt';
-    }
-
-    get previewImageUrl(): string {
-        return 'images/beech_bare.jpg';
     }
 }
 
@@ -263,10 +254,6 @@ class BucheKlarlack extends ShelfMaterial {
     get finish(): string {
         return 'Klarlack';
     }
-
-    get previewImageUrl(): string {
-        return 'images/beech_bare.jpg';
-    }
 }
 
 class EscheGeoelt extends ShelfMaterial {
@@ -280,10 +267,6 @@ class EscheGeoelt extends ShelfMaterial {
 
     get finish(): string {
         return 'Geölt';
-    }
-
-    get previewImageUrl(): string {
-        return 'images/ash_bare.jpg';
     }
 }
 
@@ -299,10 +282,6 @@ class EscheKlarlack extends ShelfMaterial {
     get finish(): string {
         return 'Klarlack';
     }
-
-    get previewImageUrl(): string {
-        return 'images/ash_bare.jpg';
-    }
 }
 
 class NussbaumGeoelt extends ShelfMaterial {
@@ -316,10 +295,6 @@ class NussbaumGeoelt extends ShelfMaterial {
 
     get finish(): string {
         return 'Geölt';
-    }
-
-    get previewImageUrl(): string {
-        return 'images/chestnut_bare.jpg';
     }
 }
 
@@ -335,10 +310,6 @@ class NussbaumKlarlack extends ShelfMaterial {
     get finish(): string {
         return 'Klarlack';
     }
-
-    get previewImageUrl(): string {
-        return 'images/chestnut_bare.jpg';
-    }
 }
 
 class PulverbeschichtetSchwarz extends ShelfMaterial {
@@ -352,10 +323,6 @@ class PulverbeschichtetSchwarz extends ShelfMaterial {
 
     get finish(): string {
         return 'Pulverbeschichtet';
-    }
-
-    get previewImageUrl(): string {
-        return 'images/coated_black.jpg';
     }
 }
 
@@ -371,10 +338,6 @@ class EdelstahlGebuerstet extends ShelfMaterial {
     get finish(): string {
         return 'Gebürstet';
     }
-
-    get previewImageUrl(): string {
-        return 'images/stainless_brushed.jpg';
-    }
 }
 
 class MessingGebuerstet extends ShelfMaterial {
@@ -389,25 +352,35 @@ class MessingGebuerstet extends ShelfMaterial {
     get finish(): string {
         return 'Gebürstet';
     }
+}
 
-    get previewImageUrl(): string {
-        return 'images/brass_brushed.jpg';
+class Placeholder extends ShelfMaterial {
+    protected createMaterial(): BABYLON.Material {
+        return Resources.PLACEHOLDER_MATERIAL;
+    }
+
+    get name(): string {
+        return 'Placeholder';
+    }
+
+    get finish(): string {
+        return 'Placeholder';
     }
 }
 
-export const WOOD_MATERIALS : ShelfMaterial[] = [
-    new EicheGeoelt(),
-    new EicheKlarlack(),
-    new BucheGeoelt(),
-    new BucheKlarlack(),
-    new EscheGeoelt(),
-    new EscheKlarlack(),
-    new NussbaumGeoelt(),
-    new NussbaumKlarlack(),
-];
-
-export const METAL_MATERIALS : ShelfMaterial[] = [
-    new PulverbeschichtetSchwarz(),
-    new EdelstahlGebuerstet(),
-    new MessingGebuerstet(),
-];
+export const getShelfMaterialForStringMaterial = function(materialName: string) : ShelfMaterial {
+    switch (materialName) {
+        case 'OAK':
+            return new EicheGeoelt();
+        case 'WALLNUT':
+            return new NussbaumGeoelt();
+        
+        case 'BRASS':
+            return new MessingGebuerstet();
+        case 'BLACK':
+            return new PulverbeschichtetSchwarz();
+        
+        default:
+            return new Placeholder();
+    }
+}

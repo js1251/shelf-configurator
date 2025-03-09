@@ -1,9 +1,19 @@
-import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { Entity } from "./entity";
 import { ProductOptions } from "../shelf/product_options";
+import { LiteEvent } from "../event_engine/LiteEvent";
 
 export abstract class ProductEntity extends Entity {
+    private readonly onMaterialChanged = new LiteEvent<string>();
+    public get MaterialChanged() {
+        return this.onMaterialChanged.expose();
+    }
+
+    protected readonly onPriceChanged = new LiteEvent<number>();
+    public get PriceChanged() {
+        return this.onPriceChanged.expose();
+    }
+    
     constructor(modelloader: ModelLoader) {
         super(modelloader);
     }
@@ -69,7 +79,17 @@ export abstract class ProductEntity extends Entity {
         return closest;
     }
 
-    abstract setMaterial(material: BABYLON.Material);
+    private _material: string;
+    public set material(material: string) {
+        this._material = material;
+        this.applyMaterial(material);
+        this.onMaterialChanged.trigger(material);
+        this.onPriceChanged.trigger(this.getPrice());
+    }
 
-    abstract getMaterial(): BABYLON.Material;
+    public get material(): string {
+        return this._material;
+    }
+
+    protected abstract applyMaterial(material: string): void;
 }

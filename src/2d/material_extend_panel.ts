@@ -1,5 +1,5 @@
-import * as BABYLON from "@babylonjs/core";
-import { METAL_MATERIALS, ShelfMaterial, WOOD_MATERIALS } from "../shelf/materials";
+import * as Resources from "../shelf/materials";
+import { ProductOptions } from "../shelf/product_options";
 import { Shelf } from "../shelf/shelf";
 import { ColorSwatch } from "./color_swatch";
 import { ExtendPanel } from "./extend_panel";
@@ -16,28 +16,17 @@ export class MaterialExtendPanel extends ExtendPanel {
 
         this.shelf = shelf;
 
-        this.createMaterialSelectionSection('Holzart Böden', WOOD_MATERIALS, this.shelf.getBoards()[0].getMaterial(), (shelfMaterial) => {
-            this.shelf.getBoards().forEach(board => {
-                board.setMaterial(shelfMaterial.material);
-            });
+        this.createMaterialSelectionSection('Holzart Böden', ProductOptions.availableWoodTypes, this.shelf.getBoards()[0].material, (material) => {
+            this.shelf.setBoardMaterial(material);
         });
 
-        this.createMaterialSelectionSection('Metall Streben', METAL_MATERIALS, this.shelf.getStruts()[0].getMaterial(), (shelfMaterial) => {
-            this.shelf.getStruts().forEach(strut => {
-                strut.setMaterial(shelfMaterial.material);
-            });
+        this.createMaterialSelectionSection('Metall Streben', ProductOptions.availableStrutMaterials, this.shelf.getStruts()[0].material, (material) => {
+            this.shelf.setStrutMaterial(material);
         });
     }
 
-    private createMaterialSelectionSection(name: string, materials: ShelfMaterial[], initialMaterial: BABYLON.Material, onSwatchPicked: (shelfMaterial: ShelfMaterial) => void) {
-        let initialMaterialInidex = materials.findIndex((shelfMaterial) => {
-            return shelfMaterial.material === initialMaterial;
-        });
-
-        if (initialMaterialInidex === -1) {
-            console.warn('No material option match the current shelf material! Using index  0.');
-            initialMaterialInidex = 0;
-        }
+    private createMaterialSelectionSection(name: string, materials: string[], initialMaterialName: string, onSwatchPicked: (material: string) => void) {
+        const shelfMaterial = Resources.getShelfMaterialForStringMaterial(initialMaterialName);
         
         const materialSelectionContainer = document.createElement('div');
         materialSelectionContainer.id = 'materialSelectionContainer';
@@ -47,8 +36,8 @@ export class MaterialExtendPanel extends ExtendPanel {
         previewContainer.id = 'materialPreviewContainer';
         materialSelectionContainer.appendChild(previewContainer);
 
-        const preview = document.createElement('img')
-        preview.src = materials[initialMaterialInidex].previewImageUrl;
+        const preview = document.createElement('img');
+        preview.src = ProductOptions.getMaterialThumbnailUrl(initialMaterialName);
         preview.id = 'materialPreview';
         previewContainer.appendChild(preview);
 
@@ -60,12 +49,12 @@ export class MaterialExtendPanel extends ExtendPanel {
         materialType.innerHTML = name;
         materialInfoContainer.appendChild(materialType);
 
-        const materialName = document.createElement('p');
-        materialName.innerHTML = materials[initialMaterialInidex].name;
-        materialInfoContainer.appendChild(materialName);
+        const materialNameTitle = document.createElement('p');
+        materialNameTitle.innerHTML = shelfMaterial.name;
+        materialInfoContainer.appendChild(materialNameTitle);
 
         const materialFinish = document.createElement('p');
-        materialFinish.innerHTML = materials[initialMaterialInidex].finish;
+        materialFinish.innerHTML = shelfMaterial.finish;
         materialInfoContainer.appendChild(materialFinish);
 
         const swatchScrollContainer = document.createElement('div');
@@ -77,13 +66,13 @@ export class MaterialExtendPanel extends ExtendPanel {
         swatchScrollContainer.appendChild(swatchContainer);
 
         for (let i = 0; i < materials.length; i++) {
-            const shelfMaterial = materials[i];
-            const swatch = new ColorSwatch(shelfMaterial, () => {
-                onSwatchPicked(shelfMaterial);
-                preview.src = shelfMaterial.previewImageUrl;
-                materialName.innerHTML = shelfMaterial.name;
+            const materialThumbnailUrl = ProductOptions.getMaterialThumbnailUrl(materials[i]);
+            const swatch = new ColorSwatch(materialThumbnailUrl, () => {
+                onSwatchPicked(materials[i]);
+                preview.src = materialThumbnailUrl;
+                materialNameTitle.innerHTML = shelfMaterial.name;
                 materialFinish.innerHTML = shelfMaterial.finish;
-            }, name, i==initialMaterialInidex);
+            }, name, materials[i] === initialMaterialName);
             swatchContainer.append(swatch.rootElement);
         }
     }

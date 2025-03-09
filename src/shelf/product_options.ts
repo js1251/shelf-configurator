@@ -29,8 +29,8 @@ export class ProductOptions {
         return this._data[sku]['image_urls'];
     }
 
-    public static getPriceForSKU(sku: string): number | null {
-        return this._data[sku]['price'];
+    public static getPriceForSKU(sku: string): number {
+        return this._data[sku] ? this._data[sku]['price'] : 0;
     }
 
     public static getDescriptionsForSKU(sku: string): string {
@@ -43,6 +43,11 @@ export class ProductOptions {
 
     public static getShopLinkForSKU(sku: string): string {
         return this._data[sku]['shop_link'];
+    }
+
+    private static _materialThumbnails: {} = {};
+    public static getMaterialThumbnailUrl(material: string): string {
+        return this._materialThumbnails[material];
     }
     
     public async loadOptions(): Promise<void> {
@@ -82,6 +87,11 @@ export class ProductOptions {
             };
             
             const splitName = variation_sku.split('-');
+            const material = splitName[1];
+            if (!ProductOptions._materialThumbnails[material]) {
+                ProductOptions._materialThumbnails[material] = data['variations_info'][variation_sku]['image_urls'][1];
+            }
+
             if (splitName[0] === 'BOARD') {
                 const woodType = splitName[1];
                 if (!ProductOptions._availableWoodTypes.includes(woodType)) {
@@ -109,5 +119,13 @@ export class ProductOptions {
                 }
             }
         });
+
+        console.log('Product options loaded:', ProductOptions._data);
+        console.log('Available board lengths:', ProductOptions._availableBoardLengths);
+        console.log('Available wood types:', ProductOptions._availableWoodTypes);
+        console.log('Available wood finishes:', ProductOptions._availableWoodFinishes);
+        console.log('Available strut heights:', ProductOptions._availableStrutHeights);
+        console.log('Available strut materials:', ProductOptions._availableStrutMaterials);
+        console.log('Material thumbnails:', ProductOptions._materialThumbnails);
     }
 }

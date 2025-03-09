@@ -35,6 +35,11 @@ export class Shelf extends Entity {
     public get StrutRemoved() {
         return this.onStrutRemoved.expose();
     }
+
+    private readonly onPriceChanged = new LiteEvent<number>();
+    public get PriceChanged() {
+        return this.onPriceChanged.expose();
+    }
     
     protected modifyBoundixInfo(min: BABYLON.Vector3, max: BABYLON.Vector3): [BABYLON.Vector3, BABYLON.Vector3] { 
         return [min, max];
@@ -93,7 +98,7 @@ export class Shelf extends Entity {
     addStrutToStart() {
         const strut = new Strut(this.modelloader, this.getHeight(), 0);
         if (this.struts.length > 0) {
-            strut.setMaterial(this.getStruts()[0].getMaterial());
+            strut.material = this.getStruts()[0].material;
         }
 
         const strutPos = this.getPosition().clone();
@@ -101,6 +106,10 @@ export class Shelf extends Entity {
 
         strut.setParent(this);
         this.struts.unshift(strut);
+
+        strut.PriceChanged.on(() => {
+            this.onPriceChanged.trigger(this.getTotalPrice());
+        });
 
         // update all struts indices
         for (let i = 0; i < this.struts.length; i++) {
@@ -123,7 +132,7 @@ export class Shelf extends Entity {
     addStrutToEnd() {
         const strut = new Strut(this.modelloader, this.getHeight(), this.struts.length);
         if (this.struts.length > 0) {
-            strut.setMaterial(this.getStruts()[0].getMaterial());
+            strut.material = this.getStruts()[0].material;
         }
 
         const strutPos = this.getPosition().clone();
@@ -133,6 +142,10 @@ export class Shelf extends Entity {
         strut.setPosition(strutPos);
         strut.setParent(this);
         this.struts.push(strut);
+
+        strut.PriceChanged.on(() => {
+            this.onPriceChanged.trigger(this.getTotalPrice());
+        });
         
         this.updateBoundingBox();
 
@@ -272,6 +285,10 @@ export class Shelf extends Entity {
             this.onBoardHeightChanged.trigger(board);
         });
 
+        board.PriceChanged.on(() => {
+            this.onPriceChanged.trigger(this.getTotalPrice());
+        });
+
         // sort boards by height
         this.boards.sort((a, b) => {
             return a.getHeight() - b.getHeight();
@@ -324,24 +341,24 @@ export class Shelf extends Entity {
         return this.boards[index + 1];
     }
 
-    setStrutMaterial(material: BABYLON.Material) {
+    setStrutMaterial(material: string) {
         this.struts.forEach((strut) => {
-            strut.setMaterial(material);
+            strut.material = material;
         });
     }
 
-    setBoardMaterial(material: BABYLON.Material) {
+    setBoardMaterial(material: string) {
         this.boards.forEach((board) => {
-            board.setMaterial(material);
+            board.material = material;
         });
     }
 
-    async getTotalPrice(): Promise<number | null> {
+    getTotalPrice(): number {
         let price = 0;
 
         for (let i = 0; i < this.boards.length; i++) {
             const board = this.boards[i];
-            const boardPrice = await board.getPrice();
+            const boardPrice = board.getPrice();
             if (boardPrice === null) {
                 return null;
             }
@@ -351,7 +368,7 @@ export class Shelf extends Entity {
 
         for (let i = 0; i < this.struts.length; i++) {
             const strut = this.struts[i];
-            const strutPrice = await strut.getPrice();
+            const strutPrice = strut.getPrice();
             if (strutPrice === null) {
                 return null;
             }

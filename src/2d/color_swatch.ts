@@ -1,4 +1,3 @@
-import { ShelfMaterial } from "../shelf/materials";
 import { CustomElement } from "./customElement";
 
 require('./color_swatch.css');
@@ -7,7 +6,7 @@ export class ColorSwatch extends CustomElement {
     private root: HTMLElement;
     private static index: number = 0;
 
-    constructor(shelfMaterial: ShelfMaterial, onclick: () => void, name: string, startsChecked: boolean = false) {
+    constructor(previewImageUrl: string, onclick: () => void, name: string, startsChecked: boolean = false) {
         super();
 
         this.root = document.createElement('div');
@@ -27,7 +26,7 @@ export class ColorSwatch extends CustomElement {
         this.root.appendChild(label);
 
         const image = document.createElement('img');
-        image.src = shelfMaterial.previewImageUrl;
+        image.src = previewImageUrl;
         label.appendChild(image);
     }
 
