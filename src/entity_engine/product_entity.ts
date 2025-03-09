@@ -1,90 +1,33 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../3d/modelloader";
 import { Entity } from "./entity";
+import { ProductOptions } from "../shelf/product_options";
 
 export abstract class ProductEntity extends Entity {
     constructor(modelloader: ModelLoader) {
         super(modelloader);
     }
 
-    private _oldSKU: string | null = null;
     abstract get SKU(): string;
 
-    abstract get name(): string;
-
-    abstract get description(): string;
-
-    abstract get imageUrls(): string[];
-
-    private _price: number | null = null;
-    public async getPrice(): Promise<number | null> {        
-        if (this._price !== null && this.SKU === this._oldSKU) {
-            return this._price;
-        }
-
-        const sku = this.SKU;
-
-        try {
-            const response = await fetch('https://www.serenepieces.com/wp-admin/admin-ajax.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    action: 'get_price_by_sku',
-                    sku: sku,
-                }),
-            });
-    
-            const data = await response.json();
-    
-            if (data.success) {
-                this._price = Number(data.data.price); 
-                return this._price;
-            } else {
-                console.error('Error fetching price:', data);
-                return null;
-            }
-        } catch (err) {
-            console.error('AJAX error:', err);
-            return null;
-        }
+    public getName(): string {
+        return ProductOptions.getNameForSKU(this.SKU);
     }
 
-    private _imageUrls: string[] | null = null;
-    public async getImageUrls(): Promise<string[]> {
-        if (this._imageUrls !== null && this.SKU === this._oldSKU) {
-            return this._imageUrls;
-        }
+    public getDescription(): string {
+        return ProductOptions.getDescriptionsForSKU(this.SKU);
+    }
 
-        const sku = this.SKU;
+    public getPrice(): number {        
+        return ProductOptions.getPriceForSKU(this.SKU);
+    }
 
-        try {
-            const response = await fetch('https://www.serenepieces.com/wp-admin/admin-ajax.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    action: 'get_image_urls_by_sku',
-                    sku: sku,
-                }),
-            });
-    
-            const data = await response.json();
-    
-            if (data.success) {
-                console.log(data);
-                this._imageUrls = data.data.image_urls;
-                return this._imageUrls;
-            } else {
-                console.error('Error fetching image URLs:', data);
-                return [];
-            }
-        } catch (err) {
-            console.error('AJAX error:', err);
-            return [];
-        }
+    public getImageUrls(): string[] {
+        return ProductOptions.getImageUrlsForSKU(this.SKU);
+    }
+
+    public getShopLink(): string {
+        return ProductOptions.getShopLinkForSKU(this.SKU);
     }
 
     public async addToCart(): Promise<void> {

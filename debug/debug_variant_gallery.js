@@ -12,18 +12,17 @@ var WooCommerce = new WooCommerceAPI({
 WooCommerce.getAsync('products').then(function(result) {
     const products = JSON.parse(result.toJSON().body);
 
-    console.log(products[1]);
+    //console.log(products[0]);
 
     // dafault images
-    console.log('------------- Default Images -------------');
-    console.log(products[1].images);
+    //console.log('------------- Default Images -------------');
+    //console.log(products[1].images);
 
     // get variants if there are any
-    console.log('------------- Variants -------------');
-    if (products[1].variations.length > 0) {
-        products[1].variations.forEach(variant => {
+    //console.log('------------- Variants -------------');
+    if (products[0].variations.length > 0) {
+        products[0].variations.forEach(variant => {
             // get from id
-            console.log(variant);
             WooCommerce.getAsync('products/' + variant).then(function(result) {
                 const variantData = JSON.parse(result.toJSON().body);
                 console.log(variantData.meta_data);
@@ -31,8 +30,4 @@ WooCommerce.getAsync('products').then(function(result) {
             });
         });
     }
-
-    // get the products meta data
-    console.log('------------- Meta Data -------------');
-    console.log(products[1].meta_data);
 });

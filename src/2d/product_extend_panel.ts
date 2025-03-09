@@ -6,15 +6,12 @@ require('./product_extend_panel.css');
 
 export class ProductExtendPanel extends ExtendPanel {
     constructor(product: ProductEntity) {
-        super({topBarName: product.name, onBackClick: () => {
+        super({topBarName: product.getName(), onBackClick: () => {
             this.closeAndRemove();
         }});
 
         const images = new ImageCarousel();
-        product.getImageUrls().then((imageUrls) => {
-            console.log(imageUrls);
-            images.setImages(imageUrls);
-        });
+        images.setImages(product.getImageUrls());
         this.appendToBody(images.rootElement);
 
         const contentContainer = document.createElement("div");
@@ -23,11 +20,11 @@ export class ProductExtendPanel extends ExtendPanel {
 
         const description = document.createElement("p");
         description.style.opacity = "0.7";
-        description.innerText = product.description;
+        description.innerText = product.getDescription();
         contentContainer.appendChild(description);
 
         const readMore = document.createElement("a");
-        readMore.href = "https://www.google.com"; // TODO: proper link
+        readMore.href = product.getShopLink();
         readMore.target = "_blank";
         readMore.rel = "noopener noreferrer";
         readMore.style.opacity = "0.7";
@@ -35,14 +32,11 @@ export class ProductExtendPanel extends ExtendPanel {
         contentContainer.appendChild(readMore);
 
         const priceDisplay = new PriceDisplay();
-        product.getPrice().then((price) => {
-            priceDisplay.setAmount(price);
-        });
+        priceDisplay.setAmount(product.getPrice());
 
         product.BboxChanged.on(() => {
-            product.getPrice().then((price) => {
-                priceDisplay.setAmount(price);
-            });
+            priceDisplay.setAmount(product.getPrice());
+            images.setImages(product.getImageUrls());
         });
 
         contentContainer.appendChild(priceDisplay.rootElement);

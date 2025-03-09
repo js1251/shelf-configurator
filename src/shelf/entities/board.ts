@@ -3,6 +3,7 @@ import { ModelLoader } from "../../3d/modelloader";
 import { Strut } from "./strut";
 import { LiteEvent } from "../../event_engine/LiteEvent";
 import { ProductEntity } from "../../entity_engine/product_entity";
+import { ProductOptions } from "../product_options";
 
 export class Board extends ProductEntity {
     private height_m: number;
@@ -103,36 +104,13 @@ export class Board extends ProductEntity {
     }
 
     get SKU(): string {
-        // TODO: these ranges should be retrieved from the woocommerce product
-        const ranges = [80, 120, 160, 200];
-
         const width = this.getBoundingBox().extendSize.x * 2;
 
         // find the range the height is in
-        let lengthRange = this.getRangeOption(width * 100, ranges);
+        let lengthRange = this.getRangeOption(width * 100, ProductOptions.availableBoardLengths);
 
         return `BOARD-OAK-OILED-${lengthRange}`;
     }
-
-    get name(): string {
-        return "Regalboden";
-    }
-
-    get description(): string {
-        return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt";
-    }
-
-    get imageUrls(): string[] {
-        return [
-            "images/product_placeholder01.jpg",
-            "images/product_placeholder02.jpg",
-            "images/product_placeholder03.jpg",
-        ];
-    }
-
-    get shopUrl(): string {
-        return "https://www.google.com";
-    };
 
     setMaterial(material: BABYLON.Material) {
         this.start.getChildMeshes().forEach(child => {

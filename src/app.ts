@@ -16,6 +16,7 @@ import { ShelfCamera } from "./3d/camera";
 import { StyleGuide } from "./2d/style_guide";
 import { METAL_MATERIALS, Resources, WOOD_MATERIALS } from "./shelf/materials";
 import { Environment } from "./3d/environment";
+import { ProductOptions } from "./shelf/product_options";
 
 require("./app.css");
 
@@ -57,6 +58,7 @@ class App {
         this.setupWiPOverlay();
 
         await this.loadResources();
+        await this.loadProductOptions();
         
         this.shelf = this.createShelf();
 
@@ -268,6 +270,11 @@ class App {
 
         this.modelLoader = new ModelLoader(this.scene, this.environment.getShadowGenerator());
         await this.modelLoader.preloadModels();
+    }
+
+    private async loadProductOptions() {
+        const productOptions = new ProductOptions();
+        await productOptions.loadOptions();
     }
 
     private createShelf() : Shelf {

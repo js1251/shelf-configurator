@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
 import { ModelLoader } from "../../3d/modelloader";
 import { ProductEntity } from "../../entity_engine/product_entity";
+import { ProductOptions } from "../product_options";
 
 export class Strut extends ProductEntity {
     private height_m: number;
@@ -59,35 +60,12 @@ export class Strut extends ProductEntity {
     }
 
     get SKU(): string {
-        // TODO: these ranges should be retrieved from the woocommerce product
-        const ranges = [200, 250, 300];
-
         // find the range the height is in
-        let heightRange = this.getRangeOption(this.height_m * 100, ranges);
+        let heightRange = this.getRangeOption(this.height_m * 100, ProductOptions.availableStrutHeights);
 
         // TODO: the color should be dynamic
         return `STRUT-BLACK-${heightRange}`;
     }
-
-    get name(): string {
-        return "Strebe";
-    }
-
-    get description(): string {
-        return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt";
-    }
-
-    get imageUrls(): string[] {
-        return [
-            "images/product_placeholder01.jpg",
-            "images/product_placeholder02.jpg",
-            "images/product_placeholder03.jpg",
-        ];
-    }
-
-    get shopUrl(): string {
-        return "https://www.google.com";
-    };
 
     // TODO: the color options should be retrieved from the woocommerce product, placeholder colors should be used if no material is defined for a color option
     setMaterial(material: BABYLON.Material) {
