@@ -258,6 +258,10 @@ export class Navigation2D {
         
         const buttonDayNight = document.createElement("button");
         buttonDayNight.innerHTML = ICON.night;
+
+        // TODO: fix up night mode
+        buttonDayNight.disabled = true;
+
         buttonDayNight.className = "button button-inverted button-rounded";
         buttonDayNight.addEventListener('click', () => {
             buttonDayNight.classList.toggle("active");
