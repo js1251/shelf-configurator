@@ -230,24 +230,51 @@ export abstract class Entity {
 
         // Note: assuming that the root has no mesh! Since the root bbox is updated here, it would return its previous bbox here
         // therefore never allowing its bbox to shrink, only grow
-        let min = new BABYLON.Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
-        let max = new BABYLON.Vector3(Number.MIN_VALUE, Number.MIN_VALUE, Number.MIN_VALUE);
+        let min: BABYLON.Vector3;
+        let max: BABYLON.Vector3;
 
         // First, get bbox from all meshes in this entity
         recursiveGetDirectChildren(this.root).forEach(mesh => {
+            // continue if mesh has no vertices
+            if (mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind) === null) {
+                return;
+            }
+
             const bbox = mesh.getBoundingInfo().boundingBox;
 
-            min = BABYLON.Vector3.Minimize(min, bbox.minimumWorld);
-            max = BABYLON.Vector3.Maximize(max, bbox.maximumWorld);
+            if (min === undefined) {
+                min = bbox.minimumWorld.clone();
+            } else {
+                min = BABYLON.Vector3.Minimize(min, bbox.minimumWorld);
+            }
+
+            if (max === undefined) {
+                max = bbox.maximumWorld.clone();
+            } else {
+                max = BABYLON.Vector3.Maximize(max, bbox.maximumWorld);
+            }
         });
 
         // Second, merge with bbox from children entities
         this.children.forEach(child => {
             const childBbox = child.getBoundingBox();
 
-            min = BABYLON.Vector3.Minimize(min, childBbox.minimumWorld);
-            max = BABYLON.Vector3.Maximize(max, childBbox.maximumWorld);
+            if (min === undefined) {
+                min = childBbox.minimumWorld.clone();
+            } else {
+                min = BABYLON.Vector3.Minimize(min, childBbox.minimumWorld);
+            }
+
+            if (max === undefined) {
+                max = childBbox.maximumWorld.clone();
+            } else {
+                max = BABYLON.Vector3.Maximize(max, childBbox.maximumWorld);
+            }
         });
+
+        if (min === undefined || max === undefined) {
+            return;
+        }
 
         // return to local
         min = min.subtract(this.root.getAbsolutePosition());
