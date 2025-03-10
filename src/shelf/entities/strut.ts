@@ -6,7 +6,6 @@ import * as Resources from "../../shelf/materials";
 
 export class Strut extends ProductEntity {
     private height_m: number;
-    private offset: number;
     private index: number;
     
     private strut: BABYLON.AbstractMesh;
@@ -42,12 +41,12 @@ export class Strut extends ProductEntity {
         this.footTop.setParent(null);
         this.footBottom.setParent(null);
 
-        // Note: struts are moved local to shelf so x and z are not relative to world
-        this.strut.position = new BABYLON.Vector3(this.offset, this.height_m / 2, 0);
+        const newPosition = this.getPosition().clone();
+        newPosition.y = this.height_m / 2;
+        this.setPosition(newPosition);
         this.strut.getChildMeshes()[0].scaling.y = (this.height_m - 0.04 * 2) * 10;
 
-        // Note:
-        const strutPosition = this.getPosition().clone();
+        const strutPosition = newPosition.clone();
         strutPosition.y = 0;
         this.footTop.position = strutPosition.add(BABYLON.Vector3.Up().scale(this.height_m - 0.04));
         this.footTop.setParent(this.strut);
@@ -56,10 +55,9 @@ export class Strut extends ProductEntity {
         this.footBottom.setParent(this.strut);
 
         this.updateBoundingBox();
+        this.freeze();
         
         this.onPriceChanged.trigger(this.getPrice());
-
-        this.freeze();
     }
 
     get SKU(): string {
@@ -67,7 +65,6 @@ export class Strut extends ProductEntity {
         return `STRUT-${this.material}-${heightRange}`;
     }
 
-    // TODO: the color options should be retrieved from the woocommerce product, placeholder colors should be used if no material is defined for a color option
     protected applyMaterial(material: string) {
         const shelfMaterial = Resources.getShelfMaterialForStringMaterial(material);
         this.strut.getChildMeshes()[0].material = shelfMaterial.material;
