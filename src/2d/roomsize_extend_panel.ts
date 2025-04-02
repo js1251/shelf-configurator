@@ -15,16 +15,20 @@ export class RoomsizeExtendPanel extends ExtendPanel {
         this.shelf = shelf;
         this.environment = environment;
 
+        /*
         this.createRoomSizeInput("Breite", 350, 200, 500, (value) => {
             this.environment.setRoomWidth(value / 100);
         });
+        */
         this.createRoomSizeInput("Höhe", 240, 230, 300, (value) => {
             this.environment.setRoomHeight(value / 100);
             this.shelf.setHeight(value / 100);
         });
+        /*
         this.createRoomSizeInput("Tiefe", 450, 200, 500, (value) => {
             this.environment.setRoomDepth(value / 100);
         });
+        */
     }
 
     private createRoomSizeInput(name: string, initialValue: number, min: number, max: number, onChange: (value: number) => void) {

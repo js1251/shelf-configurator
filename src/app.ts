@@ -15,8 +15,10 @@ import { ProductEntity } from "./entity_engine/product_entity";
 import { ShelfCamera } from "./3d/camera";
 import { StyleGuide } from "./2d/style_guide";
 import { Resources } from "./shelf/materials";
-import { Environment } from "./3d/environment";
 import { ProductOptions } from "./shelf/product_options";
+import { Environment } from "./3d/environment";
+import { EnvironmentRoom } from "./3d/environment_room";
+import { EnvironmentVoid } from "./3d/environment_void";
 
 require("./app.css");
 
@@ -212,7 +214,7 @@ class App {
     }
 
     private setupEnvironment() {
-        this.environment = new Environment(this.scene);
+        this.environment = new EnvironmentVoid(this.scene);
         this.environment.setRoomHeight(2.4);
         this.environment.setRoomWidth(3.5);
         this.environment.setRoomDepth(4.5);
