@@ -119,13 +119,5 @@ export class ProductOptions {
                 }
             }
         });
-
-        console.log('Product options loaded:', ProductOptions._data);
-        console.log('Available board lengths:', ProductOptions._availableBoardLengths);
-        console.log('Available wood types:', ProductOptions._availableWoodTypes);
-        console.log('Available wood finishes:', ProductOptions._availableWoodFinishes);
-        console.log('Available strut heights:', ProductOptions._availableStrutHeights);
-        console.log('Available strut materials:', ProductOptions._availableStrutMaterials);
-        console.log('Material thumbnails:', ProductOptions._materialThumbnails);
     }
 }
