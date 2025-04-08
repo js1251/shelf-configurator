@@ -215,9 +215,6 @@ class App {
 
     private setupEnvironment() {
         this.environment = new EnvironmentVoid(this.scene);
-        this.environment.setRoomHeight(2.4);
-        this.environment.setRoomWidth(3.5);
-        this.environment.setRoomDepth(4.5);
     }
 
     private setupWiPOverlay() {
@@ -284,6 +281,16 @@ class App {
 
     private createShelf() : Shelf {
         const shelf = new Shelf(this.modelLoader);
+
+        shelf.BboxChanged.on(() => {
+            this.environment.setRoomHeight(shelf.getHeight());
+            this.environment.setRoomWidth(shelf.getWidth());
+            this.environment.setRoomDepth(shelf.getDepth());
+
+            if (this.environment instanceof EnvironmentVoid) {
+                this.environment.setCenter(shelf.getBoundingBox().centerWorld);
+            }
+        });
             
         shelf.setHeight(2.4);
         shelf.setStrutSpacing(0.5);
