@@ -7,7 +7,6 @@ import { LiteEvent } from "../event_engine/LiteEvent";
 import { Environment } from "./environment";
 import * as ICON from "../2d/icons";
 import { Entity } from "../entity_engine/entity";
-import { ProductEntity } from "../entity_engine/product_entity";
 
 class DeselectDetector {
     private previousPointerPosition: BABYLON.Vector2 = BABYLON.Vector2.Zero();
@@ -123,7 +122,7 @@ export class Navigation3D {
             this.attachEntitySelectionControls(strut);
         });
 
-        this.attachShelfDragControls();
+        //this.attachShelfDragControls();
 
         this.shelf.BoardRemoved.on((board) => {
             this.setSelectedEntity(null);
