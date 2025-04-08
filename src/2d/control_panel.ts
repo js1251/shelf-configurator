@@ -74,18 +74,23 @@ export class ControlPanel {
 
         const buttonContainer = document.createElement("div");
         buttonContainer.id = "sectionButtonContainer";
+        
         buttonContainer.appendChild(this.createSectionButton("Material", () => {
             this.openExtendPanel(new MaterialExtendPanel(this.shelf));
         }));
+        /*
         buttonContainer.appendChild(this.createSectionButton("Anordnung", () => {
             
         }));
+        */
         buttonContainer.appendChild(this.createSectionButton("Raumgröße", () => {
             this.openExtendPanel(new RoomsizeExtendPanel(this.shelf, this.environment));
         }));
+        /*
         buttonContainer.appendChild(this.createSectionButton("Inspiration", () => {
             
         }));
+        */
 
         this.extendContainer = document.createElement("div");
         this.extendContainer.id = "extendContainer";
@@ -94,6 +99,14 @@ export class ControlPanel {
         const controlPanel = new ExtendPanel({startsExtended: true});
         this.extendContainer.appendChild(controlPanel.rootElement);        
         controlPanel.appendToBody(buttonContainer);
+        
+        const notesContainer = document.createElement("div");
+        notesContainer.id = "notesContainer";
+        controlPanel.appendToBody(notesContainer);
+        
+        const note1 = document.createElement("p");
+        note1.innerHTML = "Hinweis: Alle Konfigurationen lassen auf Ihre individuellen Bedürfnisse anpassen und erweitern.";
+        notesContainer.appendChild(note1);
     }
 
     private createSectionButton(text: string, onClick: () => void) : HTMLButtonElement {
