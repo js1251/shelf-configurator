@@ -47,8 +47,6 @@ export class EnvironmentRoom extends Environment {
     setRoomHeight(height: number): void {
         this.scaleHandle.scaling.y = height;
         this.scaleHandle.position.y = height * 0.5;
-        
-        this.onRoomChanged.trigger(this.getBoundingBox());
     }
 
     getRoomHeight(): number {
@@ -77,8 +75,6 @@ export class EnvironmentRoom extends Environment {
         specularTexture.uOffset = uOffsetFactor;
 
         this.scene.onAfterRenderObservable.add(() => {material.freeze()});
-
-        this.onRoomChanged.trigger(this.getBoundingBox());
     }
 
     getRoomWidth(): number {
@@ -107,8 +103,6 @@ export class EnvironmentRoom extends Environment {
         specularTexture.vOffset = vOffsetFactor;
         
         this.scene.onAfterRenderObservable.add(() => {material.freeze()});
-
-        this.onRoomChanged.trigger(this.getBoundingBox());
     }
 
     getRoomDepth(): number {

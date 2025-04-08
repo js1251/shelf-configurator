@@ -1,13 +1,7 @@
 import * as BABYLON from "@babylonjs/core";
-import { LiteEvent } from "../event_engine/LiteEvent";
 
 export abstract class Environment {
     protected scene: BABYLON.Scene;
-
-    protected readonly onRoomChanged = new LiteEvent<BABYLON.BoundingBox>();
-    public get RoomChanged() {
-        return this.onRoomChanged.expose();
-    }
 
     constructor(scene: BABYLON.Scene) {
         this.scene = scene;
