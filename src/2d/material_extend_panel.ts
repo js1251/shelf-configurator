@@ -68,10 +68,13 @@ export class MaterialExtendPanel extends ExtendPanel {
         for (let i = 0; i < materials.length; i++) {
             const materialThumbnailUrl = ProductOptions.getMaterialThumbnailUrl(materials[i]);
             const swatch = new ColorSwatch(materialThumbnailUrl, () => {
-                onSwatchPicked(materials[i]);
+                const newMaterial = materials[i];
+                onSwatchPicked(newMaterial);
+                const newShelfMaterial = Resources.getShelfMaterialForStringMaterial(newMaterial);
+
                 preview.src = materialThumbnailUrl;
-                materialNameTitle.innerHTML = shelfMaterial.name;
-                materialFinish.innerHTML = shelfMaterial.finish;
+                materialNameTitle.innerHTML = newShelfMaterial.name;
+                materialFinish.innerHTML = newShelfMaterial.finish;
             }, name, materials[i] === initialMaterialName);
             swatchContainer.append(swatch.rootElement);
         }
