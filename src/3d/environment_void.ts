@@ -78,13 +78,13 @@ export class EnvironmentVoid extends Environment {
     
     protected createShadowGenerator() {        
         this.sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(3, -3, 2), this.scene);
-        //this.sun.diffuse = BABYLON.Color3.FromHexString("#f5e5d6");
-        //this.sun.intensity = 0.2;
+        this.sun.intensity = 1.4;
 
         const shadowGenerator = new BABYLON.ShadowGenerator(1024, this.sun);
         shadowGenerator.setDarkness(0.4);
         shadowGenerator.bias = 0.000002;
-        shadowGenerator.usePoissonSampling = true;
+        shadowGenerator.usePercentageCloserFiltering = true;
+        shadowGenerator.filteringQuality = BABYLON.ShadowGenerator.QUALITY_MEDIUM;
 
         this.shadowGenerator = shadowGenerator;
     }
