@@ -102,16 +102,20 @@ export class EnvironmentVoid extends Environment {
         material.diffuseColor = BABYLON.Color3.FromHexString('#E0D9CC'); // TODO: grab from colors.css
         material.specularColor = BABYLON.Color3.FromHexString('#333333');
 
-        // material.freeze();
+        material.freeze();
 
         this.ground.material = material;
     }
 
     private recalculateGroundSize() {
+        this.ground.material.unfreeze();
+
         const width = this.roomWidth + EnvironmentVoid.groundPadding * 2;
         const depth = this.roomDepth + EnvironmentVoid.groundPadding * 2;
 
         this.ground.scaling.x = Math.max(width, depth);
         this.ground.scaling.z = this.ground.scaling.x;
+
+        this.ground.material.freeze();
     }
 }
