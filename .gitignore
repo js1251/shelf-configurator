@@ -34,3 +34,5 @@ playwright/.cache/
 .DS_Store
 .vscode
 .blend1
+
+wordpress_plugins/woo-product-bundle-premium
